@@ -64,7 +64,7 @@ def detect_provider_from_key(api_key: str) -> str:
 
 
 def _http_get_json(url: str, headers: dict, timeout: int = 20):
-    req_headers = {"User-Agent": "AI-Video-Studio/5.0"}
+    req_headers = {"User-Agent": "AI-Video-Studio/6.0"}
     req_headers.update(headers)
     req = urllib.request.Request(url, headers=req_headers, method="GET")
     try:
@@ -82,7 +82,7 @@ def _http_post_json(url: str, payload: dict, headers: dict, timeout: int = 90):
     data = json.dumps(payload).encode("utf-8")
     req_headers = {
         "Content-Type": "application/json",
-        "User-Agent": "AI-Video-Studio/5.0"
+        "User-Agent": "AI-Video-Studio/6.0"
     }
     req_headers.update(headers)
     req = urllib.request.Request(url, data=data, headers=req_headers, method="POST")
@@ -97,9 +97,11 @@ def _http_post_json(url: str, payload: dict, headers: dict, timeout: int = 90):
         return 0, str(e)
 
 
-async def fetch_best_live_model(provider: str, api_key: str):
-    provider = (provider or "").lower().strip()
+async def fetch_live_models(provider: str, api_key: str, custom_url: str = ""):
+    provider = (provider or "google").lower().strip()
     api_key = (api_key or "").strip()
+    default_model = PROVIDER_DEFAULTS.get(provider, PROVIDER_DEFAULTS["custom"]).get("model", "")
+    models = []
 
     if provider == "google":
         url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
@@ -107,23 +109,44 @@ async def fetch_best_live_model(provider: str, api_key: str):
         if status == 200:
             try:
                 data = json.loads(raw)
-                models = []
                 for m in data.get("models", []):
                     if "generateContent" in m.get("supportedGenerationMethods", []):
                         name = m.get("name", "").replace("models/", "")
-                        if "flash" in name or "pro" in name:
+                        if name:
                             models.append(name)
-                for pref in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-pro"]:
-                    if pref in models:
-                        return pref
-                if models:
-                    return models[0]
             except Exception:
                 pass
-        return PROVIDER_DEFAULTS["google"]["model"]
+        best = default_model
+        for pref in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro", "gemini-1.5-flash"]:
+            if pref in models:
+                best = pref
+                break
+        if models and best not in models:
+            best = models[0]
+        if not models:
+            models = [best] if best else ["gemini-2.5-flash"]
+        return best, models
 
     if provider == "openrouter":
-        return "openrouter/free"
+        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+        status, raw = await asyncio.to_thread(_http_get_json, "https://openrouter.ai/api/v1/models", headers, 20)
+        free_models = []
+        paid_models = []
+        if status == 200:
+            try:
+                data = json.loads(raw)
+                for m in data.get("data", []):
+                    mid = m.get("id", "")
+                    if not mid:
+                        continue
+                    if ":free" in mid:
+                        free_models.append(mid)
+                    else:
+                        paid_models.append(mid)
+            except Exception:
+                pass
+        models = ["openrouter/free"] + free_models + paid_models[:180]
+        return "openrouter/free", models
 
     if provider == "groq":
         status, raw = await asyncio.to_thread(
@@ -135,15 +158,19 @@ async def fetch_best_live_model(provider: str, api_key: str):
         if status == 200:
             try:
                 data = json.loads(raw)
-                ids = [m.get("id", "") for m in data.get("data", []) if "whisper" not in m.get("id", "")]
-                for pref in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
-                    if pref in ids:
-                        return pref
-                if ids:
-                    return ids[0]
+                models = [m.get("id", "") for m in data.get("data", []) if m.get("id") and "whisper" not in m.get("id", "")]
             except Exception:
                 pass
-        return PROVIDER_DEFAULTS["groq"]["model"]
+        best = default_model
+        for pref in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+            if pref in models:
+                best = pref
+                break
+        if models and best not in models:
+            best = models[0]
+        if not models:
+            models = [best]
+        return best, models
 
     if provider == "openai":
         status, raw = await asyncio.to_thread(
@@ -155,15 +182,72 @@ async def fetch_best_live_model(provider: str, api_key: str):
         if status == 200:
             try:
                 data = json.loads(raw)
-                ids = [m.get("id", "") for m in data.get("data", [])]
-                for pref in ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"]:
-                    if pref in ids:
-                        return pref
+                all_ids = [m.get("id", "") for m in data.get("data", []) if m.get("id")]
+                models = sorted([x for x in all_ids if x.startswith(("gpt-", "o1", "o3", "o4", "chatgpt"))])
             except Exception:
                 pass
-        return PROVIDER_DEFAULTS["openai"]["model"]
+        best = default_model
+        for pref in ["gpt-4o-mini", "gpt-4.1-mini", "gpt-4o"]:
+            if pref in models:
+                best = pref
+                break
+        if models and best not in models:
+            best = models[0]
+        if not models:
+            models = ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"]
+        return best, models
 
-    return PROVIDER_DEFAULTS.get(provider, PROVIDER_DEFAULTS["custom"]).get("model", "")
+    if provider == "anthropic":
+        headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
+        status, raw = await asyncio.to_thread(_http_get_json, "https://api.anthropic.com/v1/models", headers, 20)
+        if status == 200:
+            try:
+                data = json.loads(raw)
+                models = [m.get("id", "") for m in data.get("data", []) if m.get("id")]
+            except Exception:
+                pass
+        if not models:
+            models = ["claude-3-5-sonnet-latest", "claude-3-5-haiku-latest", "claude-3-7-sonnet-latest"]
+        best = default_model if default_model in models else models[0]
+        return best, models
+
+    if provider == "deepseek":
+        status, raw = await asyncio.to_thread(
+            _http_get_json,
+            "https://api.deepseek.com/models",
+            {"Authorization": f"Bearer {api_key}"},
+            20
+        )
+        if status == 200:
+            try:
+                data = json.loads(raw)
+                models = [m.get("id", "") for m in data.get("data", []) if m.get("id")]
+            except Exception:
+                pass
+        if not models:
+            models = ["deepseek-chat", "deepseek-reasoner"]
+        best = default_model if default_model in models else models[0]
+        return best, models
+
+    if provider == "mistral":
+        status, raw = await asyncio.to_thread(
+            _http_get_json,
+            "https://api.mistral.ai/v1/models",
+            {"Authorization": f"Bearer {api_key}"},
+            20
+        )
+        if status == 200:
+            try:
+                data = json.loads(raw)
+                models = sorted(list({m.get("id", "") for m in data.get("data", []) if m.get("id")}))
+            except Exception:
+                pass
+        if not models:
+            models = ["mistral-small-latest", "mistral-large-latest", "pixtral-12b-2409"]
+        best = default_model if default_model in models else models[0]
+        return best, models
+
+    return default_model, [default_model] if default_model else []
 
 
 async def call_single_key(
@@ -188,7 +272,6 @@ async def call_single_key(
     defaults = PROVIDER_DEFAULTS.get(provider, PROVIDER_DEFAULTS["custom"])
     use_model = model or defaults.get("model", "")
 
-    # 1. Google Gemini API
     if provider == "google":
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{use_model}:generateContent?key={api_key}"
         contents = []
@@ -212,7 +295,6 @@ async def call_single_key(
                 return {"ok": False, "error": f"Google Parse Error: {str(e)} | Raw: {raw[:400]}"}
         return {"ok": False, "error": f"Google Error {status}: {raw[:700]}"}
 
-    # 2. Anthropic Claude API
     if provider == "anthropic":
         url = custom_url or defaults["url"]
         headers = {
@@ -244,7 +326,6 @@ async def call_single_key(
                 return {"ok": False, "error": f"Anthropic Parse Error: {str(e)} | Raw: {raw[:400]}"}
         return {"ok": False, "error": f"Anthropic Error {status}: {raw[:700]}"}
 
-    # 3. OpenAI-Compatible APIs
     url = custom_url if (provider == "custom" or custom_url) else defaults.get("url", "")
     if not url:
         return {"ok": False, "error": "Custom Endpoint URL দেওয়া হয়নি।"}
@@ -364,6 +445,27 @@ def home():
     return "<h1>AI Video Studio Backend Ready</h1>"
 
 
+@app.post("/api/list-models")
+async def list_models(request: Request):
+    body = await request.json()
+    api_key = (body.get("apiKey") or "").strip()
+    given_provider = (body.get("provider") or "").strip()
+    custom_url = (body.get("customUrl") or "").strip()
+
+    detected = detect_provider_from_key(api_key)
+    provider = detected or given_provider or "google"
+    if detected == "openai" and given_provider in ("deepseek", "mistral", "custom"):
+        provider = given_provider
+
+    best_model, models = await fetch_live_models(provider, api_key, custom_url)
+    return JSONResponse({
+        "ok": True,
+        "provider": provider,
+        "auto_model": best_model,
+        "models": models
+    })
+
+
 @app.post("/api/auto-detect-key")
 async def auto_detect_key(request: Request):
     body = await request.json()
@@ -377,12 +479,11 @@ async def auto_detect_key(request: Request):
 
     detected = detect_provider_from_key(api_key)
     provider = detected or given_provider or "google"
-
-    # Special case: sk- could be OpenAI or DeepSeek/Mistral if user explicitly chose them
     if detected == "openai" and given_provider in ("deepseek", "mistral", "custom"):
         provider = given_provider
 
-    model = given_model or await fetch_best_live_model(provider, api_key)
+    best_model, models = await fetch_live_models(provider, api_key, custom_url)
+    model = given_model or best_model
 
     res = await call_single_key(
         provider=provider,
@@ -399,13 +500,17 @@ async def auto_detect_key(request: Request):
         return JSONResponse({
             "ok": True,
             "provider": provider,
-            "model": model
+            "model": model,
+            "auto_model": best_model,
+            "models": models
         })
 
     return JSONResponse({
         "ok": False,
         "provider": provider,
         "model": model,
+        "auto_model": best_model,
+        "models": models,
         "error": res.get("error", "Unknown Error")
     })
 
@@ -448,7 +553,7 @@ async def start_job(request: Request):
                         item.get("prompt", ""),
                         item.get("system_prompt", ""),
                         [],
-                        bool(item.get("co_work", False))
+                                        bool(item.get("co_work", False))
                     )
                     return {
                         "agent_id": item.get("agent_id", ""),
@@ -505,4 +610,4 @@ async def get_job(job_id: str):
     if not job:
         return JSONResponse({"ok": False, "status": "not_found", "error": "Job পাওয়া যায়নি।"})
     return JSONResponse({"ok": True, "status": job["status"], "result": job["result"]})
-        
+    
