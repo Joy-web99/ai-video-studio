@@ -1,1209 +1,180 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#10131d">
-<title>AI Video Production Studio · V10</title>
-<style>
-:root{color-scheme:dark;--bg:#0b0e16;--panel:#141a27;--panel2:#1c2535;--line:#2b3850;--text:#eef3ff;--muted:#9aa9c2;--accent:#8d80ff;--good:#48d6a0;--warn:#ffc66d;--bad:#ff7f89}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% -20%,#25234c 0,transparent 42%),var(--bg);color:var(--text);font:15px system-ui,-apple-system,"Noto Sans Bengali",sans-serif}
-header{position:sticky;top:0;z-index:5;background:#101521ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.brand{font-weight:800;font-size:17px}.sub{font-size:12px;color:var(--muted);margin-top:3px}.topstatus{font-size:11px;border:1px solid #6557ad;color:#c5bcff;padding:6px 9px;border-radius:20px;white-space:nowrap}
-main{max-width:1120px;margin:auto;padding:16px;display:grid;gap:14px}.card{background:linear-gradient(150deg,#171e2c,#121824);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
-h2{font-size:16px;margin:0 0 6px}p{color:var(--muted);line-height:1.5;margin:5px 0 12px;font-size:13px}
-label{display:block;font-size:12px;color:#cbd5e8;margin:12px 0 6px}
-input,textarea,select{width:100%;background:#0c1220;border:1px solid var(--line);border-radius:10px;color:var(--text);padding:11px;font:inherit;outline:none}
-textarea{min-height:150px;resize:vertical}input:focus,textarea:focus,select:focus{border-color:var(--accent)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-button{border:0;border-radius:10px;padding:11px 14px;background:var(--accent);color:white;font-weight:700;font-size:13px;cursor:pointer}
-button.secondary{background:var(--panel2);border:1px solid var(--line);color:var(--text)}button.danger{background:#40232d;border:1px solid #75404c;color:#ffc0c7}button:disabled{opacity:.45;cursor:not-allowed}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.hint{background:#101827;border:1px solid #293650;border-radius:10px;padding:10px;color:var(--muted);font-size:12px;line-height:1.5;margin-top:10px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stat{background:#0d1421;border:1px solid var(--line);border-radius:11px;padding:10px}.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:var(--muted)}
-.stage{display:grid;grid-template-columns:28px 1fr 125px;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid #273246}.stage:last-child{border:0}.num{width:26px;height:26px;display:grid;place-items:center;border-radius:8px;background:#252e43;color:#cbd5e8;font-size:12px}.stage strong{font-size:13px}.stage small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.stage select{font-size:11px;padding:7px}
-.chatlog{height:260px;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:3px}.msg{max-width:94%;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5;white-space:pre-wrap}.ai{background:#202a3c;align-self:flex-start}.user{background:#393267;align-self:flex-end}
-.chatcompose{display:flex;gap:8px;margin-top:9px}.chatcompose input{min-width:0}.chatcompose button{flex:none}
-.pill{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:4px 8px;font-size:11px;color:var(--muted)}
-footer{text-align:center;color:var(--muted);font-size:11px;padding:3px 16px 25px}
-@media(max-width:700px){.grid,.row{grid-template-columns:1fr}.stage{grid-template-columns:28px 1fr 112px}.card{padding:13px}header{padding:12px}.stats{grid-template-columns:repeat(3,1fr)}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Video Studio</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      margin: 0;
+      padding: 16px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+      color: #38bdf8;
+    }
+    .card {
+      background: #1e293b;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #cbd5e1;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #ffffff;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #22c55e;
+      color: #000;
+      font-weight: bold;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #64748b;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #facc15;
+    }
+    .output {
+      white-space: pre-wrap;
+      background: #020617;
+      padding: 14px;
+      border-radius: 8px;
+      min-height: 120px;
+      border: 1px solid #334155;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+  </style>
 </head>
 <body>
-<header><div><div class="brand">🎬 AI Video Production Studio</div><div class="sub">Complete Studio · Preview, Revision, Recovery &amp; Export · V10</div></div><span class="topstatus" id="saveBadge">● Local autosave</span></header>
-<main>
-<section class="card">
-<h2>প্রজেক্ট সেটআপ</h2><p>Master Production Prompt যোগ করো। Backend চালু থাকলে প্রজেক্ট, Chat ও Workflow SQLite Database-এ সংরক্ষিত হবে।</p><div class="row" style="margin-bottom:8px;align-items:end"><div><label for="projectSelect">সেভ করা প্রজেক্ট (Server / Local)</label><select id="projectSelect"><option value="">-- নতুন প্রজেক্ট (Draft) --</option></select></div><div class="actions" style="margin-top:0"><button class="secondary" id="newProjectBtn" type="button">+ নতুন প্রজেক্ট</button><button class="danger" id="deleteProjectBtn" type="button">মুছুন</button></div></div>
-<div class="row">
-<div><label for="title">প্রজেক্টের নাম</label><input id="title" placeholder="যেমন: Animated Story Episode 01"></div>
-<div><label for="format">ভিডিও ফরম্যাট</label><select id="format"><option>16:9 — YouTube</option><option>9:16 — Shorts / Reels</option><option>1:1 — Square</option></select></div>
-</div>
-<label for="prompt">Master Production Prompt</label><textarea id="prompt" placeholder="সম্পূর্ণ Master Production Prompt এখানে পেস্ট করো..."></textarea>
-<div class="actions"><button id="analyze">Prompt বিশ্লেষণ (Demo)</button><button class="secondary" id="save">প্রজেক্ট সেভ</button><button class="secondary" id="export">JSON Export</button><button class="secondary" id="importBtn">JSON Import</button><input id="importFile" type="file" accept="application/json" hidden></div>
-<div class="hint"><b>সৎ সীমাবদ্ধতা:</b> Backend V2 Dashboard ও FastAPI একই সার্ভার থেকে চলছে। Image/Video/Voice generation এবং FFmpeg MP4 rendering এখনো যুক্ত হয়নি (কোনো Fake Progress/Generation নেই)। API Key কখনো Frontend-এ রাখা হয় না।</div>
-<div class="stats"><div class="stat"><b id="wordCount">0</b><span>Prompt characters</span></div><div class="stat"><b id="doneCount">0/10</b><span>Workflow complete</span></div><div class="stat"><b id="chatCount">0</b><span>Chat messages</span></div></div>
-</section>
-<div class="grid">
-<section class="card"><h2>Production Workflow (10 Stages)</h2><p>প্রতিটি ধাপের অবস্থা (Pending, Working, Completed, Failed, Blocked) ট্র্যাক করো। কোনো ধাপ Failed/Blocked হলে সবকিছু নতুন করে শুরু না করে Resume করো।</p><div class="actions" style="margin-bottom:8px"><button class="secondary" id="resumePipelineBtn" type="button">Failed/Blocked থেকে Resume করো</button></div><div id="workflow"></div></section>
-<section class="card"><h2>AI Director Chat <span class="pill">Demo mode</span></h2><p>এখানে নির্দেশনা ও সংশোধনের কথোপকথন রাখা যাবে।</p><div class="chatlog" id="chat"></div><div class="chatcompose"><input id="chatInput" placeholder="যেমন: Scene 2-তে আলো পরিবর্তন করো"><button id="send">পাঠাও</button></div><div class="actions"><button class="secondary" id="clearChat">Chat পরিষ্কার</button></div></section>
-</div>
-<section class="card"><h2>Project Status & Next Step</h2><p id="statusText">নতুন প্রজেক্ট তৈরি করো অথবা আগের সেভ করা প্রজেক্ট খুলে কাজ চালাও।</p><div class="row"><div><label>Project status</label><input id="projectStatus" value="Not started" readonly></div><div><label>AI connection</label><input id="aiConnInput" value="Checking backend..." readonly></div></div><div class="hint" id="nextStep">Backend V10 (সম্পূর্ণ আর্কিটেকচার) প্রস্তুত: Preview, Scene-Specific Revision, Recovery Check ও Final Export যুক্ত হয়েছে। কোনো Fake Asset বা Fake Progress তৈরি হয় না।</div></section>
+  <div class="container">
+    <h2>AI Video Studio</h2>
 
+    <div class="card">
+      <label>১. Primary API Key (OpenRouter):</label>
+      <input type="password" id="apiKey1" placeholder="প্রথম API Key এখানে দাও">
 
+      <label>২. Extra / Backup API Key (অসুবিধা হলে এটায় সুইচ করবে):</label>
+      <input type="password" id="apiKey2" placeholder="দ্বিতীয় API Key এখানে দাও (অপশনাল)">
 
+      <label>মডেল সিলেক্ট করো:</label>
+      <input type="text" id="modelName" value="google/gemma-2-9b-it:free">
+    </div>
 
-<section class="card" id="imageGenCard">
-<h2>Image Generation &amp; Media Assets <span class="pill">V6 · Real Engine Only</span></h2>
-<p>অনুমোদিত Image Generation Provider সেট করা থাকলে নির্দিষ্ট Scene বা কাস্টম Prompt থেকে বাস্তব Image Asset তৈরি হবে। কোনো Provider সেট না থাকলে বা অনুমতি না থাকলে কোনো ভুয়া ছবি তৈরি হবে না—সঠিক কারণ দেখাবে।</p>
-<div class="row">
-  <div>
-    <label for="imgSceneNum">Target Scene Number (Optional)</label>
-    <input id="imgSceneNum" type="number" min="1" placeholder="যেমন: 1 (খালি রাখলে Master/Custom Prompt ব্যবহার হবে)">
-  </div>
-  <div>
-    <label for="imgPrompt">Custom Visual Prompt (Optional)</label>
-    <input id="imgPrompt" placeholder="খালি রাখলে Scene-এর Visual Prompt বা Master Prompt নেওয়া হবে">
-  </div>
-</div>
-<div class="actions">
-  <button id="genImageBtn" type="button">Image Generate করো</button>
-  <button class="secondary" id="genVideoBtn" type="button">Video Clip Generate করো</button>
-  <button class="secondary" id="refreshAssetsBtn" type="button">Assets রিফ্রেশ</button>
-</div>
-<div id="assetList" style="margin-top:12px;display:grid;gap:8px"></div>
-</section>
+    <div class="card">
+      <label>মাস্টার প্রম্পট (Master Prompt):</label>
+      <textarea id="masterPrompt" rows="5" placeholder="তোমার মাস্টার প্রম্পট এখানে লেখো..."></textarea>
+      <button id="runBtn" onclick="startWork()">কাজ শুরু করো</button>
+      <div class="status" id="statusText"></div>
+    </div>
 
+    <div class="card">
+      <label>রেজাল্ট (Output):</label>
+      <div class="output" id="outputBox">এখানে উত্তর দেখাবে...</div>
+    </div>
+  </div>
 
-
-
-<section class="card" id="reviewExportCard">
-<h2>Scene Revision, Preview, Recovery &amp; Final Export <span class="pill">V10 · Complete</span></h2>
-<p>নির্দিষ্ট Scene-এর Revision করো (বাকি Scene-গুলো অপরিবর্তিত রেখে), তৈরি হওয়া Asset/MP4 Preview করো, Recovery অবস্থা যাচাই করো এবং সম্পূর্ণ Project Export নাও।</p>
-<div class="row">
-  <div>
-    <label for="revSceneNum">Target Scene Number for Revision</label>
-    <input id="revSceneNum" type="number" min="1" value="1">
-  </div>
-  <div>
-    <label for="revDuration">Updated Duration (sec, Optional)</label>
-    <input id="revDuration" type="number" step="0.5" min="1" max="120" placeholder="যেমন: 6">
-  </div>
-</div>
-<label for="revInstruction">Revision Instruction (কী পরিবর্তন করতে চাও)</label>
-<input id="revInstruction" placeholder="যেমন: Scene 2-এর আলো আরও গাঢ় ও নাটকীয় করো">
-<label for="revVisualPrompt">Updated Visual Prompt (Optional)</label>
-<input id="revVisualPrompt" placeholder="খালি রাখলে আগের Visual Prompt বজায় থাকবে">
-<div class="actions">
-  <button id="reviseSceneBtn" type="button">Scene Revision সেভ করো</button>
-  <button class="secondary" id="recoveryCheckBtn" type="button">Recovery Status চেক করো</button>
-  <button class="secondary" id="fullExportBtn" type="button">Full Project Export (V10 JSON)</button>
-</div>
-<div class="hint" id="recoveryBox">Recovery Status: এখনো চেক করা হয়নি।</div>
-</section>
-
-<section class="card" id="renderCard">
-<h2>FFmpeg Editing &amp; MP4 Rendering <span class="pill">V9 · MP4 Export</span></h2>
-<p>দৃশ্য অনুযায়ী Visual Asset, Voice/Music/SFX ও Narration Subtitles একত্র করে MP4 Render করো। সার্ভারে FFmpeg বা প্রয়োজনীয় Asset না থাকলে কোনো Fake Render দেখানো হবে না।</p>
-<div class="row">
-  <div>
-    <label for="renRes">Resolution (Auto বা যেমন: 1280x720 / 720x1280)</label>
-    <input id="renRes" placeholder="খালি রাখলে ভিডিও ফরম্যাট অনুযায়ী সেট হবে">
-  </div>
-  <div>
-    <label for="renFps">Frame Rate (FPS)</label>
-    <select id="renFps">
-      <option value="24">24 FPS</option>
-      <option value="30">30 FPS</option>
-      <option value="15">15 FPS</option>
-    </select>
-  </div>
-</div>
-<div class="row">
-  <div>
-    <label for="renTrans">Transition Mode</label>
-    <select id="renTrans">
-      <option value="cut">Cut (Scene Sequence)</option>
-      <option value="fade">Fade Sequence</option>
-    </select>
-  </div>
-  <div>
-    <label for="renSubs">Subtitles from Narration</label>
-    <select id="renSubs">
-      <option value="true">Include Subtitles (SRT)</option>
-      <option value="false">No Subtitles</option>
-    </select>
-  </div>
-</div>
-<div class="actions">
-  <button id="renderMp4Btn" type="button">Final MP4 Render করো</button>
-  <button class="secondary" id="checkFfmpegBtn" type="button">FFmpeg Status চেক করো</button>
-</div>
-</section>
-
-<section class="card" id="audioGenCard">
-<h2>Voice (TTS), Music &amp; Sound Effects <span class="pill">V8 · Audio Engines</span></h2>
-<p>অনুমোদিত TTS, Music বা SFX Provider সেট করা থাকলে Scene Narration, Background Music বা Sound Effects-এর বাস্তব অডিও ফাইল সংরক্ষণ হবে। Provider না থাকলে বা অনুমতি না থাকলে স্পষ্ট কারণ জানাবে।</p>
-<div class="row">
-  <div>
-    <label for="audCategory">Audio Type</label>
-    <select id="audCategory">
-      <option value="tts">Voiceover / TTS (Voice)</option>
-      <option value="music">Background Music</option>
-      <option value="sfx">Sound Effects (SFX)</option>
-    </select>
-  </div>
-  <div>
-    <label for="audSceneNum">Target Scene Number (Optional)</label>
-    <input id="audSceneNum" type="number" min="1" placeholder="যেমন: 1 (খালি রাখলে Project-level)">
-  </div>
-</div>
-<label for="audPrompt">Narration Text / Music or SFX Prompt (Optional)</label>
-<input id="audPrompt" placeholder="খালি রাখলে Scene-এর Narration / Audio Notes বা Master Prompt ব্যবহার হবে">
-<div class="actions">
-  <button id="genAudioBtn" type="button">Audio Generate করো</button>
-</div>
-</section>
-
-<section class="card" id="scenePlannerCard">
-<h2>Scene Planner &amp; Breakdown <span class="pill">V5 · Scene Tasks</span></h2>
-<p>Master Prompt থেকে স্বয়ংক্রিয়ভাবে Scene ভাগ করো অথবা প্রতিটি দৃশ্যের Visual Prompt, Narration ও Duration আলাদাভাবে সেভ করো।</p>
-<div class="actions" style="margin-bottom:10px">
-  <button id="autoPlanScenesBtn" type="button">Master Prompt থেকে Scene ভাগ করো</button>
-</div>
-<div class="row">
-  <div>
-    <label for="scNum">Scene Number</label>
-    <input id="scNum" type="number" min="1" value="1">
-  </div>
-  <div>
-    <label for="scDur">Duration (Seconds)</label>
-    <input id="scDur" type="number" min="1" max="120" value="5">
-  </div>
-</div>
-<div class="row">
-  <div>
-    <label for="scTitle">Scene Title</label>
-    <input id="scTitle" placeholder="যেমন: Scene 1 — Opening Shot">
-  </div>
-  <div>
-    <label for="scStatus">Scene Task Status</label>
-    <select id="scStatus">
-      <option value="Pending">Pending</option>
-      <option value="Working">Working</option>
-      <option value="Completed">Completed</option>
-      <option value="Failed">Failed</option>
-      <option value="Blocked">Blocked</option>
-    </select>
-  </div>
-</div>
-<label for="scVisual">Visual Prompt (Image / Video Engine-এর জন্য)</label>
-<textarea id="scVisual" style="min-height:80px" placeholder="দৃশ্যটিতে কী দেখা যাবে তার পরিষ্কার বিবরণ..."></textarea>
-<div class="row">
-  <div>
-    <label for="scNarr">Voiceover / Narration Text</label>
-    <input id="scNarr" placeholder="এই দৃশ্যে কী বলা হবে...">
-  </div>
-  <div>
-    <label for="scAudio">Music / SFX Notes</label>
-    <input id="scAudio" placeholder="যেমন: বৃষ্টির শব্দ + হালকা সাসপেন্স মিউজিক">
-  </div>
-</div>
-<div class="actions">
-  <button class="secondary" id="saveSceneBtn" type="button">Scene সেভ / আপডেট করো</button>
-</div>
-<div id="sceneList" style="margin-top:12px;display:grid;gap:8px"></div>
-</section>
-
-<section class="card" id="memoryCard">
-<h2>Project Memory &amp; Director Context <span class="pill">V4 · Auto-Context</span></h2>
-<p>এখানে সংরক্ষিত চরিত্রের বিবরণ, দৃশ্যের প্ল্যান, এডিটিং সিদ্ধান্ত ও সংশোধনের নোট প্রতিটি AI Director অনুরোধের সাথে পাঠানো হয় যাতে প্রজেক্টের ধারাবাহিকতা বজায় থাকে।</p>
-<div class="row">
-  <div>
-    <label for="memChar">Character Notes (চরিত্রের ধারাবাহিকতা)</label>
-    <textarea id="memChar" style="min-height:85px" placeholder="যেমন: মূল চরিত্র কালো জ্যাকেট ও স্কার্ফ পরবে..."></textarea>
-  </div>
-  <div>
-    <label for="memScene">Scene Plan Summary (দৃশ্যের সারসংক্ষেপ)</label>
-    <textarea id="memScene" style="min-height:85px" placeholder="যেমন: Scene 1 intro, Scene 2 twist, Scene 3 outro..."></textarea>
-  </div>
-</div>
-<div class="row">
-  <div>
-    <label for="memEdit">Editing Decisions (এডিটিং ও অডিও সিদ্ধান্ত)</label>
-    <textarea id="memEdit" style="min-height:85px" placeholder="যেমন: দ্রুত কাট, হালকা ব্যাকগ্রাউন্ড মিউজিক..."></textarea>
-  </div>
-  <div>
-    <label for="memRev">Revision Notes (সংশোধনের নোট)</label>
-    <textarea id="memRev" style="min-height:85px" placeholder="যেমন: Scene 2-এর আলো আরও গাঢ় করতে হবে..."></textarea>
-  </div>
-</div>
-<div class="actions">
-  <button class="secondary" id="saveMemoryBtn" type="button">Project Memory সেভ করো</button>
-</div>
-</section>
-
-<section class="card" id="providerCard">
-<h2>AI Engine &amp; Provider Manager <span class="pill">V3 · Server-side Keys</span></h2>
-<p>প্রতিটি কাজের (Chat, Image, Video, Voice, Music, SFX, Rendering) জন্য আলাদা Provider সেট করো। API Key ব্রাউজারে সেভ হয় না—শুধু Server-এ নিরাপদে থাকে এবং Paid Provider তোমার অনুমতি ছাড়া চালু হয় না।</p>
-<div class="row">
-  <div>
-    <label for="provCategory">Engine Category</label>
-    <select id="provCategory">
-      <option value="chat">Chat / LLM Engine</option>
-      <option value="image">Image Generation Engine</option>
-      <option value="video">Video Generation Engine</option>
-      <option value="tts">Text-to-Speech Engine</option>
-      <option value="music">Music Generation Engine</option>
-      <option value="sfx">Sound Effects Engine</option>
-      <option value="rendering">Editing / Rendering Engine (FFmpeg)</option>
-    </select>
-  </div>
-  <div>
-    <label for="provName">Provider Name</label>
-    <input id="provName" placeholder="যেমন: OpenRouter / Ollama / Local-FFmpeg">
-  </div>
-</div>
-<div class="row">
-  <div>
-    <label for="provBaseUrl">API Base URL</label>
-    <input id="provBaseUrl" placeholder="যেমন: https://openrouter.ai/api/v1">
-  </div>
-  <div>
-    <label for="provModelId">Model ID</label>
-    <input id="provModelId" placeholder="যেমন: google/gemma-3-27b-it:free">
-  </div>
-</div>
-<div class="row">
-  <div>
-    <label for="provEnvKeyName">Server Secret Name (Optional)</label>
-    <input id="provEnvKeyName" placeholder="যেমন: OPENROUTER_API_KEY">
-  </div>
-  <div>
-    <label for="provApiKeyVal">API Key (Sent once to Server, never shown back)</label>
-    <input id="provApiKeyVal" type="password" autocomplete="off" placeholder="sk-... (খালি রাখলে আগের Key অপরিবর্তিত থাকবে)">
-  </div>
-</div>
-<div class="row">
-  <div>
-    <label for="provPriority">Role Priority</label>
-    <select id="provPriority">
-      <option value="primary">Primary Provider</option>
-      <option value="backup">Backup Provider</option>
-    </select>
-  </div>
-  <div>
-    <label for="provCost">Cost Tier</label>
-    <select id="provCost">
-      <option value="free">Free (অগ্রাধিকার)</option>
-      <option value="low-cost">Low-cost</option>
-      <option value="paid">Paid (স্পষ্ট অনুমতি প্রয়োজন)</option>
-    </select>
-  </div>
-</div>
-<div class="actions">
-  <button id="saveProviderBtn" type="button">Provider সংরক্ষণ করো</button>
-  <button class="secondary" id="refreshProvidersBtn" type="button">তালিকা রিফ্রেশ</button>
-</div>
-<div id="providerList" style="margin-top:12px;display:grid;gap:8px"></div>
-<div class="hint" id="providerLogsBox">Provider Logs লোড হচ্ছে...</div>
-</section>
-
-</main><footer>V2 local workspace · Browser storage is not cloud backup. JSON Export দিয়ে আলাদা কপি রাখো।</footer>
-<script>
-const $=id=>document.getElementById(id);
-const API_BASE='';
-const stages=[
-['Master Prompt Analysis','Master Prompt বিশ্লেষণ ও অস্পষ্ট বিষয় যাচাই'],
-['Story & Scene Planning','গল্প ও দৃশ্য বিভাজন (Scene Breakdown)'],
-['Character and Visual Reference Preparation','চরিত্র ও ভিজ্যুয়াল ধারাবাহিকতা প্রস্তুতি'],
-['Image Generation','প্রতিটি দৃশ্যের স্থিরচিত্র (Image Asset)'],
-['Video Generation','দৃশ্যের ভিডিও ক্লিপ তৈরি'],
-['Voice Generation','Voiceover অডিও তৈরি'],
-['Music and Sound Effects','ব্যাকগ্রাউন্ড মিউজিক ও সাউন্ড ইফেক্ট'],
-['Video Editing','দৃশ্য সাজানো, কাট, সাবটাইটেল ও অডিও সিঙ্ক'],
-['Rendering','FFmpeg দিয়ে ফাইনাল MP4 রেন্ডারিং'],
-['Final Review','চূড়ান্ত মান যাচাই ও রিভিশন']
-];
-let backendOnline=false;
-let currentProjectId=null;
-let state={
-  id:null,
-  title:'',
-  format:'16:9 — YouTube',
-  prompt:'',
-  messages:[{role:'ai',text:'স্বাগতম! আমি Studio-র AI Director। Prompt বিশ্লেষণ করে প্রাথমিক পরিকল্পনা করতে পারি, কিন্তু কোনো Media Asset এখনো তৈরি হয়নি।'}],
-  statuses:Array(10).fill('Pending'),
-  projectStatus:'Not started'
-};
-
-function renderWorkflow(){
-  $('workflow').innerHTML='';
-  stages.forEach((s,i)=>{
-    let div=document.createElement('div');
-    div.className='stage';
-    let n=document.createElement('span');
-    n.className='num';
-    n.textContent=i+1;
-    let info=document.createElement('div');
-    let b=document.createElement('strong');
-    b.textContent=s[0];
-    let sm=document.createElement('small');
-    sm.textContent=s[1];
-    info.append(b,sm);
-    let sel=document.createElement('select');
-    ['Pending','Working','Completed','Failed','Blocked'].forEach(v=>{
-      let o=document.createElement('option');
-      o.value=v;o.textContent=v;
-      sel.append(o);
-    });
-    sel.value=state.statuses[i]||'Pending';
-    sel.addEventListener('change',async()=>{
-      state.statuses[i]=sel.value;
-      updateStats();
-      saveLocal(false);
-      if(backendOnline && currentProjectId){
-        try{
-          let r=await fetch(`${API_BASE}/projects/${currentProjectId}/workflow/${i}`,{
-            method:'PUT',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({status:sel.value})
-          });
-          if(r.ok){
-            $('saveBadge').textContent='● DB synced';
-            $('statusText').textContent=`Stage ${i+1} (${s[0]}) -> ${sel.value} Database-এ সেভ হয়েছে।`;
-          }
-        }catch(e){
-          $('saveBadge').textContent='● Local only';
-        }
-      }
-    });
-    div.append(n,info,sel);
-    $('workflow').append(div);
-  });
-}
-
-function renderChat(){
-  $('chat').innerHTML='';
-  state.messages.forEach(m=>{
-    let d=document.createElement('div');
-    let cls=(m.role==='assistant'||m.role==='ai')?'ai':'user';
-    d.className='msg '+cls;
-    d.textContent=m.text;
-    $('chat').append(d);
-  });
-  $('chat').scrollTop=$('chat').scrollHeight;
-  updateStats();
-}
-
-function updateStats(){
-  $('wordCount').textContent=($('prompt').value||'').length;
-  $('doneCount').textContent=state.statuses.filter(x=>x==='Completed'||x==='সম্পন্ন').length+'/10';
-  $('chatCount').textContent=state.messages.length;
-  $('deleteProjectBtn').disabled=!currentProjectId;
-}
-
-function collect(){
-  state.title=($('title').value||'').trim()||'Untitled Project';
-  state.format=$('format').value;
-  state.prompt=$('prompt').value;
-}
-
-function saveLocal(show=false){
-  collect();
-  try{
-    localStorage.setItem('aivideo_studio_v2',JSON.stringify(state));
-    if(!backendOnline){
-      $('saveBadge').textContent='● Local autosave';
-      if(show)$('statusText').textContent='Backend অফলাইন—প্রজেক্ট ব্রাউজারে সেভ হয়েছে।';
-    }
-  }catch(e){}
-}
-
-async function checkHealth(){
-  try{
-    let r=await fetch(`${API_BASE}/health`);
-    if(!r.ok) throw new Error('health');
-    let h=await r.json();
-    backendOnline=!!h.ok;
-    $('aiConnInput').value=`Connected (${h.version||'v2'}) · Chat: ${h.chat_mode||'demo'}`;
-    $('saveBadge').textContent='● Backend online';
-    return true;
-  }catch(e){
-    backendOnline=false;
-    $('aiConnInput').value='Offline · Local fallback mode';
-    $('saveBadge').textContent='● Local only';
-    return false;
-  }
-}
-
-async function refreshProjectList(selectId=null){
-  if(!backendOnline) return;
-  try{
-    let r=await fetch(`${API_BASE}/projects`);
-    if(!r.ok) return;
-    let list=await r.json();
-    let sel=$('projectSelect');
-    sel.innerHTML='<option value="">-- নতুন প্রজেক্ট (Draft) --</option>';
-    list.forEach(p=>{
-      let opt=document.createElement('option');
-      opt.value=String(p.id);
-      opt.textContent=`#${p.id} · ${p.title} (${p.video_format})`;
-      sel.append(opt);
-    });
-    if(selectId){
-      sel.value=String(selectId);
-    }else if(currentProjectId){
-      sel.value=String(currentProjectId);
-    }
-  }catch(e){}
-}
-
-function applyProjectDetail(p){
-  currentProjectId=p.id;
-  state.id=p.id;
-  state.title=p.title||'';
-  state.format=p.video_format||'16:9 — YouTube';
-  state.prompt=p.master_prompt||'';
-  state.projectStatus=p.status||'Saved';
-  if(Array.isArray(p.workflow) && p.workflow.length===10){
-    state.statuses=p.workflow.map(w=>w.status);
-  }
-  if(Array.isArray(p.messages)){
-    state.messages=p.messages.map(m=>({role:m.role,text:m.content}));
-  }
-  $('title').value=state.title;
-  $('format').value=state.format;
-  $('prompt').value=state.prompt;
-  $('projectStatus').value=state.projectStatus;
-  applyMemoryToUI(p.memory);
-  renderScenes(p.scenes);
-  renderAssets(p.assets);
-  renderWorkflow();
-  renderChat();
-  updateStats();
-  saveLocal(false);
-}
-
-async function saveProjectToBackend(showNotice=true){
-  collect();
-  saveLocal(false);
-  if(!backendOnline){
-    if(showNotice)$('statusText').textContent='Backend সংযুক্ত নেই; ডেটা Local Storage-এ সেভ হয়েছে।';
-    return null;
-  }
-  let payload={
-    title:state.title,
-    video_format:state.format,
-    master_prompt:state.prompt,
-    status:state.projectStatus||'Active'
-  };
-  try{
-    let r;
-    if(currentProjectId){
-      r=await fetch(`${API_BASE}/projects/${currentProjectId}`,{
-        method:'PUT',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(payload)
-      });
-    }else{
-      r=await fetch(`${API_BASE}/projects`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(payload)
-      });
-    }
-    if(!r.ok) throw new Error('save failed');
-    let saved=await r.json();
-    applyProjectDetail(saved);
-    await refreshProjectList(saved.id);
-    $('saveBadge').textContent='● DB saved';
-    if(showNotice)$('statusText').textContent=`প্রজেক্ট “${saved.title}” (#${saved.id}) Database-এ সেভ হয়েছে।`;
-    return saved;
-  }catch(e){
-    $('saveBadge').textContent='● Local only';
-    if(showNotice)$('statusText').textContent='Database-এ সেভ করা যায়নি; Local কপি রাখা হয়েছে।';
-    return null;
-  }
-}
-
-$('projectSelect').onchange=async e=>{
-  let val=e.target.value;
-  if(!val){
-    currentProjectId=null;
-    state={
-      id:null,title:'',format:'16:9 — YouTube',prompt:'',
-      messages:[{role:'ai',text:'নতুন Draft প্রজেক্ট প্রস্তুত। Title ও Master Prompt লিখে “প্রজেক্ট সেভ” চাপো।'}],
-      statuses:Array(10).fill('Pending'),projectStatus:'Not started'
+  <script>
+    window.onload = () => {
+      document.getElementById("apiKey1").value = localStorage.getItem("apiKey1") || "";
+      document.getElementById("apiKey2").value = localStorage.getItem("apiKey2") || "";
     };
-    $('title').value='';$('format').value='16:9 — YouTube';$('prompt').value='';$('projectStatus').value='Not started';
-    renderWorkflow();renderChat();updateStats();
-    return;
-  }
-  if(backendOnline){
-    try{
-      let r=await fetch(`${API_BASE}/projects/${val}`);
-      if(r.ok){
-        let p=await r.json();
-        applyProjectDetail(p);
-        $('statusText').textContent=`প্রজেক্ট #${p.id} (${p.title}) লোড হয়েছে।`;
-      }
-    }catch(err){}
-  }
-};
 
-$('newProjectBtn').onclick=()=>{
-  $('projectSelect').value='';
-  $('projectSelect').dispatchEvent(new Event('change'));
-};
+    async function callAPI(apiKey, model, prompt) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
 
-$('deleteProjectBtn').onclick=async()=>{
-  if(!currentProjectId) return;
-  if(!confirm('এই প্রজেক্টটি Database থেকে মুছে ফেলতে চাও?')) return;
-  if(backendOnline){
-    try{
-      let r=await fetch(`${API_BASE}/projects/${currentProjectId}`,{method:'DELETE'});
-      if(r.ok){
-        let deletedId=currentProjectId;
-        currentProjectId=null;
-        await refreshProjectList('');
-        $('projectSelect').value='';
-        $('projectSelect').dispatchEvent(new Event('change'));
-        $('statusText').textContent=`প্রজেক্ট #${deletedId} মুছে ফেলা হয়েছে।`;
-      }
-    }catch(e){}
-  }
-};
-
-$('analyze').onclick=async()=>{
-  collect();
-  if(!state.prompt.trim()){alert('আগে Master Production Prompt পেস্ট করো।');return;}
-  state.projectStatus='Prompt analyzed (Planning)';
-  $('projectStatus').value=state.projectStatus;
-  state.statuses[0]='সম্পন্ন';
-  renderWorkflow();
-  let p=state.prompt;
-  let summary=[
-    'প্রাথমিক Prompt বিশ্লেষণ (কোনো Media তৈরি হয়নি):',
-    '• Format: '+state.format,
-    '• Length: '+p.length+' characters',
-    '• Scene/Shot উল্লেখ: '+((p.match(/scene|দৃশ্য|shot/gi)||[]).length)+' বার',
-    '• Character/চরিত্র উল্লেখ: '+((p.match(/character|চরিত্র/gi)||[]).length)+' বার',
-    '• Voice/Audio/Music উল্লেখ: '+((p.match(/voice|audio|ভয়েস|সাউন্ড|music/gi)||[]).length)+' বার'
-  ].join('
-');
-
-  if(backendOnline){
-    let saved=await saveProjectToBackend(false);
-    if(saved){
-      await fetch(`${API_BASE}/projects/${saved.id}/workflow/0`,{
-        method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'সম্পন্ন'})
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + apiKey,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: "user", content: prompt }]
+        }),
+        signal: controller.signal
       });
-      try{
-        let cr=await fetch(`${API_BASE}/projects/${saved.id}/chat`,{
-          method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({content:'Master Prompt বিশ্লেষণ ও প্রাথমিক পরিকল্পনা শুরু করো।'})
-        });
-        if(cr.ok){
-          let fresh=await (await fetch(`${API_BASE}/projects/${saved.id}`)).json();
-          applyProjectDetail(fresh);
-          $('statusText').textContent=`“${fresh.title}” (#${fresh.id}) বিশ্লেষণ ও Database-এ সংরক্ষণ সম্পন্ন।`;
-          return;
-        }
-      }catch(e){}
+
+      clearTimeout(timeout);
+      if (!response.ok) throw new Error("API Error: " + response.status);
+      const data = await response.json();
+      return data.choices[0].message.content;
     }
-  }
-  state.messages.push({role:'user',text:'Master Prompt বিশ্লেষণ শুরু করো।'});
-  state.messages.push({role:'ai',text:summary});
-  renderChat();
-  saveLocal(true);
-};
 
-$('send').onclick=async()=>{
-  let t=$('chatInput').value.trim();
-  if(!t) return;
-  $('chatInput').value='';
-  if(backendOnline){
-    let proj=currentProjectId ? {id:currentProjectId} : await saveProjectToBackend(false);
-    if(proj && proj.id){
-      try{
-        let r=await fetch(`${API_BASE}/projects/${proj.id}/chat`,{
-          method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({content:t})
-        });
-        if(r.ok){
-          let fresh=await (await fetch(`${API_BASE}/projects/${proj.id}`)).json();
-          applyProjectDetail(fresh);
-          $('saveBadge').textContent='● Chat saved';
-          return;
-        }
-      }catch(e){}
-    }
-  }
-  state.messages.push({role:'user',text:t});
-  state.messages.push({role:'ai',text:'(Local Demo) বার্তা সংরক্ষিত হয়েছে। Backend সংযুক্ত থাকলে আসল AI Director বা Server history-তে যুক্ত হবে। কোনো Media তৈরি হয়নি।'});
-  renderChat();
-  saveLocal(false);
-};
+    async function startWork() {
+      const key1 = document.getElementById("apiKey1").value.trim();
+      const key2 = document.getElementById("apiKey2").value.trim();
+      const model = document.getElementById("modelName").value.trim();
+      const prompt = document.getElementById("masterPrompt").value.trim();
+      const status = document.getElementById("statusText");
+      const output = document.getElementById("outputBox");
+      const btn = document.getElementById("runBtn");
 
-$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('send').click()});
-$('save').onclick=()=>saveProjectToBackend(true);
-
-$('clearChat').onclick=async()=>{
-  if(!confirm('Chat history পরিষ্কার করবে?')) return;
-  if(backendOnline && currentProjectId){
-    try{
-      await fetch(`${API_BASE}/projects/${currentProjectId}/chat`,{method:'DELETE'});
-      let fresh=await (await fetch(`${API_BASE}/projects/${currentProjectId}`)).json();
-      applyProjectDetail(fresh);
-      $('statusText').textContent='Database থেকে Chat history পরিষ্কার করা হয়েছে।';
-      return;
-    }catch(e){}
-  }
-  state.messages=[];
-  renderChat();
-  saveLocal(false);
-};
-
-$('export').onclick=()=>{
-  collect();
-  let exportObj={
-    exported_from:'AI Video Production Studio V2',
-    id:currentProjectId,
-    title:state.title,
-    format:state.format,
-    prompt:state.prompt,
-    projectStatus:state.projectStatus,
-    statuses:state.statuses,
-    messages:state.messages
-  };
-  let blob=new Blob([JSON.stringify(exportObj,null,2)],{type:'application/json'});
-  let a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=(state.title||'video-project').replace(/[^a-z0-9-_]/gi,'_')+'.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
-
-$('importBtn').onclick=()=>$('importFile').click();
-$('importFile').onchange=async e=>{
-  let f=e.target.files[0];
-  if(!f) return;
-  try{
-    let x=JSON.parse(await f.text());
-    let importedPrompt=x.prompt??x.master_prompt??'';
-    let importedFormat=x.format??x.video_format??'16:9 — YouTube';
-    let importedTitle=x.title||'Imported Project';
-    let importedStatuses=Array.isArray(x.statuses)&&x.statuses.length===7?x.statuses:Array(10).fill('Pending');
-    let importedMsgs=Array.isArray(x.messages)?x.messages.filter(m=>m&&m.text).map(m=>({
-      role:(m.role==='user')?'user':'assistant',
-      content:String(m.text)
-    })):[];
-    if(backendOnline){
-      let r=await fetch(`${API_BASE}/projects`,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          title:importedTitle,
-          video_format:importedFormat,
-          master_prompt:importedPrompt,
-          status:x.projectStatus||'Imported',
-          workflow_statuses:importedStatuses,
-          initial_messages:importedMsgs
-        })
-      });
-      if(r.ok){
-        let created=await r.json();
-        await refreshProjectList(created.id);
-        applyProjectDetail(created);
-        $('statusText').textContent=`JSON Import সফল—প্রজেক্ট #${created.id} Database-এ সংরক্ষিত হয়েছে।`;
-        e.target.value='';
+      if (!key1 || !prompt) {
+        status.innerText = "আগে Primary API Key এবং মাস্টার প্রম্পট দাও।";
         return;
       }
-    }
-    currentProjectId=null;
-    state={...state,id:null,title:importedTitle,format:importedFormat,prompt:importedPrompt,statuses:importedStatuses,messages:importedMsgs.map(m=>({role:m.role,text:m.content}))};
-    $('title').value=state.title;$('format').value=state.format;$('prompt').value=state.prompt;
-    renderWorkflow();renderChat();updateStats();saveLocal(true);
-    $('statusText').textContent='JSON project import সফল হয়েছে (Local)।';
-  }catch(err){
-    alert('এই JSON ফাইলটি Studio project format নয়।');
-  }
-  e.target.value='';
-};
 
-(async function boot(){
-  try{
-    let local=JSON.parse(localStorage.getItem('aivideo_studio_v2')||'null');
-    if(local){
-      state={...state,...local};
-      $('title').value=state.title||'';
-      $('format').value=state.format||'16:9 — YouTube';
-      $('prompt').value=state.prompt||'';
-      $('projectStatus').value=state.projectStatus||'Not started';
-    }
-  }catch(e){}
-  renderWorkflow();
-  renderChat();
-  updateStats();
-  let ok=await checkHealth();
-  if(ok){
-    await refreshProjectList();
-    await loadProvidersAndLogs();
-    if($('projectSelect').value){ $('projectSelect').dispatchEvent(new Event('change')); }
-  }else{
-    await loadProvidersAndLogs();
-  }
-})();
+      localStorage.setItem("apiKey1", key1);
+      localStorage.setItem("apiKey2", key2);
 
-async function loadProvidersAndLogs(){
-  if(!backendOnline){
-    $('providerList').innerHTML='<div class="hint">Backend অফলাইন—Provider Manager ব্যবহার করতে Python Server চালু করো।</div>';
-    return;
-  }
-  try{
-    let [pr, lr]=await Promise.all([
-      fetch(`${API_BASE}/providers`),
-      fetch(`${API_BASE}/providers/logs?limit=6`)
-    ]);
-    if(pr.ok){
-      let list=await pr.json();
-      if(!list.length){
-        $('providerList').innerHTML='<div class="hint">এখনো কোনো Provider যোগ করা হয়নি। উপর থেকে Free Chat/Image/Rendering Provider যোগ করো।</div>';
-      }else{
-        $('providerList').innerHTML='';
-        list.forEach(p=>{
-          let box=document.createElement('div');
-          box.style.cssText='background:#0d1421;border:1px solid #2b3850;border-radius:11px;padding:10px;font-size:12px';
-          let top=document.createElement('div');
-          top.style.cssText='display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center';
-          let title=document.createElement('strong');
-          title.textContent=`[${p.category_label}] ${p.provider_name} (${p.role_priority.toUpperCase()} · ${p.cost_tier})`;
-          let badge=document.createElement('span');
-          badge.className='pill';
-          badge.textContent=`Test: ${p.last_test_status} · Key: ${p.has_api_key ? p.api_key_masked : 'None'}`;
-          top.append(title,badge);
+      btn.disabled = true;
+      output.innerText = "কাজ চলছে...";
+      status.innerText = "১ নম্বর API Key দিয়ে চেষ্টা করা হচ্ছে...";
 
-          let meta=document.createElement('div');
-          meta.style.cssText='color:#9aa9c2;margin-top:5px';
-          meta.textContent=`Model: ${p.model_id||'-'} | URL: ${p.base_url||'-'} | ${p.last_test_message||'Not tested yet'}`;
-
-          let btns=document.createElement('div');
-          btns.className='actions';
-          let tBtn=document.createElement('button');
-          tBtn.className='secondary';tBtn.textContent='Connection & Capability Test';
-          tBtn.onclick=async()=>{
-            tBtn.disabled=true;
-            let tr=await fetch(`${API_BASE}/providers/${p.id}/test`,{method:'POST'});
-            let td=await tr.json();
-            alert(td.message||'Test complete');
-            await checkHealth();
-            await loadProvidersAndLogs();
-          };
-          btns.append(tBtn);
-
-          if(p.cost_tier==='paid'){
-            let apBtn=document.createElement('button');
-            apBtn.className='secondary';
-            apBtn.textContent=p.user_approved?'Paid Approved (Revoke)':'Approve Paid Usage';
-            apBtn.onclick=async()=>{
-              if(!p.user_approved && !confirm('তুমি কি নিশ্চিতভাবে এই Paid Provider ব্যবহারের অনুমতি দিচ্ছ?')) return;
-              await fetch(`${API_BASE}/providers/${p.id}/approve`,{
-                method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({user_approved:!p.user_approved})
-              });
-              await checkHealth();
-              await loadProvidersAndLogs();
-            };
-            btns.append(apBtn);
+      try {
+        const result = await callAPI(key1, model, prompt);
+        output.innerText = result;
+        status.innerText = "১ নম্বর API Key দিয়ে কাজ সফল হয়েছে!";
+      } catch (err1) {
+        if (key2) {
+          status.innerText = "১ নম্বর Key কাজ করেনি বা দেরি হয়েছে। ২ নম্বর Extra Key-তে সুইচ করা হচ্ছে...";
+          try {
+            const result2 = await callAPI(key2, model, prompt);
+            output.innerText = result2;
+            status.innerText = "২ নম্বর Extra API Key দিয়ে কাজ সফল হয়েছে!";
+          } catch (err2) {
+            output.innerText = "দুটো API Key দিয়েই কাজ হয়নি। Key ঠিক আছে কি না চেক করো।";
+            status.innerText = "এরর হয়েছে।";
           }
-
-          let dBtn=document.createElement('button');
-          dBtn.className='danger';dBtn.textContent='Delete';
-          dBtn.onclick=async()=>{
-            if(!confirm('এই Provider মুছে ফেলবে?')) return;
-            await fetch(`${API_BASE}/providers/${p.id}`,{method:'DELETE'});
-            await checkHealth();
-            await loadProvidersAndLogs();
-          };
-          btns.append(dBtn);
-
-          box.append(top,meta,btns);
-          if(p.capabilities && Array.isArray(p.capabilities.warnings) && p.capabilities.warnings.length){
-            let w=document.createElement('div');
-            w.style.cssText='color:#ffc66d;margin-top:6px';
-            w.textContent='⚠ '+p.capabilities.warnings.join(' | ');
-            box.append(w);
-          }
-          $('providerList').append(box);
-        });
+        } else {
+          output.innerText = "১ নম্বর API Key কাজ করেনি এবং কোনো Extra Key দেওয়া নেই।";
+          status.innerText = "এরর হয়েছে।";
+        }
+      } finally {
+        btn.disabled = false;
       }
     }
-    if(lr.ok){
-      let logs=await lr.json();
-      if(!logs.length){
-        $('providerLogsBox').textContent='Provider Error/Activity Logs: এখনো কোনো লগ নেই।';
-      }else{
-        $('providerLogsBox').textContent='সাম্প্রতিক Provider Logs:\n'+logs.map(l=>`• [${l.level.toUpperCase()}] (${l.category}) ${l.message}`).join('\n');
-      }
-    }
-  }catch(e){}
-}
-
-$('saveProviderBtn').onclick=async()=>{
-  if(!backendOnline){alert('আগে Python Backend চালু করো।');return;}
-  let name=($('provName').value||'').trim();
-  if(!name){alert('Provider Name লেখো।');return;}
-  let cost=$('provCost').value;
-  let approved=false;
-  if(cost==='paid'){
-    approved=confirm('তুমি Paid Provider যোগ করছ। এটি ব্যবহারের স্পষ্ট অনুমতি দিচ্ছ কি?');
-  }
-  let payload={
-    category:$('provCategory').value,
-    provider_name:name,
-    base_url:($('provBaseUrl').value||'').trim(),
-    model_id:($('provModelId').value||'').trim(),
-    env_key_name:($('provEnvKeyName').value||'').trim().toUpperCase(),
-    api_key_value:($('provApiKeyVal').value||'').trim()||null,
-    role_priority:$('provPriority').value,
-    cost_tier:cost,
-    user_approved:approved,
-    enabled:true
-  };
-  let r=await fetch(`${API_BASE}/providers`,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
-  });
-  if(r.ok){
-    $('provApiKeyVal').value='';
-    $('statusText').textContent=`Provider “${name}” নিরাপদে সংরক্ষিত হয়েছে।`;
-    await checkHealth();
-    await loadProvidersAndLogs();
-  }else{
-    let err=await r.json().catch(()=>({}));
-    alert(err.detail||'Provider সেভ করা যায়নি।');
-  }
-};
-$('refreshProvidersBtn').onclick=()=>loadProvidersAndLogs();
-
-
-function applyMemoryToUI(mem){
-  let m=mem||{};
-  state.memory={
-    character_notes:m.character_notes||'',
-    scene_plan_summary:m.scene_plan_summary||'',
-    editing_decisions:m.editing_decisions||'',
-    revision_notes:m.revision_notes||''
-  };
-  $('memChar').value=state.memory.character_notes;
-  $('memScene').value=state.memory.scene_plan_summary;
-  $('memEdit').value=state.memory.editing_decisions;
-  $('memRev').value=state.memory.revision_notes;
-}
-
-$('saveMemoryBtn').onclick=async()=>{
-  let payload={
-    character_notes:$('memChar').value,
-    scene_plan_summary:$('memScene').value,
-    editing_decisions:$('memEdit').value,
-    revision_notes:$('memRev').value
-  };
-  state.memory=payload;
-  saveLocal(false);
-  if(backendOnline && currentProjectId){
-    let r=await fetch(`${API_BASE}/projects/${currentProjectId}/memory`,{
-      method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-    });
-    if(r.ok){
-      let updated=await r.json();
-      applyMemoryToUI(updated);
-      $('statusText').textContent='Project Memory Database-এ সেভ হয়েছে এবং AI Director Context-এ যুক্ত আছে।';
-      return;
-    }
-  }
-  $('statusText').textContent='Project Memory সংরক্ষিত হয়েছে (Local / Draft)।';
-};
-
-
-function renderScenes(scenes){
-  state.scenes=Array.isArray(scenes)?scenes:[];
-  if(!state.scenes.length){
-    $('sceneList').innerHTML='<div class="hint">এখনো কোনো Scene যোগ করা হয়নি। “Master Prompt থেকে Scene ভাগ করো” চাপো অথবা নিচে লিখে সেভ করো।</div>';
-    return;
-  }
-  $('sceneList').innerHTML='';
-  state.scenes.forEach(s=>{
-    let box=document.createElement('div');
-    box.style.cssText='background:#0d1421;border:1px solid #2b3850;border-radius:11px;padding:10px;font-size:12px';
-    let top=document.createElement('div');
-    top.style.cssText='display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center';
-    let t=document.createElement('strong');
-    t.textContent=`#${s.scene_number} · ${s.title} (${s.duration_sec}s)`;
-    let badge=document.createElement('span');
-    badge.className='pill';
-    badge.textContent=s.status;
-    top.append(t,badge);
-
-    let body=document.createElement('div');
-    body.style.cssText='color:#9aa9c2;margin-top:5px';
-    body.textContent=`Visual: ${s.visual_prompt||'-'} | Voice: ${s.narration_text||'-'} | Audio: ${s.audio_notes||'-'}`;
-
-    let acts=document.createElement('div');
-    acts.className='actions';
-    let editBtn=document.createElement('button');
-    editBtn.className='secondary';editBtn.textContent='Load to Edit';
-    editBtn.onclick=()=>{
-      $('scNum').value=s.scene_number;
-      $('scDur').value=s.duration_sec;
-      $('scTitle').value=s.title;
-      $('scStatus').value=s.status;
-      $('scVisual').value=s.visual_prompt||'';
-      $('scNarr').value=s.narration_text||'';
-      $('scAudio').value=s.audio_notes||'';
-    };
-    let delBtn=document.createElement('button');
-    delBtn.className='danger';delBtn.textContent='Delete';
-    delBtn.onclick=async()=>{
-      if(!backendOnline||!currentProjectId) return;
-      await fetch(`${API_BASE}/projects/${currentProjectId}/scenes/${s.scene_number}`,{method:'DELETE'});
-      let fresh=await (await fetch(`${API_BASE}/projects/${currentProjectId}`)).json();
-      applyProjectDetail(fresh);
-    };
-    acts.append(editBtn,delBtn);
-    box.append(top,body,acts);
-    $('sceneList').append(box);
-  });
-}
-
-$('autoPlanScenesBtn').onclick=async()=>{
-  if(!backendOnline){alert('আগে Python Backend চালু করো।');return;}
-  let proj=currentProjectId?{id:currentProjectId}:await saveProjectToBackend(false);
-  if(!proj||!proj.id) return;
-  let r=await fetch(`${API_BASE}/projects/${proj.id}/scenes/auto-plan`,{method:'POST'});
-  if(r.ok){
-    let fresh=await (await fetch(`${API_BASE}/projects/${proj.id}`)).json();
-    applyProjectDetail(fresh);
-    $('statusText').textContent='Master Prompt থেকে Scene পরিকল্পনা তৈরি ও Database-এ সংরক্ষণ হয়েছে।';
-  }
-};
-
-$('saveSceneBtn').onclick=async()=>{
-  if(!backendOnline){alert('আগে Python Backend চালু করো।');return;}
-  let proj=currentProjectId?{id:currentProjectId}:await saveProjectToBackend(false);
-  if(!proj||!proj.id) return;
-  let payload={
-    scene_number:parseInt($('scNum').value||'1',10),
-    duration_sec:parseFloat($('scDur').value||'5'),
-    title:($('scTitle').value||'').trim()||`Scene ${$('scNum').value||'1'}`,
-    status:$('scStatus').value,
-    visual_prompt:$('scVisual').value,
-    narration_text:$('scNarr').value,
-    audio_notes:$('scAudio').value
-  };
-  let r=await fetch(`${API_BASE}/projects/${proj.id}/scenes`,{
-    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  });
-  if(r.ok){
-    let fresh=await (await fetch(`${API_BASE}/projects/${proj.id}`)).json();
-    applyProjectDetail(fresh);
-    $('statusText').textContent=`Scene #${payload.scene_number} সংরক্ষিত হয়েছে।`;
-  }
-};
-
-$('resumePipelineBtn').onclick=async()=>{
-  if(!backendOnline||!currentProjectId){alert('আগে একটি প্রজেক্ট লোড/সেভ করো।');return;}
-  let r=await fetch(`${API_BASE}/projects/${currentProjectId}/resume`,{method:'POST'});
-  if(r.ok){
-    let info=await r.json();
-    let fresh=await (await fetch(`${API_BASE}/projects/${currentProjectId}`)).json();
-    applyProjectDetail(fresh);
-    $('statusText').textContent=`Resume সম্পন্ন: Stage #${info.resume_from_stage_index+1} থেকে পরবর্তী কাজ চলবে; আগের Completed ধাপগুলো অক্ষত আছে।`;
-  }
-};
-
-
-function renderAssets(assets){
-  state.assets=Array.isArray(assets)?assets:[];
-  if(!state.assets.length){
-    $('assetList').innerHTML='<div class="hint">এখনো কোনো বাস্তব Image/Media Asset তৈরি হয়নি (কোনো Fake Asset তৈরি করা হয় না)।</div>';
-    return;
-  }
-  $('assetList').innerHTML='';
-  state.assets.forEach(a=>{
-    let box=document.createElement('div');
-    box.style.cssText='background:#0d1421;border:1px solid #2b3850;border-radius:11px;padding:10px;font-size:12px';
-    let prevLink=(backendOnline&&currentProjectId)?` <a href="${API_BASE}/projects/${currentProjectId}/assets/${a.id}/file" target="_blank" style="color:#c5bcff;margin-left:8px">Preview / File</a>`:'';box.innerHTML=`<strong>Asset #${a.id} · [${a.asset_type.toUpperCase()}]</strong> <span class="pill">${a.status}</span>${prevLink}<div style="color:#9aa9c2;margin-top:4px">Scene: ${a.scene_number||'-'} | Provider: ${a.provider_name} (${a.model_id}) | Size: ${a.file_size} bytes<br>Path: ${a.file_path}</div>`;
-    $('assetList').append(box);
-  });
-}
-
-$('genImageBtn').onclick=async()=>{
-  if(!backendOnline){alert('আগে Python Backend চালু করো।');return;}
-  let proj=currentProjectId?{id:currentProjectId}:await saveProjectToBackend(false);
-  if(!proj||!proj.id) return;
-  let scVal=parseInt($('imgSceneNum').value||'',10);
-  let payload={
-    scene_number:Number.isNaN(scVal)?null:scVal,
-    prompt:($('imgPrompt').value||'').trim()
-  };
-  let r=await fetch(`${API_BASE}/projects/${proj.id}/generate-image`,{
-    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  });
-  let out=await r.json();
-  if(out.assets) renderAssets(out.assets);
-  if(out.ok){
-    $('statusText').textContent=`ছবি তৈরি হয়েছে: Asset #${out.asset.id} (${out.asset.provider_name})।`;
-    let fresh=await (await fetch(`${API_BASE}/projects/${proj.id}`)).json();
-    applyProjectDetail(fresh);
-  }else{
-    $('statusText').textContent=`Image Generation সম্পন্ন হয়নি (${out.status}): ${out.message||'কারণ অজানা'}`;
-    alert(out.message||'Image Generation সম্পন্ন হয়নি।');
-  }
-};
-
-$('refreshAssetsBtn').onclick=async()=>{
-  if(!backendOnline||!currentProjectId) return;
-  let r=await fetch(`${API_BASE}/projects/${currentProjectId}/assets`);
-  if(r.ok) renderAssets(await r.json());
-};
-
-
-$('genVideoBtn').onclick=async()=>{
-  if(!backendOnline){alert('আগে Python Backend চালু করো।');return;}
-  let proj=currentProjectId?{id:currentProjectId}:await saveProjectToBackend(false);
-  if(!proj||!proj.id) return;
-  let scVal=parseInt($('imgSceneNum').value||'',10);
-  let payload={
-    scene_number:Number.isNaN(scVal)?null:scVal,
-    prompt:($('imgPrompt').value||'').trim()
-  };
-  let r=await fetch(`${API_BASE}/projects/${proj.id}/generate-video`,{
-    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  });
-  let out=await r.json();
-  if(out.assets) renderAssets(out.assets);
-  if(out.ok){
-    $('statusText').textContent=`ভিডিও ক্লিপ তৈরি হয়েছে: Asset #${out.asset.id} (${out.asset.provider_name})।`;
-    let fresh=await (await fetch(`${API_BASE}/projects/${proj.id}`)).json();
-    applyProjectDetail(fresh);
-  }else{
-    $('statusText').textContent=`Video Generation সম্পন্ন হয়নি (${out.status}): ${out.message||'কারণ অজানা'}`;
-    alert(out.message||'Video Generation সম্পন্ন হয়নি।');
-  }
-};
-
-
-$('genAudioBtn').onclick=async()=>{
-  if(!backendOnline){alert('আগে Python Backend চালু করো।');return;}
-  let proj=currentProjectId?{id:currentProjectId}:await saveProjectToBackend(false);
-  if(!proj||!proj.id) return;
-  let scVal=parseInt($('audSceneNum').value||'',10);
-  let payload={
-    category:$('audCategory').value,
-    scene_number:Number.isNaN(scVal)?null:scVal,
-    prompt:($('audPrompt').value||'').trim()
-  };
-  let r=await fetch(`${API_BASE}/projects/${proj.id}/generate-audio`,{
-    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  });
-  let out=await r.json();
-  if(out.assets) renderAssets(out.assets);
-  if(out.ok){
-    $('statusText').textContent=`অডিও তৈরি হয়েছে (${payload.category}): Asset #${out.asset.id} (${out.asset.provider_name})।`;
-    let fresh=await (await fetch(`${API_BASE}/projects/${proj.id}`)).json();
-    applyProjectDetail(fresh);
-  }else{
-    $('statusText').textContent=`Audio Generation সম্পন্ন হয়নি (${out.status}): ${out.message||'কারণ অজানা'}`;
-    alert(out.message||'Audio Generation সম্পন্ন হয়নি।');
-  }
-};
-
-
-$('checkFfmpegBtn').onclick=async()=>{
-  if(!backendOnline){alert('আগে Python Backend চালু করো।');return;}
-  let r=await fetch(`${API_BASE}/render/status`);
-  if(r.ok){
-    let st=await r.json();
-    let msg=st.ffmpeg_available?`FFmpeg উপলব্ধ: ${st.ffmpeg_path}`:'এই সার্ভারে FFmpeg পাওয়া যায়নি (PATH-এ নেই)।';
-    $('statusText').textContent=msg;
-    alert(msg);
-  }
-};
-
-$('renderMp4Btn').onclick=async()=>{
-  if(!backendOnline){alert('আগে Python Backend চালু করো।');return;}
-  let proj=currentProjectId?{id:currentProjectId}:await saveProjectToBackend(false);
-  if(!proj||!proj.id) return;
-  let payload={
-    resolution:($('renRes').value||'').trim(),
-    fps:parseInt($('renFps').value||'24',10),
-    transition:$('renTrans').value,
-    include_subtitles:$('renSubs').value==='true'
-  };
-  let r=await fetch(`${API_BASE}/projects/${proj.id}/render-mp4`,{
-    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  });
-  let out=await r.json();
-  if(out.assets) renderAssets(out.assets);
-  if(out.ok){
-    $('statusText').textContent=`MP4 Render সম্পন্ন: Asset #${out.asset.id} (${out.asset.file_path})`;
-    let fresh=await (await fetch(`${API_BASE}/projects/${proj.id}`)).json();
-    applyProjectDetail(fresh);
-  }else{
-    $('statusText').textContent=`MP4 Render সম্পন্ন হয়নি (${out.status}): ${out.message||'কারণ অজানা'}`;
-    alert(out.message||'MP4 Render সম্পন্ন হয়নি।');
-  }
-};
-
-
-$('reviseSceneBtn').onclick=async()=>{
-  if(!backendOnline||!currentProjectId){alert('আগে একটি প্রজেক্ট লোড/সেভ করো।');return;}
-  let instr=($('revInstruction').value||'').trim();
-  if(!instr){alert('Revision Instruction লেখো।');return;}
-  let durRaw=parseFloat($('revDuration').value||'');
-  let payload={
-    scene_number:parseInt($('revSceneNum').value||'1',10),
-    revision_instruction:instr,
-    visual_prompt:($('revVisualPrompt').value||'').trim()||null,
-    duration_sec:Number.isNaN(durRaw)?null:durRaw
-  };
-  let r=await fetch(`${API_BASE}/projects/${currentProjectId}/scenes/revise`,{
-    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  });
-  let out=await r.json();
-  if(r.ok && out.ok){
-    $('revInstruction').value='';$('revVisualPrompt').value='';
-    let fresh=await (await fetch(`${API_BASE}/projects/${currentProjectId}`)).json();
-    applyProjectDetail(fresh);
-    $('statusText').textContent=`Scene #${payload.scene_number} revision সেভ হয়েছে (বাকি Scene-গুলো অপরিবর্তিত)।`;
-  }else{
-    alert(out.detail||out.message||'Revision সেভ করা যায়নি।');
-  }
-};
-
-$('recoveryCheckBtn').onclick=async()=>{
-  if(!backendOnline||!currentProjectId){alert('আগে একটি প্রজেক্ট লোড/সেভ করো।');return;}
-  let r=await fetch(`${API_BASE}/projects/${currentProjectId}/recovery`);
-  if(r.ok){
-    let rec=await r.json();
-    let nextTxt=rec.next_recommended_stage?`${rec.next_recommended_stage.stage_index+1}. ${rec.next_recommended_stage.stage_name} [${rec.next_recommended_stage.status}]`:'সব ধাপ সম্পন্ন';
-    $('recoveryBox').textContent=`Recovery Check: Completed Stages ${rec.completed_stages_count}/${rec.total_stages} | Failed/Blocked Stages: ${rec.failed_or_blocked_stages.length} | Failed/Blocked Scenes: ${rec.failed_or_blocked_scenes.length} | Missing Files: ${rec.missing_asset_files.length} | Next: ${nextTxt}`;
-    $('statusText').textContent='Recovery Status আপডেট হয়েছে।';
-  }
-};
-
-$('fullExportBtn').onclick=async()=>{
-  if(!backendOnline||!currentProjectId){$('export').click();return;}
-  let r=await fetch(`${API_BASE}/projects/${currentProjectId}/export`);
-  if(r.ok){
-    let pkg=await r.json();
-    let blob=new Blob([JSON.stringify(pkg,null,2)],{type:'application/json'});
-    let a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=`studio_v10_project_${currentProjectId}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    $('statusText').textContent=`সম্পূর্ণ V10 Project Export ডাউনলোড হয়েছে (#${currentProjectId})।`;
-  }
-};
-
-</script>
-</body></html>
+  </script>
+</body>
+</html>
