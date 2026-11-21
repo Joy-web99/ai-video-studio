@@ -62,14 +62,23 @@
     .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* Chat Box */
-    .chat-card { display: flex; flex-direction: column; height: 450px; position: relative; }
+    .chat-card { display: flex; flex-direction: column; height: 470px; position: relative; }
     .chat-card.fullscreen { position: fixed; inset: 0; z-index: 999; height: 100vh; border-radius: 0; max-width: 100%; border: none; }
     .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 6px 2px; margin-bottom: 10px; }
-    .msg { max-width: 88%; padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-    .msg.user { align-self: flex-end; background: #1d4ed8; color: #fff; border-bottom-right-radius: 4px; }
-    .msg.ai { align-self: flex-start; background: var(--card2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg-wrap { display: flex; flex-direction: column; max-width: 88%; }
+    .msg-wrap.user { align-self: flex-end; align-items: flex-end; }
+    .msg-wrap.ai { align-self: flex-start; align-items: flex-start; }
+    .msg { padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+    .msg.user { background: #1d4ed8; color: #fff; border-bottom-right-radius: 4px; }
+    .msg.ai { background: var(--card2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg-actions { display: flex; gap: 6px; margin-top: 4px; }
+    .msg-act-btn {
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      font-size: 11px; padding: 2px 7px; border-radius: 6px; cursor: pointer;
+    }
+    .msg-act-btn:hover { color: var(--text); border-color: var(--accent); }
 
-    /* Typing / Working Animation Bubble */
+    /* Typing Animation Bubble */
     .typing-bubble {
       align-self: flex-start; background: var(--card2); border: 1px solid var(--accent);
       padding: 10px 14px; border-radius: 12px; display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: var(--accent);
@@ -77,16 +86,16 @@
     .dots { display: inline-flex; gap: 4px; }
     .dots span {
       width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
-      animation: bounce 1.2s infinite ease-in-out;
+      animation: bounce 1.1s infinite ease-in-out;
     }
-    .dots span:nth-child(2) { animation-delay: 0.2s; }
-    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    .dots span:nth-child(2) { animation-delay: 0.18s; }
+    .dots span:nth-child(3) { animation-delay: 0.36s; }
     @keyframes bounce {
       0%, 80%, 100% { transform: scale(0.5); opacity: 0.4; }
       40% { transform: scale(1.2); opacity: 1; }
     }
 
-    /* Dynamic Choice / Approval Card */
+    /* Choice / Approval Card */
     .choice-card { align-self: stretch; background: #0f172a; border: 1px solid var(--accent); border-radius: 12px; padding: 12px; font-size: 13px; }
     .choice-option { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 6px 0; cursor: pointer; }
     .choice-option.selected { border-color: var(--green); background: #052e1655; }
@@ -94,12 +103,19 @@
     /* Attach & Input */
     .attach-preview { display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .attach-chip { background: var(--card2); border: 1px solid var(--border); padding: 4px 8px; border-radius: 99px; font-size: 12px; }
-    .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
+    .chat-input-row { display: flex; gap: 6px; align-items: flex-end; }
     .chat-input-row textarea {
       flex: 1; background: #070a12; border: 1px solid var(--border); color: var(--text);
       border-radius: 10px; padding: 10px; font-size: 14px; resize: none; height: 44px;
     }
-    .send-btn { background: var(--accent); color: #082f49; border: none; border-radius: 10px; padding: 0 14px; height: 44px; font-weight: 700; cursor: pointer; }
+    .mic-btn {
+      background: var(--card2); border: 1px solid var(--border); color: var(--text);
+      border-radius: 10px; width: 42px; height: 44px; font-size: 16px; cursor: pointer; flex-shrink: 0;
+    }
+    .mic-btn.listening { border-color: var(--red); background: #7f1d1d; color: #fff; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+    .send-btn { background: var(--accent); color: #082f49; border: none; border-radius: 10px; padding: 0 14px; height: 44px; font-weight: 800; cursor: pointer; flex-shrink: 0; }
+    .send-btn.stop-mode { background: var(--red); color: #fff; }
 
     /* Workflow Drawer */
     .wf-tab-btn {
@@ -118,35 +134,64 @@
       padding: 8px 10px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
     }
 
-    /* API Keys & Red/Green Status */
+    /* API Keys & Auto-Detect + Model List */
     .agent-card { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
     .agent-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 700; font-size: 14px; }
-    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .key-block { background: #0d1322; border: 1px solid var(--border); border-radius: 9px; padding: 8px; margin-bottom: 8px; }
+    .key-block-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1.25fr; gap: 6px; margin-bottom: 6px; }
+    .model-wrap { display: flex; align-items: center; gap: 4px; position: relative; }
+    .auto-star {
+      display: none; color: var(--yellow); font-size: 14px; flex-shrink: 0;
+      text-shadow: 0 0 6px #facc1588; cursor: help;
+    }
+    .auto-star.show { display: inline-block; }
+    .mini-list-btn {
+      background: var(--card); border: 1px solid var(--border); color: var(--accent);
+      padding: 6px 8px; border-radius: 8px; cursor: pointer; font-size: 12px; flex-shrink: 0;
+    }
+    .mini-list-btn:hover { border-color: var(--accent); }
     input, select {
       width: 100%; background: #070a12; border: 1px solid var(--border); color: var(--text);
-      padding: 8px 10px; border-radius: 8px; font-size: 13px; outline: none;
+      padding: 7px 9px; border-radius: 8px; font-size: 12px; outline: none;
     }
-    .key-wrap { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .key-wrap { display: flex; gap: 6px; align-items: center; }
     .key-input { border: 1.5px solid var(--red) !important; transition: border-color 0.2s; }
     .key-input.ok { border-color: var(--green) !important; box-shadow: 0 0 6px #22c55e44; }
     .key-input.testing { border-color: var(--yellow) !important; }
+    .detected-badge { font-size: 11px; color: var(--green); margin-top: 5px; display: none; font-weight: 600; }
+    .detected-badge.show { display: block; }
     .warn-btn {
       display: none; background: #7f1d1d; color: #fecaca; border: 1px solid var(--red);
-      padding: 6px 9px; border-radius: 8px; cursor: pointer; font-size: 13px; flex-shrink: 0;
+      padding: 6px 8px; border-radius: 8px; cursor: pointer; font-size: 12px; flex-shrink: 0;
     }
     .warn-btn.show { display: inline-flex; align-items: center; }
     .mini-test {
       background: var(--card); border: 1px solid var(--border); color: var(--text);
-      padding: 7px 9px; border-radius: 8px; cursor: pointer; font-size: 11px; flex-shrink: 0;
+      padding: 6px 9px; border-radius: 8px; cursor: pointer; font-size: 11px; flex-shrink: 0;
     }
-    .settings-panel { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); flex-direction: column; gap: 8px; }
+    .settings-panel { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); flex-direction: column; gap: 6px; }
     .settings-panel.open { display: flex; }
+
+    /* Model List Modal */
+    .model-list-box { max-height: 290px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .model-opt {
+      background: var(--card2); border: 1px solid var(--border); color: var(--text);
+      padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 8px;
+    }
+    .model-opt:hover { border-color: var(--accent); }
+    .model-opt.active-pick { border-color: var(--green); background: #052e1655; }
+    .auto-pill {
+      background: #422006; color: var(--yellow); border: 1px solid var(--yellow);
+      font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 99px; flex-shrink: 0;
+    }
 
     /* Unused & Modals */
     .unused-item { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 12px; }
     .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
     .modal-bg.open { display: flex; }
-    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 420px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 440px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
     .err-pre { background: #070a12; border: 1px solid var(--red); color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 12px; white-space: pre-wrap; max-height: 260px; overflow-y: auto; word-break: break-word; }
   </style>
 </head>
@@ -183,218 +228,21 @@
         </div>
       </div>
       <div id="chatMessages" class="chat-messages">
-        <div class="msg ai">হ্যালো! আমি তোমার Director AI। নিচে API Key বসিয়ে Test করো—ঘর সবুজ হয়ে গেলেই এখানে তোমার গল্প বা ভিডিওর প্রম্পট দাও।</div>
+        <div class="msg-wrap ai"><div class="msg ai">হ্যালো! আমি তোমার Director AI। নিচে API Key বসালেই কোম্পানি ও মডেল অটো-সেট হয়ে যাবে। ঘর সবুজ হলেই এখানে গল্প বা ভিডিওর প্রম্পট দাও।</div></div>
       </div>
       <div id="attachPreview" class="attach-preview"></div>
       <div class="chat-input-row">
         <button class="icon-btn" style="height:44px;" onclick="openAttach()">＋</button>
-        <textarea id="chatInput" placeholder="প্রম্পট বা মেসেজ লেখো..."></textarea>
-        <button class="send-btn" id="sendBtn" onclick="sendChat()">➤</button>
+        <textarea id="chatInput" placeholder="প্রম্পট লেখো বা 🎤 চেপে বাংলায় বলো..."></textarea>
+        <button id="micBtn" class="mic-btn" onclick="toggleMic()" title="বাংলায় ভয়েস টাইপিং">🎤</button>
+        <button class="send-btn" id="sendBtn" onclick="onSendOrStop()">➤</button>
       </div>
     </div>
 
     <!-- 5. API Keys & Agents -->
     <div class="card">
-      <div class="card-head"><span>API KEYS &amp; AGENTS (🔴 Inactive / 🟢 Active)</span></div>
-
-      <!-- 1. Director -->
-      <div class="agent-card">
-        <div class="agent-top">
-          <span>🎬 Director &amp; Chat AI</span>
-          <button class="icon-btn" onclick="toggleSet('director')">⚙️</button>
-        </div>
-        <div class="row-2">
-          <select id="prov-director" onchange="saveAll()">
-            <option value="google">Google Gemini</option>
-            <option value="openrouter">OpenRouter</option>
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic (Claude)</option>
-            <option value="groq">Groq</option>
-            <option value="deepseek">DeepSeek</option>
-            <option value="mistral">Mistral</option>
-            <option value="custom">Custom URL</option>
-          </select>
-          <input id="mod-director" type="text" placeholder="Model (e.g. gemini-3.8-flash)" oninput="saveAll()" />
-        </div>
-        <div class="key-wrap">
-          <input id="k1-director" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('director',1)" />
-          <button class="mini-test" onclick="verifySingleKey('director',1)">Test</button>
-          <button id="err-director-1" class="warn-btn" onclick="showKeyError('director',1)">⚠️</button>
-        </div>
-        <div id="set-director" class="settings-panel">
-          <div class="key-wrap">
-            <input id="k2-director" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('director',2)" />
-            <button class="mini-test" onclick="verifySingleKey('director',2)">Test</button>
-            <button id="err-director-2" class="warn-btn" onclick="showKeyError('director',2)">⚠️</button>
-          </div>
-          <div class="key-wrap">
-            <input id="k3-director" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('director',3)" />
-            <button class="mini-test" onclick="verifySingleKey('director',3)">Test</button>
-            <button id="err-director-3" class="warn-btn" onclick="showKeyError('director',3)">⚠️</button>
-          </div>
-          <input id="url-director" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
-          <input id="sk-director" type="text" value="Chat, Script, Direction, Image" placeholder="Skills" oninput="saveAll()" />
-        </div>
-      </div>
-
-      <!-- 2. Image -->
-      <div class="agent-card">
-        <div class="agent-top">
-          <span>🎨 Image &amp; Character AI</span>
-          <button class="icon-btn" onclick="toggleSet('image')">⚙️</button>
-        </div>
-        <div class="row-2">
-          <select id="prov-image" onchange="saveAll()">
-            <option value="google">Google Gemini</option>
-            <option value="openrouter">OpenRouter</option>
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic (Claude)</option>
-            <option value="groq">Groq</option>
-            <option value="deepseek">DeepSeek</option>
-            <option value="mistral">Mistral</option>
-            <option value="custom">Custom URL</option>
-          </select>
-          <input id="mod-image" type="text" placeholder="Model (Optional)" oninput="saveAll()" />
-        </div>
-        <div class="key-wrap">
-          <input id="k1-image" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('image',1)" />
-          <button class="mini-test" onclick="verifySingleKey('image',1)">Test</button>
-          <button id="err-image-1" class="warn-btn" onclick="showKeyError('image',1)">⚠️</button>
-        </div>
-        <div id="set-image" class="settings-panel">
-          <div class="key-wrap">
-            <input id="k2-image" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('image',2)" />
-            <button class="mini-test" onclick="verifySingleKey('image',2)">Test</button>
-            <button id="err-image-2" class="warn-btn" onclick="showKeyError('image',2)">⚠️</button>
-          </div>
-          <div class="key-wrap">
-            <input id="k3-image" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('image',3)" />
-            <button class="mini-test" onclick="verifySingleKey('image',3)">Test</button>
-            <button id="err-image-3" class="warn-btn" onclick="showKeyError('image',3)">⚠️</button>
-          </div>
-          <input id="url-image" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
-          <input id="sk-image" type="text" value="Image, Scene, Character" placeholder="Skills" oninput="saveAll()" />
-        </div>
-      </div>
-
-      <!-- 3. Video -->
-      <div class="agent-card">
-        <div class="agent-top">
-          <span>🎥 Video Generation AI</span>
-          <button class="icon-btn" onclick="toggleSet('video')">⚙️</button>
-        </div>
-        <div class="row-2">
-          <select id="prov-video" onchange="saveAll()">
-            <option value="google">Google Gemini</option>
-            <option value="openrouter">OpenRouter</option>
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic (Claude)</option>
-            <option value="groq">Groq</option>
-            <option value="deepseek">DeepSeek</option>
-            <option value="mistral">Mistral</option>
-            <option value="custom">Custom URL</option>
-          </select>
-          <input id="mod-video" type="text" placeholder="Model (Optional)" oninput="saveAll()" />
-        </div>
-        <div class="key-wrap">
-          <input id="k1-video" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('video',1)" />
-          <button class="mini-test" onclick="verifySingleKey('video',1)">Test</button>
-          <button id="err-video-1" class="warn-btn" onclick="showKeyError('video',1)">⚠️</button>
-        </div>
-        <div id="set-video" class="settings-panel">
-          <div class="key-wrap">
-            <input id="k2-video" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('video',2)" />
-            <button class="mini-test" onclick="verifySingleKey('video',2)">Test</button>
-            <button id="err-video-2" class="warn-btn" onclick="showKeyError('video',2)">⚠️</button>
-          </div>
-          <div class="key-wrap">
-            <input id="k3-video" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('video',3)" />
-            <button class="mini-test" onclick="verifySingleKey('video',3)">Test</button>
-            <button id="err-video-3" class="warn-btn" onclick="showKeyError('video',3)">⚠️</button>
-          </div>
-          <input id="url-video" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
-          <input id="sk-video" type="text" value="Video, Animation, Motion" placeholder="Skills" oninput="saveAll()" />
-        </div>
-      </div>
-
-      <!-- 4. Audio -->
-      <div class="agent-card">
-        <div class="agent-top">
-          <span>🎙️ Voice &amp; Audio AI</span>
-          <button class="icon-btn" onclick="toggleSet('audio')">⚙️</button>
-        </div>
-        <div class="row-2">
-          <select id="prov-audio" onchange="saveAll()">
-            <option value="google">Google Gemini</option>
-            <option value="openrouter">OpenRouter</option>
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic (Claude)</option>
-            <option value="groq">Groq</option>
-            <option value="deepseek">DeepSeek</option>
-            <option value="mistral">Mistral</option>
-            <option value="custom">Custom URL</option>
-          </select>
-          <input id="mod-audio" type="text" placeholder="Model (Optional)" oninput="saveAll()" />
-        </div>
-        <div class="key-wrap">
-          <input id="k1-audio" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('audio',1)" />
-          <button class="mini-test" onclick="verifySingleKey('audio',1)">Test</button>
-          <button id="err-audio-1" class="warn-btn" onclick="showKeyError('audio',1)">⚠️</button>
-        </div>
-        <div id="set-audio" class="settings-panel">
-          <div class="key-wrap">
-            <input id="k2-audio" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('audio',2)" />
-            <button class="mini-test" onclick="verifySingleKey('audio',2)">Test</button>
-            <button id="err-audio-2" class="warn-btn" onclick="showKeyError('audio',2)">⚠️</button>
-          </div>
-          <div class="key-wrap">
-            <input id="k3-audio" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('audio',3)" />
-            <button class="mini-test" onclick="verifySingleKey('audio',3)">Test</button>
-            <button id="err-audio-3" class="warn-btn" onclick="showKeyError('audio',3)">⚠️</button>
-          </div>
-          <input id="url-audio" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
-          <input id="sk-audio" type="text" value="Voice, Music, SFX" placeholder="Skills" oninput="saveAll()" />
-        </div>
-      </div>
-            <!-- 5. Editing -->
-      <div class="agent-card">
-        <div class="agent-top">
-          <span>✂️ Subtitle &amp; Editing AI</span>
-          <button class="icon-btn" onclick="toggleSet('editing')">⚙️</button>
-        </div>
-        <div class="row-2">
-          <select id="prov-editing" onchange="saveAll()">
-            <option value="google">Google Gemini</option>
-            <option value="openrouter">OpenRouter</option>
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic (Claude)</option>
-            <option value="groq">Groq</option>
-            <option value="deepseek">DeepSeek</option>
-            <option value="mistral">Mistral</option>
-            <option value="custom">Custom URL</option>
-          </select>
-          <input id="mod-editing" type="text" placeholder="Model (Optional)" oninput="saveAll()" />
-        </div>
-        <div class="key-wrap">
-          <input id="k1-editing" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('editing',1)" />
-          <button class="mini-test" onclick="verifySingleKey('editing',1)">Test</button>
-          <button id="err-editing-1" class="warn-btn" onclick="showKeyError('editing',1)">⚠️</button>
-        </div>
-        <div id="set-editing" class="settings-panel">
-          <div class="key-wrap">
-            <input id="k2-editing" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('editing',2)" />
-            <button class="mini-test" onclick="verifySingleKey('editing',2)">Test</button>
-            <button id="err-editing-2" class="warn-btn" onclick="showKeyError('editing',2)">⚠️</button>
-          </div>
-          <div class="key-wrap">
-            <input id="k3-editing" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('editing',3)" />
-            <button class="mini-test" onclick="verifySingleKey('editing',3)">Test</button>
-            <button id="err-editing-3" class="warn-btn" onclick="showKeyError('editing',3)">⚠️</button>
-          </div>
-          <input id="url-editing" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
-          <input id="sk-editing" type="text" value="Subtitle, Editing, Color" placeholder="Skills" oninput="saveAll()" />
-        </div>
-      </div>
+      <div class="card-head"><span>API KEYS &amp; AGENTS (★ Auto Model • 📋 Model List)</span></div>
+      <div id="agentsContainer"></div>
     </div>
 
     <!-- 6. Unused Assets -->
@@ -422,6 +270,21 @@
       <div class="cowork-row"><span>🎥 Video</span><input id="cw-video" type="checkbox" style="width:auto;" onchange="saveAll()" /></div>
       <div class="cowork-row"><span>🎙️ Audio</span><input id="cw-audio" type="checkbox" style="width:auto;" onchange="saveAll()" /></div>
       <div class="cowork-row"><span>✂️ Editing</span><input id="cw-editing" type="checkbox" style="width:auto;" onchange="saveAll()" /></div>
+    </div>
+  </div>
+
+  <!-- Model List Modal -->
+  <div id="modelModal" class="modal-bg">
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong id="modelModalTitle" style="color:var(--accent);">📋 Available Models</strong>
+        <button class="icon-btn" onclick="refreshModalModels()">🔄 Refresh</button>
+      </div>
+      <input id="modelSearchInput" type="text" placeholder="মডেল খুঁজুন (যেমন: flash, free, llama, gpt)..." oninput="renderModalModels()" />
+      <div id="modelListContainer" class="model-list-box"></div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="btn-secondary" onclick="closeModelModal()">Close</button>
+      </div>
     </div>
   </div>
 
@@ -462,8 +325,20 @@
   </div>
 
   <script>
-    const IDS = ["director", "image", "video", "audio", "editing"];
+    const AGENTS = [
+      { id: "director", icon: "🎬", title: "Director & Chat AI", skills: "Chat, Script, Direction, Image" },
+      { id: "image", icon: "🎨", title: "Image & Character AI", skills: "Image, Scene, Character" },
+      { id: "video", icon: "🎥", title: "Video Generation AI", skills: "Video, Animation, Motion" },
+      { id: "audio", icon: "🎙️", title: "Voice & Audio AI", skills: "Voice, Music, SFX" },
+      { id: "editing", icon: "✂️", title: "Subtitle & Editing AI", skills: "Subtitle, Editing, Color" }
+    ];
+    const IDS = AGENTS.map(function(a) { return a.id; });
     const NAMES = { director: "Director AI", image: "Image AI", video: "Video AI", audio: "Audio AI", editing: "Editing AI" };
+    const PROV_NAMES = {
+      google: "Google Gemini", openrouter: "OpenRouter", openai: "OpenAI",
+      anthropic: "Anthropic Claude", groq: "Groq", deepseek: "DeepSeek",
+      mistral: "Mistral", custom: "Custom API"
+    };
 
     let chatHistory = [];
     let attachments = [];
@@ -473,19 +348,80 @@
     let workflowSteps = [{ l: "Waiting for task...", s: "Idle" }];
     let keyErrors = {};
     let keyStatus = {};
+    let keyInfo = {};
+    let keyAutoModels = {};
+    let keyModelsCache = {};
     let isPaused = false;
     let activeJobId = null;
+    let pollTimer = null;
+    let lastReportedTeamSig = "";
+    let autoTimers = {};
+    let modalTarget = null;
+
+    function provOptionsHtml() {
+      return '<option value="google">Google Gemini</option>' +
+        '<option value="openrouter">OpenRouter</option>' +
+        '<option value="openai">OpenAI</option>' +
+        '<option value="anthropic">Anthropic (Claude)</option>' +
+        '<option value="groq">Groq</option>' +
+        '<option value="deepseek">DeepSeek</option>' +
+        '<option value="mistral">Mistral</option>' +
+        '<option value="custom">Custom URL</option>';
+    }
+
+    function keySlotHtml(id, n, label) {
+      return '<div class="key-block">' +
+        '<div class="key-block-label"><span>' + label + '</span><span id="lbl-' + id + '-' + n + '"></span></div>' +
+        '<div class="row-2">' +
+          '<select id="prov-' + id + '-' + n + '" onchange="saveAll()">' + provOptionsHtml() + '</select>' +
+          '<div class="model-wrap">' +
+            '<input id="mod-' + id + '-' + n + '" type="text" placeholder="Auto / Model" oninput="onModelManualChange(\'' + id + '\',' + n + ')" />' +
+                        '<span id="star-' + id + '-' + n + '" class="auto-star" title="অটোমেটিক সিলেক্ট করা মডেল">★</span>' +
+            '<button class="mini-list-btn" onclick="openModelList(\'' + id + '\',' + n + ')" title="সব মডেলের লিস্ট দেখো">📋</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="key-wrap">' +
+          '<input id="k-' + id + '-' + n + '" class="key-input" type="password" placeholder="Paste API Key here..." oninput="onKeyInput(\'' + id + '\',' + n + ')" />' +
+          '<button class="mini-test" onclick="autoDetectAndVerify(\'' + id + '\',' + n + ',true)">Test</button>' +
+          '<button id="err-' + id + '-' + n + '" class="warn-btn" onclick="showKeyError(\'' + id + '\',' + n + ')">⚠️</button>' +
+        '</div>' +
+        '<div id="badge-' + id + '-' + n + '" class="detected-badge"></div>' +
+      '</div>';
+    }
+
+    function buildAgentsUI() {
+      const container = document.getElementById("agentsContainer");
+      container.innerHTML = AGENTS.map(function(a) {
+        return '<div class="agent-card">' +
+          '<div class="agent-top">' +
+            '<span>' + a.icon + ' ' + a.title + '</span>' +
+            '<button class="icon-btn" onclick="toggleSet(\'' + a.id + '\')">⚙️</button>' +
+          '</div>' +
+          keySlotHtml(a.id, 1, "Primary API Key") +
+          '<div id="set-' + a.id + '" class="settings-panel">' +
+            keySlotHtml(a.id, 2, "Backup Key #2 (Extra)") +
+            keySlotHtml(a.id, 3, "Backup Key #3 (Extra)") +
+            '<input id="url-' + a.id + '" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />' +
+            '<input id="sk-' + a.id + '" type="text" value="' + a.skills + '" placeholder="Skills" oninput="saveAll()" />' +
+          '</div>' +
+        '</div>';
+      }).join("");
+    }
 
     function getCfg(id) {
+      const keys = [1, 2, 3].map(function(n) {
+        return {
+          idx: n,
+          provider: document.getElementById("prov-" + id + "-" + n).value,
+          model: document.getElementById("mod-" + id + "-" + n).value.trim(),
+          apiKey: document.getElementById("k-" + id + "-" + n).value.trim()
+        };
+      });
       return {
-        provider: document.getElementById("prov-" + id).value,
-        model: document.getElementById("mod-" + id).value.trim(),
-        key1: document.getElementById("k1-" + id).value.trim(),
-        key2: document.getElementById("k2-" + id).value.trim(),
-        key3: document.getElementById("k3-" + id).value.trim(),
         customUrl: document.getElementById("url-" + id).value.trim(),
         skills: document.getElementById("sk-" + id).value.trim(),
-        cowork: document.getElementById("cw-" + id).checked
+        cowork: document.getElementById("cw-" + id).checked,
+        keys: keys
       };
     }
 
@@ -499,71 +435,116 @@
         workflowSteps: workflowSteps,
         keyStatus: keyStatus,
         keyErrors: keyErrors,
-        activeJobId: activeJobId
+        keyInfo: keyInfo,
+        keyAutoModels: keyAutoModels,
+        lastReportedTeamSig: lastReportedTeamSig
       };
       IDS.forEach(function(id) { data.agents[id] = getCfg(id); });
-      localStorage.setItem("studio_v4_auto", JSON.stringify(data));
+      localStorage.setItem("studio_v6_smart", JSON.stringify(data));
     }
 
     function applyKeyVisuals() {
       IDS.forEach(function(id) {
         [1, 2, 3].forEach(function(n) {
-          const inp = document.getElementById("k" + n + "-" + id);
+          const inp = document.getElementById("k-" + id + "-" + n);
+          const modInp = document.getElementById("mod-" + id + "-" + n);
+          const star = document.getElementById("star-" + id + "-" + n);
           const errBtn = document.getElementById("err-" + id + "-" + n);
+          const badge = document.getElementById("badge-" + id + "-" + n);
           const k = id + "-" + n;
+
           inp.classList.remove("ok", "testing");
+          if (keyAutoModels[k] && modInp.value.trim() === keyAutoModels[k]) {
+            star.classList.add("show");
+          } else {
+            star.classList.remove("show");
+          }
+
           if (keyStatus[k] === "ok" && inp.value.trim() !== "") {
             inp.classList.add("ok");
             errBtn.classList.remove("show");
-          } else if (keyErrors[k]) {
-            errBtn.classList.add("show");
+            if (keyInfo[k]) {
+              badge.innerText = keyInfo[k];
+              badge.classList.add("show");
+            }
           } else {
-            errBtn.classList.remove("show");
+            badge.classList.remove("show");
+            if (keyErrors[k]) errBtn.classList.add("show");
+            else errBtn.classList.remove("show");
           }
         });
       });
     }
 
-    function onKeyChange(id, n) {
-      const k = id + "-" + n;
-      keyStatus[k] = "idle";
-      delete keyErrors[k];
+    function onModelManualChange(id, n) {
       applyKeyVisuals();
       saveAll();
     }
 
-    async function verifySingleKey(id, n) {
-      const cfg = getCfg(id);
-      const apiKey = cfg["key" + n];
+    function onKeyInput(id, n) {
       const k = id + "-" + n;
-      const inp = document.getElementById("k" + n + "-" + id);
+      const val = document.getElementById("k-" + id + "-" + n).value.trim();
+      keyStatus[k] = "idle";
+      delete keyErrors[k];
+      delete keyInfo[k];
+      delete keyModelsCache[k];
+      applyKeyVisuals();
+      saveAll();
+
+      clearTimeout(autoTimers[k]);
+      if (val.length >= 16) {
+        autoTimers[k] = setTimeout(function() {
+          autoDetectAndVerify(id, n, false);
+        }, 650);
+      }
+    }
+
+    async function autoDetectAndVerify(id, n, isManual) {
+      const k = id + "-" + n;
+      const inp = document.getElementById("k-" + id + "-" + n);
+      const provSel = document.getElementById("prov-" + id + "-" + n);
+      const modInp = document.getElementById("mod-" + id + "-" + n);
+      const customUrl = document.getElementById("url-" + id).value.trim();
+      const apiKey = inp.value.trim();
+
       if (!apiKey) {
-        keyStatus[k] = "err";
-        keyErrors[k] = "API Key ফাঁকা রয়েছে। আগে Key বসাও।";
-        applyKeyVisuals();
-        saveAll();
+        if (isManual) {
+          keyStatus[k] = "err";
+          keyErrors[k] = "API Key ফাঁকা রয়েছে। আগে Key বসাও।";
+          applyKeyVisuals();
+          saveAll();
+        }
         return;
       }
+
       inp.classList.remove("ok");
       inp.classList.add("testing");
       try {
-        const res = await fetch("/api/test-single-key", {
+        const res = await fetch("/api/auto-detect-key", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            provider: cfg.provider,
-            model: cfg.model,
-            customUrl: cfg.customUrl,
-            apiKey: apiKey
+            apiKey: apiKey,
+            provider: provSel.value,
+            model: isManual ? modInp.value.trim() : "",
+            customUrl: customUrl
           })
         }).then(function(r) { return r.json(); });
+
+        if (res.provider) provSel.value = res.provider;
+        if (res.model) modInp.value = res.model;
+        if (res.auto_model) keyAutoModels[k] = res.auto_model;
+        if (Array.isArray(res.models)) keyModelsCache[k] = res.models;
 
         if (res.ok) {
           keyStatus[k] = "ok";
           delete keyErrors[k];
+          const pLabel = PROV_NAMES[res.provider] || res.provider;
+          const starTxt = (res.model === res.auto_model) ? " ★ Auto" : "";
+          keyInfo[k] = "✅ Active: " + pLabel + " • " + res.model + starTxt;
         } else {
           keyStatus[k] = "err";
-          keyErrors[k] = res.error || "Unknown Server Error";
+          keyErrors[k] = res.error || "Connection Failed";
         }
       } catch (e) {
         keyStatus[k] = "err";
@@ -573,13 +554,94 @@
       saveAll();
     }
 
+    // Model List Modal Logic
+    async function openModelList(id, n) {
+      modalTarget = { id: id, n: n };
+      const k = id + "-" + n;
+      document.getElementById("modelSearchInput").value = "";
+      document.getElementById("modelModal").classList.add("open");
+
+      if (keyModelsCache[k] && keyModelsCache[k].length) {
+        renderModalModels();
+      } else {
+        await refreshModalModels();
+      }
+    }
+
+    async function refreshModalModels() {
+      if (!modalTarget) return;
+      const id = modalTarget.id;
+      const n = modalTarget.n;
+      const k = id + "-" + n;
+      const apiKey = document.getElementById("k-" + id + "-" + n).value.trim();
+      const provSel = document.getElementById("prov-" + id + "-" + n);
+      const customUrl = document.getElementById("url-" + id).value.trim();
+      const box = document.getElementById("modelListContainer");
+      box.innerHTML = '<div style="color:var(--accent);font-size:12px;padding:8px;">⏳ সার্ভার থেকে সব মডেলের লিস্ট আনা হচ্ছে...</div>';
+
+      try {
+        const res = await fetch("/api/list-models", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            apiKey: apiKey,
+            provider: provSel.value,
+            customUrl: customUrl
+          })
+        }).then(function(r) { return r.json(); });
+
+        if (res.provider) provSel.value = res.provider;
+        if (res.auto_model) keyAutoModels[k] = res.auto_model;
+        keyModelsCache[k] = res.models || [];
+        const pLabel = PROV_NAMES[res.provider] || res.provider;
+        document.getElementById("modelModalTitle").innerText = "📋 " + pLabel + " Models (" + keyModelsCache[k].length + ")";
+        renderModalModels();
+      } catch (e) {
+        box.innerHTML = '<div style="color:var(--red);font-size:12px;">লিস্ট আনা যায়নি: ' + e.message + '</div>';
+      }
+    }
+
+    function renderModalModels() {
+      if (!modalTarget) return;
+      const id = modalTarget.id;
+      const n = modalTarget.n;
+      const k = id + "-" + n;
+      const currentMod = document.getElementById("mod-" + id + "-" + n).value.trim();
+      const autoMod = keyAutoModels[k] || "";
+      const q = document.getElementById("modelSearchInput").value.trim().toLowerCase();
+      const list = (keyModelsCache[k] || []).filter(function(m) {
+        return !q || m.toLowerCase().indexOf(q) !== -1;
+      });
+      const box = document.getElementById("modelListContainer");
+      if (!list.length) {
+        box.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px;">কোনো মডেল পাওয়া যায়নি।</div>';
+        return;
+      }
+      box.innerHTML = "";
+      list.forEach(function(m) {
+        const btn = document.createElement("button");
+        btn.className = "model-opt" + (m === currentMod ? " active-pick" : "");
+        const isAuto = (m === autoMod);
+        btn.innerHTML = '<span style="word-break:break-all;">' + m + '</span>' + (isAuto ? '<span class="auto-pill">★ Auto</span>' : '');
+        btn.onclick = function() {
+          document.getElementById("mod-" + id + "-" + n).value = m;
+          closeModelModal();
+          applyKeyVisuals();
+          saveAll();
+          if (document.getElementById("k-" + id + "-" + n).value.trim()) {
+            autoDetectAndVerify(id, n, true);
+          }
+        };
+        box.appendChild(btn);
+      });
+    }
+
+    function closeModelModal() { document.getElementById("modelModal").classList.remove("open"); }
     function showKeyError(id, n) {
-      const msg = keyErrors[id + "-" + n] || "কোনো এরর পাওয়া যায়নি।";
-      document.getElementById("errorModalText").innerText = msg;
+      document.getElementById("errorModalText").innerText = keyErrors[id + "-" + n] || "কোনো এরর পাওয়া যায়নি।";
       document.getElementById("errorModal").classList.add("open");
     }
     function closeErrorModal() { document.getElementById("errorModal").classList.remove("open"); }
-
     function toggleSet(id) { document.getElementById("set-" + id).classList.toggle("open"); }
     function toggleDrawer() { document.getElementById("drawer").classList.toggle("open"); }
     function toggleFullscreen() {
@@ -593,11 +655,7 @@
       const btn = document.getElementById("pauseBtn");
       btn.innerText = isPaused ? "▶️ Resume" : "⏸️ Pause";
       btn.classList.toggle("paused", isPaused);
-      if (isPaused) {
-        setWf([{ l: "Studio Paused by User", s: "Paused ⏸️" }]);
-      } else {
-        setWf([{ l: "Studio Resumed", s: "Ready ▶️" }]);
-      }
+      setWf([{ l: isPaused ? "Studio Paused" : "Studio Resumed", s: isPaused ? "Paused ⏸️" : "Ready ▶️" }]);
     }
 
     function setWf(items) {
@@ -608,18 +666,125 @@
       saveAll();
     }
 
+    function setRunningUI(running) {
+      const btn = document.getElementById("sendBtn");
+      if (running) {
+        btn.innerText = "■";
+        btn.classList.add("stop-mode");
+        btn.title = "Stop generating";
+      } else {
+        btn.innerText = "➤";
+        btn.classList.remove("stop-mode");
+        btn.title = "Send";
+      }
+    }
+
+    function onSendOrStop() {
+      if (activeJobId) stopCurrentJob();
+      else sendChat();
+    }
+
+    async function stopCurrentJob() {
+      if (!activeJobId) return;
+      const jid = activeJobId;
+      activeJobId = null;
+      clearInterval(pollTimer);
+      removeTyping();
+      setRunningUI(false);
+      setWf([{ l: "Stopped by User", s: "Stopped ■" }]);
+      try { await fetch("/api/cancel-job/" + jid, { method: "POST" }); } catch (e) {}
+    }
+
+    function speakText(text, btn) {
+      if (!("speechSynthesis" in window)) { alert("তোমার ব্রাউজারে ভয়েস সাপোর্ট নেই।"); return; }
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        if (btn) btn.innerText = "🔊 শুনুন";
+        return;
+      }
+      const utter = new SpeechSynthesisUtterance(text);
+      const hasBangla = /[\u0980-\u09FF]/.test(text);
+      utter.lang = hasBangla ? "bn-IN" : "en-US";
+      utter.rate = 0.98;
+      if (btn) btn.innerText = "⏹️ থামান";
+      utter.onend = function() { if (btn) btn.innerText = "🔊 শুনুন"; };
+      utter.onerror = function() { if (btn) btn.innerText = "🔊 শুনুন"; };
+      window.speechSynthesis.speak(utter);
+    }
+
+    let recognition = null;
+    let isListening = false;
+    function toggleMic() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) { alert("এই ব্রাউজারে ভয়েস টাইপিং সাপোর্ট করছে না। Chrome ব্যবহার করো।"); return; }
+      const micBtn = document.getElementById("micBtn");
+      if (isListening && recognition) { recognition.stop(); return; }
+      recognition = new SpeechRec();
+      recognition.lang = "bn-IN";
+      recognition.interimResults = true;
+      recognition.continuous = false;
+
+      const inp = document.getElementById("chatInput");
+      const baseText = inp.value ? inp.value + " " : "";
+
+      recognition.onstart = function() { isListening = true; micBtn.classList.add("listening"); };
+      recognition.onresult = function(event) {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        inp.value = baseText + transcript;
+      };
+      recognition.onend = function() { isListening = false; micBtn.classList.remove("listening"); };
+      recognition.onerror = function() { isListening = false; micBtn.classList.remove("listening"); };
+      recognition.start();
+    }
+
+    function editUserMessage(index) {
+      if (activeJobId) stopCurrentJob();
+      const target = chatHistory[index];
+      if (!target || target.role !== "user") return;
+      document.getElementById("chatInput").value = target.content;
+      document.getElementById("chatInput").focus();
+      chatHistory = chatHistory.slice(0, index);
+      renderChat();
+      saveAll();
+    }
+
     function renderChat() {
       const box = document.getElementById("chatMessages");
       box.innerHTML = "";
       if (!chatHistory.length) {
-        box.innerHTML = '<div class="msg ai">হ্যালো! আমি তোমার Director AI। নিচে API Key বসিয়ে Test করো—ঘর সবুজ হয়ে গেলেই এখানে তোমার গল্প বা ভিডিওর প্রম্পট দাও।</div>';
+        box.innerHTML = '<div class="msg-wrap ai"><div class="msg ai">হ্যালো! আমি তোমার Director AI। নিচে API Key বসালেই কোম্পানি ও মডেল অটো-সেট হয়ে যাবে। ঘর সবুজ হলেই এখানে গল্প বা ভিডিওর প্রম্পট দাও।</div></div>';
         return;
       }
-      chatHistory.forEach(function(m) {
-        const d = document.createElement("div");
-        d.className = "msg " + (m.role === "user" ? "user" : "ai");
-        d.innerText = m.content;
-        box.appendChild(d);
+      chatHistory.forEach(function(m, idx) {
+        const isUser = m.role === "user";
+        const wrap = document.createElement("div");
+        wrap.className = "msg-wrap " + (isUser ? "user" : "ai");
+
+        const bubble = document.createElement("div");
+        bubble.className = "msg " + (isUser ? "user" : "ai");
+        bubble.innerText = m.content;
+        wrap.appendChild(bubble);
+
+        const acts = document.createElement("div");
+        acts.className = "msg-actions";
+        if (isUser) {
+          const editBtn = document.createElement("button");
+          editBtn.className = "msg-act-btn";
+          editBtn.innerText = "✏️ Edit";
+          editBtn.onclick = function() { editUserMessage(idx); };
+          acts.appendChild(editBtn);
+        } else {
+          const listenBtn = document.createElement("button");
+          listenBtn.className = "msg-act-btn";
+          listenBtn.innerText = "🔊 শুনুন";
+          listenBtn.onclick = function() { speakText(m.content, listenBtn); };
+          acts.appendChild(listenBtn);
+        }
+        wrap.appendChild(acts);
+        box.appendChild(wrap);
       });
       box.scrollTop = box.scrollHeight;
     }
@@ -646,46 +811,79 @@
       if (el) el.remove();
     }
 
-    function clearChat() { chatHistory = []; renderChat(); saveAll(); }
-
-    function buildDirectorPrompt() {
-      const lines = IDS.map(function(id) {
-        const c = getCfg(id);
-        const okCount = [1, 2, 3].filter(function(n) { return keyStatus[id + "-" + n] === "ok" && c["key" + n]; }).length;
-        const anyCount = [c.key1, c.key2, c.key3].filter(Boolean).length;
-        return "- " + NAMES[id] + ": " + (anyCount ? "ACTIVE (" + anyCount + " keys, " + okCount + " verified green, " + c.provider + ", Co-Work:" + (c.cowork ? "ON" : "OFF") + ")" : "INACTIVE") + " | Skills: " + c.skills;
-      });
-      return "You are the Lead Director AI of AI Video Studio. Always reply in natural Bangla mixed with simple English tech terms (FPS, Full HD, Export, Workflow, Sample, Co-Work).\n" +
-        "Live Team Status:\n" + lines.join("\n") + "\n\n" +
-        "Rules:\n" +
-        "1. When the user gives a video idea/story/prompt, act like a real Film Director: state clearly how many seconds, FPS, resolution, and scenes you can build, which AIs from the Live Team Status are ready, and then end by asking: 'তাহলে কি এবার কাজ শুরু করব?'\n" +
-        "2. Never make up fake team members. Report accurately from Live Team Status.";
+    function clearChat() {
+      if (activeJobId) stopCurrentJob();
+      chatHistory = [];
+      lastReportedTeamSig = "";
+      renderChat();
+      saveAll();
     }
 
-    async function pollBackgroundJob(jobId, onDone) {
-      activeJobId = jobId;
+    function getTeamSnapshot() {
+      const lines = [];
+      const sigParts = [];
+      IDS.forEach(function(id) {
+        const c = getCfg(id);
+        const activeKeys = c.keys.filter(function(x) { return x.apiKey !== ""; });
+        const okKeys = activeKeys.filter(function(x) { return keyStatus[id + "-" + x.idx] === "ok"; });
+        const statusStr = activeKeys.length
+          ? "ACTIVE (" + activeKeys.length + " key, " + okKeys.length + " green, " + (c.keys[0].provider) + ")"
+          : "INACTIVE";
+        lines.push("- " + NAMES[id] + ": " + statusStr + " | Skills: " + c.skills);
+        sigParts.push(id + ":" + activeKeys.length + ":" + okKeys.length);
+      });
+      return { text: lines.join("\n"), sig: sigParts.join("|") };
+    }
+
+    function buildDirectorPrompt() {
+      const snap = getTeamSnapshot();
+      const isFirstMessage = chatHistory.filter(function(m) { return m.role === "user"; }).length <= 1;
+      const teamChanged = (lastReportedTeamSig !== "" && lastReportedTeamSig !== snap.sig);
+
+      let statusRule = "";
+      if (isFirstMessage) {
+        statusRule = "INSTRUCTION FOR THIS MESSAGE: This is the very first message of the chat. Briefly state once which AIs are currently Active and which are Inactive based on Team Status below, then answer the user.";
+      } else if (teamChanged) {
+        statusRule = "INSTRUCTION FOR THIS MESSAGE: An AI status just changed mid-chat! Briefly mention ONLY the changed AI status once at the end of your reply.";
+      } else {
+        statusRule = "INSTRUCTION FOR THIS MESSAGE: Do NOT list or repeat which AIs are active or inactive. You already told the user earlier. Talk naturally without repeating team status.";
+      }
+
+      lastReportedTeamSig = snap.sig;
       saveAll();
-      const timer = setInterval(async function() {
+
+      return "You are the Lead Director AI of AI Video Studio. Reply in natural Bangla mixed with simple English tech terms (FPS, Full HD, Export, Workflow, Sample, Co-Work).\n" +
+        "Current Team Status:\n" + snap.text + "\n\n" +
+        statusRule + "\n\n" +
+        "Video Planning Rule: Whenever the user gives a video idea/story/prompt, act like an expert Film Director: clearly tell them what you CAN build and what you CANNOT build with the currently active AIs, specify duration (seconds), FPS, resolution, and scenes, and end by asking: 'তাহলে কি এবার কাজ শুরু করব?'";
+    }
+
+    function pollBackgroundJob(jobId, onDone) {
+      activeJobId = jobId;
+      setRunningUI(true);
+      saveAll();
+      clearInterval(pollTimer);
+      pollTimer = setInterval(async function() {
         try {
           const data = await fetch("/api/job/" + jobId).then(function(r) { return r.json(); });
-          if (!data.ok || data.status === "not_found") {
-            clearInterval(timer);
-            activeJobId = null;
+          if (!data.ok || data.status === "not_found" || data.status === "cancelled") {
+            clearInterval(pollTimer);
+                        activeJobId = null;
             removeTyping();
-            onDone({ ok: false, error: "সার্ভার জব খুঁজে পাওয়া যায়নি।" });
+            setRunningUI(false);
+            if (data.status !== "cancelled") onDone({ ok: false, error: "সার্ভার জব পাওয়া যায়নি।" });
             return;
           }
           if (data.status === "done" || data.status === "error") {
-            clearInterval(timer);
+            clearInterval(pollTimer);
             activeJobId = null;
-            saveAll();
             removeTyping();
+            setRunningUI(false);
+            saveAll();
             onDone(data.result);
           }
-        } catch (e) {
-          // Keep polling if phone just woke up from minimize
-        }
-      }, 2000);
+        } catch (e) {}
+      }, 450);
     }
 
     async function sendChat() {
@@ -703,13 +901,14 @@
       addMsg("user", txt);
 
       const cfg = getCfg("director");
-      if (!cfg.key1) {
-        addMsg("ai", "⚠️ নিচে Director & Chat AI-এর ঘরে তোমার API Key বসিয়ে Test করো।");
+      const hasKey = cfg.keys.some(function(x) { return x.apiKey !== ""; });
+      if (!hasKey) {
+        addMsg("ai", "⚠️ নিচে Director & Chat AI-এর ঘরে তোমার API Key বসাও।");
         return;
       }
 
-      setWf([{ l: "Director AI", s: "Server-এ চলছে ⏳" }]);
-      showTyping("Director AI ভাবছে ও টিম চেক করছে...");
+      setWf([{ l: "Director AI", s: "Working ⏳" }]);
+      showTyping("Director AI উত্তর তৈরি করছে...");
 
       try {
         const start = await fetch("/api/start-job", {
@@ -738,7 +937,7 @@
               res.extras.forEach(function(ex) { addUnused("Director Co-Work #" + ex.worker, ex.text); });
             }
             setWf([{ l: "Director AI", s: "Done ✅" }]);
-            if (res.text.indexOf("শুরু করব") !== -1 || txt.length > 25) {
+            if (res.text.indexOf("শুরু করব") !== -1) {
               showQuickStartCard();
             }
           } else {
@@ -771,7 +970,9 @@
       if (isPaused) { alert("⏸️ স্টুডিও এখন Paused আছে। আগে Resume চাপো।"); return; }
       const prompt = lastPrompt || document.getElementById("chatInput").value.trim();
       if (!prompt) { addMsg("ai", "আগে চ্যাটে গল্প বা ভিডিওর প্রম্পট লেখো।"); return; }
-      const active = IDS.filter(function(id) { return getCfg(id).key1 !== ""; });
+      const active = IDS.filter(function(id) {
+        return getCfg(id).keys.some(function(x) { return x.apiKey !== ""; });
+      });
       if (!active.length) { addMsg("ai", "⚠️ কোনো API Key দেওয়া নেই।"); return; }
 
       setWf([{ l: "1. Multi-AI Samples", s: "Running ⏳" }, { l: "2. Your Choice", s: "Pending" }, { l: "3. Final Output", s: "Pending" }]);
@@ -818,7 +1019,7 @@
         card.querySelectorAll(".choice-option").forEach(function(el) {
           el.onclick = function() { pick = Number(el.dataset.i); draw(); };
         });
-                card.querySelector("#noPick").onclick = function() { card.remove(); };
+        card.querySelector("#noPick").onclick = function() { card.remove(); };
         card.querySelector("#okPick").onclick = function() {
           okRes.forEach(function(r, i) {
             if (i !== pick) addUnused(r.agent_name + " (Unselected)", r.text);
@@ -890,11 +1091,10 @@
       }
     }
 
-    // Game-style Save & Load Checkpoints
     function saveCheckpoint() {
       const name = prompt("সেভ ফাইলের নাম লেখো (যেমন: Episode 1 - Scene 2):", "Checkpoint " + new Date().toLocaleTimeString());
       if (!name) return;
-      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v4") || "[]");
+      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v6") || "[]");
       list.unshift({
         name: name,
         time: new Date().toLocaleString(),
@@ -904,12 +1104,12 @@
         lastPrompt: lastPrompt,
         workflowSteps: workflowSteps
       });
-      localStorage.setItem("studio_checkpoints_v4", JSON.stringify(list.slice(0, 20)));
+      localStorage.setItem("studio_checkpoints_v6", JSON.stringify(list.slice(0, 20)));
       alert("💾 Checkpoint Saved! পরদিন Files থেকে ঠিক এখান থেকেই লোড করতে পারবে।");
     }
 
     function openHistory() {
-      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v4") || "[]");
+      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v6") || "[]");
       document.getElementById("historyList").innerHTML = list.length ? list.map(function(p, i) {
         return '<button class="btn-secondary" style="text-align:left;" onclick="loadCheckpoint(' + i + ')">🎮 ' + p.name + '<br><small style="color:var(--muted);">' + p.time + '</small></button>';
       }).join("") : '<div style="color:var(--muted);font-size:13px;">কোনো সেভ করা Checkpoint নেই।</div>';
@@ -917,7 +1117,7 @@
     }
     function closeHistory() { document.getElementById("historyModal").classList.remove("open"); }
     function loadCheckpoint(i) {
-      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v4") || "[]");
+      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v6") || "[]");
       if (list[i]) {
         chatHistory = list[i].chatHistory || [];
         finalOutput = list[i].finalOutput || "";
@@ -935,20 +1135,26 @@
     }
 
     function loadAll() {
+      buildAgentsUI();
       try {
-        const data = JSON.parse(localStorage.getItem("studio_v4_auto") || "{}");
+        const data = JSON.parse(localStorage.getItem("studio_v6_smart") || localStorage.getItem("studio_v5_smart") || "{}");
         if (data.agents) {
           IDS.forEach(function(id) {
             const c = data.agents[id];
             if (!c) return;
-            document.getElementById("prov-" + id).value = c.provider || "google";
-            document.getElementById("mod-" + id).value = c.model || "";
-            document.getElementById("k1-" + id).value = c.key1 || "";
-            document.getElementById("k2-" + id).value = c.key2 || "";
-            document.getElementById("k3-" + id).value = c.key3 || "";
             document.getElementById("url-" + id).value = c.customUrl || "";
             if (c.skills) document.getElementById("sk-" + id).value = c.skills;
             document.getElementById("cw-" + id).checked = !!c.cowork;
+            if (Array.isArray(c.keys)) {
+              c.keys.forEach(function(item) {
+                const n = item.idx;
+                if (document.getElementById("prov-" + id + "-" + n)) {
+                  document.getElementById("prov-" + id + "-" + n).value = item.provider || "google";
+                  document.getElementById("mod-" + id + "-" + n).value = item.model || "";
+                  document.getElementById("k-" + id + "-" + n).value = item.apiKey || "";
+                }
+              });
+            }
           });
         }
         unusedList = data.unused || [];
@@ -958,6 +1164,9 @@
         workflowSteps = data.workflowSteps || [{ l: "Waiting for task...", s: "Idle" }];
         keyStatus = data.keyStatus || {};
         keyErrors = data.keyErrors || {};
+        keyInfo = data.keyInfo || {};
+        keyAutoModels = data.keyAutoModels || {};
+        lastReportedTeamSig = data.lastReportedTeamSig || "";
       } catch (e) {}
       renderChat();
       renderOutput();
