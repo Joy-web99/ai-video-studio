@@ -15,6 +15,7 @@
       --accent: #38bdf8;
       --green: #22c55e;
       --red: #ef4444;
+      --yellow: #facc15;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -22,24 +23,33 @@
       background: var(--bg);
       color: var(--text);
       padding: 12px;
-      padding-bottom: 60px;
+      padding-bottom: 70px;
     }
-    .wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; padding: 4px 2px; }
-    .brand { font-size: 17px; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-    .top-actions { display: flex; gap: 8px; }
+    .wrap { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+
+    /* Top Bar */
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .brand { font-size: 17px; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+    .top-actions { display: flex; gap: 6px; flex-wrap: wrap; }
     .icon-btn {
       background: var(--card2); border: 1px solid var(--border); color: var(--text);
-      padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 4px;
     }
+    .icon-btn:hover { border-color: var(--accent); }
+    .icon-btn.paused { border-color: var(--yellow); color: var(--yellow); }
+
+    /* Cards */
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
-    .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: var(--muted); }
+    .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.4px; }
+
+    /* Output Box */
     .output-box {
       min-height: 80px; background: #070a12; border: 1px dashed var(--border);
       border-radius: 10px; padding: 12px; font-size: 13px; color: var(--muted);
-      white-space: pre-wrap; line-height: 1.5; max-height: 250px; overflow-y: auto;
+      white-space: pre-wrap; line-height: 1.5; max-height: 260px; overflow-y: auto;
     }
-    .output-box.has-data { border-style: solid; color: var(--text); }
+    .output-box.has-data { border-style: solid; border-color: var(--green); color: var(--text); }
     .export-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .btn-primary {
       background: var(--green); color: #052e16; border: none; padding: 8px 14px;
@@ -49,16 +59,39 @@
       background: var(--card2); color: var(--text); border: 1px solid var(--border);
       padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;
     }
-    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-    .chat-card { display: flex; flex-direction: column; height: 420px; position: relative; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Chat Box */
+    .chat-card { display: flex; flex-direction: column; height: 450px; position: relative; }
     .chat-card.fullscreen { position: fixed; inset: 0; z-index: 999; height: 100vh; border-radius: 0; max-width: 100%; border: none; }
     .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 6px 2px; margin-bottom: 10px; }
-    .msg { max-width: 88%; padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
-    .msg.user { align-self: flex-end; background: #1d4ed8; color: #fff; }
-    .msg.ai { align-self: flex-start; background: var(--card2); border: 1px solid var(--border); }
+    .msg { max-width: 88%; padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+    .msg.user { align-self: flex-end; background: #1d4ed8; color: #fff; border-bottom-right-radius: 4px; }
+    .msg.ai { align-self: flex-start; background: var(--card2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+
+    /* Typing / Working Animation Bubble */
+    .typing-bubble {
+      align-self: flex-start; background: var(--card2); border: 1px solid var(--accent);
+      padding: 10px 14px; border-radius: 12px; display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: var(--accent);
+    }
+    .dots { display: inline-flex; gap: 4px; }
+    .dots span {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.5); opacity: 0.4; }
+      40% { transform: scale(1.2); opacity: 1; }
+    }
+
+    /* Dynamic Choice / Approval Card */
     .choice-card { align-self: stretch; background: #0f172a; border: 1px solid var(--accent); border-radius: 12px; padding: 12px; font-size: 13px; }
     .choice-option { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 6px 0; cursor: pointer; }
     .choice-option.selected { border-color: var(--green); background: #052e1655; }
+
+    /* Attach & Input */
     .attach-preview { display: none; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .attach-chip { background: var(--card2); border: 1px solid var(--border); padding: 4px 8px; border-radius: 99px; font-size: 12px; }
     .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
@@ -67,6 +100,8 @@
       border-radius: 10px; padding: 10px; font-size: 14px; resize: none; height: 44px;
     }
     .send-btn { background: var(--accent); color: #082f49; border: none; border-radius: 10px; padding: 0 14px; height: 44px; font-weight: 700; cursor: pointer; }
+
+    /* Workflow Drawer */
     .wf-tab-btn {
       position: fixed; right: 0; top: 44%; z-index: 500;
       background: var(--accent); color: #082f49; border: none;
@@ -82,38 +117,63 @@
       background: var(--card2); border: 1px solid var(--border); border-radius: 8px;
       padding: 8px 10px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
     }
+
+    /* API Keys & Red/Green Status */
     .agent-card { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
     .agent-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 700; font-size: 14px; }
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-    input, select { width: 100%; background: #070a12; border: 1px solid var(--border); color: var(--text); padding: 8px 10px; border-radius: 8px; font-size: 13px; }
+    input, select {
+      width: 100%; background: #070a12; border: 1px solid var(--border); color: var(--text);
+      padding: 8px 10px; border-radius: 8px; font-size: 13px; outline: none;
+    }
+    .key-wrap { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .key-input { border: 1.5px solid var(--red) !important; transition: border-color 0.2s; }
+    .key-input.ok { border-color: var(--green) !important; box-shadow: 0 0 6px #22c55e44; }
+    .key-input.testing { border-color: var(--yellow) !important; }
+    .warn-btn {
+      display: none; background: #7f1d1d; color: #fecaca; border: 1px solid var(--red);
+      padding: 6px 9px; border-radius: 8px; cursor: pointer; font-size: 13px; flex-shrink: 0;
+    }
+    .warn-btn.show { display: inline-flex; align-items: center; }
+    .mini-test {
+      background: var(--card); border: 1px solid var(--border); color: var(--text);
+      padding: 7px 9px; border-radius: 8px; cursor: pointer; font-size: 11px; flex-shrink: 0;
+    }
     .settings-panel { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); flex-direction: column; gap: 8px; }
     .settings-panel.open { display: flex; }
+
+    /* Unused & Modals */
     .unused-item { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 12px; }
     .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
     .modal-bg.open { display: flex; }
-    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 400px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 420px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .err-pre { background: #070a12; border: 1px solid var(--red); color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 12px; white-space: pre-wrap; max-height: 260px; overflow-y: auto; word-break: break-word; }
   </style>
 </head>
 <body>
   <div class="wrap">
+    <!-- Top Header -->
     <div class="topbar">
       <div class="brand">🎬 AI Video Studio</div>
       <div class="top-actions">
+        <button id="pauseBtn" class="icon-btn" onclick="togglePause()">⏸️ Pause</button>
+        <button class="icon-btn" onclick="saveCheckpoint()">💾 Save</button>
         <button class="icon-btn" onclick="openHistory()">📁 Files</button>
         <button class="icon-btn" onclick="toggleDrawer()">◀ Workflow</button>
       </div>
     </div>
 
+    <!-- 1. Final Output & Export -->
     <div class="card">
       <div class="card-head"><span>FINAL OUTPUT &amp; EXPORT</span><span id="outStatus">Empty</span></div>
       <div id="outputBox" class="output-box">কাজ শেষ হলে ফাইনাল রেজাল্ট এখানে দেখাবে...</div>
       <div class="export-row">
         <button id="exportBtn" class="btn-primary" onclick="exportFinal()" disabled>⬇ Export File</button>
         <button class="btn-secondary" onclick="runSampleFlow()">✨ Sample Preview</button>
-        <button class="btn-secondary" onclick="saveCurrentProject()">💾 Save</button>
       </div>
     </div>
 
+    <!-- 2. Director AI Chat -->
     <div id="chatCard" class="card chat-card">
       <div class="card-head">
         <span>DIRECTOR AI CHAT</span>
@@ -123,7 +183,7 @@
         </div>
       </div>
       <div id="chatMessages" class="chat-messages">
-        <div class="msg ai">হ্যালো! আমি তোমার Director AI। নিচে API Key বসিয়ে এখানে গল্প, স্ক্রিপ্ট বা যেকোনো প্রশ্ন লেখো।</div>
+        <div class="msg ai">হ্যালো! আমি তোমার Director AI। নিচে API Key বসিয়ে Test করো—ঘর সবুজ হয়ে গেলেই এখানে তোমার গল্প বা ভিডিওর প্রম্পট দাও।</div>
       </div>
       <div id="attachPreview" class="attach-preview"></div>
       <div class="chat-input-row">
@@ -133,148 +193,221 @@
       </div>
     </div>
 
+    <!-- 5. API Keys & Agents -->
     <div class="card">
-      <div class="card-head"><span>API KEYS &amp; AGENTS (⚙️ Backup + Multi-Skill)</span></div>
+      <div class="card-head"><span>API KEYS &amp; AGENTS (🔴 Inactive / 🟢 Active)</span></div>
 
+      <!-- 1. Director -->
       <div class="agent-card">
         <div class="agent-top">
           <span>🎬 Director &amp; Chat AI</span>
-          <div style="display:flex;gap:6px;">
-            <button class="icon-btn" onclick="testAgent('director')">Test</button>
-            <button class="icon-btn" onclick="toggleSet('director')">⚙️</button>
-          </div>
+          <button class="icon-btn" onclick="toggleSet('director')">⚙️</button>
         </div>
         <div class="row-2">
           <select id="prov-director" onchange="saveAll()">
             <option value="google">Google Gemini</option>
             <option value="openrouter">OpenRouter</option>
             <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="groq">Groq</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="mistral">Mistral</option>
             <option value="custom">Custom URL</option>
           </select>
-          <input id="mod-director" type="text" placeholder="Model (Optional)" oninput="saveAll()" />
+          <input id="mod-director" type="text" placeholder="Model (e.g. gemini-3.8-flash)" oninput="saveAll()" />
         </div>
-        <input id="k1-director" type="password" placeholder="Primary API Key" oninput="saveAll()" />
+        <div class="key-wrap">
+          <input id="k1-director" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('director',1)" />
+          <button class="mini-test" onclick="verifySingleKey('director',1)">Test</button>
+          <button id="err-director-1" class="warn-btn" onclick="showKeyError('director',1)">⚠️</button>
+        </div>
         <div id="set-director" class="settings-panel">
-          <input id="k2-director" type="password" placeholder="Backup Key #2 (Extra)" oninput="saveAll()" />
-          <input id="k3-director" type="password" placeholder="Backup Key #3 (Extra)" oninput="saveAll()" />
-          <input id="url-director" type="text" placeholder="Custom URL (Optional)" oninput="saveAll()" />
-          <input id="sk-director" type="text" value="Chat, Script, Image" placeholder="Skills" oninput="saveAll()" />
+          <div class="key-wrap">
+            <input id="k2-director" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('director',2)" />
+            <button class="mini-test" onclick="verifySingleKey('director',2)">Test</button>
+            <button id="err-director-2" class="warn-btn" onclick="showKeyError('director',2)">⚠️</button>
+          </div>
+          <div class="key-wrap">
+            <input id="k3-director" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('director',3)" />
+            <button class="mini-test" onclick="verifySingleKey('director',3)">Test</button>
+            <button id="err-director-3" class="warn-btn" onclick="showKeyError('director',3)">⚠️</button>
+          </div>
+          <input id="url-director" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
+          <input id="sk-director" type="text" value="Chat, Script, Direction, Image" placeholder="Skills" oninput="saveAll()" />
         </div>
       </div>
 
+      <!-- 2. Image -->
       <div class="agent-card">
         <div class="agent-top">
           <span>🎨 Image &amp; Character AI</span>
-          <div style="display:flex;gap:6px;">
-            <button class="icon-btn" onclick="testAgent('image')">Test</button>
-            <button class="icon-btn" onclick="toggleSet('image')">⚙️</button>
-          </div>
+          <button class="icon-btn" onclick="toggleSet('image')">⚙️</button>
         </div>
         <div class="row-2">
           <select id="prov-image" onchange="saveAll()">
             <option value="google">Google Gemini</option>
             <option value="openrouter">OpenRouter</option>
             <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="groq">Groq</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="mistral">Mistral</option>
             <option value="custom">Custom URL</option>
           </select>
           <input id="mod-image" type="text" placeholder="Model (Optional)" oninput="saveAll()" />
         </div>
-        <input id="k1-image" type="password" placeholder="Primary API Key" oninput="saveAll()" />
+        <div class="key-wrap">
+          <input id="k1-image" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('image',1)" />
+          <button class="mini-test" onclick="verifySingleKey('image',1)">Test</button>
+          <button id="err-image-1" class="warn-btn" onclick="showKeyError('image',1)">⚠️</button>
+        </div>
         <div id="set-image" class="settings-panel">
-          <input id="k2-image" type="password" placeholder="Backup Key #2 (Extra)" oninput="saveAll()" />
-          <input id="k3-image" type="password" placeholder="Backup Key #3 (Extra)" oninput="saveAll()" />
-          <input id="url-image" type="text" placeholder="Custom URL (Optional)" oninput="saveAll()" />
-          <input id="sk-image" type="text" value="Image, Scene" placeholder="Skills" oninput="saveAll()" />
+          <div class="key-wrap">
+            <input id="k2-image" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('image',2)" />
+            <button class="mini-test" onclick="verifySingleKey('image',2)">Test</button>
+            <button id="err-image-2" class="warn-btn" onclick="showKeyError('image',2)">⚠️</button>
+          </div>
+          <div class="key-wrap">
+            <input id="k3-image" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('image',3)" />
+            <button class="mini-test" onclick="verifySingleKey('image',3)">Test</button>
+            <button id="err-image-3" class="warn-btn" onclick="showKeyError('image',3)">⚠️</button>
+          </div>
+          <input id="url-image" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
+          <input id="sk-image" type="text" value="Image, Scene, Character" placeholder="Skills" oninput="saveAll()" />
         </div>
       </div>
 
+      <!-- 3. Video -->
       <div class="agent-card">
         <div class="agent-top">
           <span>🎥 Video Generation AI</span>
-          <div style="display:flex;gap:6px;">
-            <button class="icon-btn" onclick="testAgent('video')">Test</button>
-            <button class="icon-btn" onclick="toggleSet('video')">⚙️</button>
-          </div>
+          <button class="icon-btn" onclick="toggleSet('video')">⚙️</button>
         </div>
         <div class="row-2">
           <select id="prov-video" onchange="saveAll()">
             <option value="google">Google Gemini</option>
             <option value="openrouter">OpenRouter</option>
             <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="groq">Groq</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="mistral">Mistral</option>
             <option value="custom">Custom URL</option>
           </select>
           <input id="mod-video" type="text" placeholder="Model (Optional)" oninput="saveAll()" />
         </div>
-        <input id="k1-video" type="password" placeholder="Primary API Key" oninput="saveAll()" />
+        <div class="key-wrap">
+          <input id="k1-video" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('video',1)" />
+          <button class="mini-test" onclick="verifySingleKey('video',1)">Test</button>
+          <button id="err-video-1" class="warn-btn" onclick="showKeyError('video',1)">⚠️</button>
+        </div>
         <div id="set-video" class="settings-panel">
-          <input id="k2-video" type="password" placeholder="Backup Key #2 (Extra)" oninput="saveAll()" />
-          <input id="k3-video" type="password" placeholder="Backup Key #3 (Extra)" oninput="saveAll()" />
-          <input id="url-video" type="text" placeholder="Custom URL (Optional)" oninput="saveAll()" />
-          <input id="sk-video" type="text" value="Video, Animation" placeholder="Skills" oninput="saveAll()" />
+          <div class="key-wrap">
+            <input id="k2-video" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('video',2)" />
+            <button class="mini-test" onclick="verifySingleKey('video',2)">Test</button>
+            <button id="err-video-2" class="warn-btn" onclick="showKeyError('video',2)">⚠️</button>
+          </div>
+          <div class="key-wrap">
+            <input id="k3-video" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('video',3)" />
+            <button class="mini-test" onclick="verifySingleKey('video',3)">Test</button>
+            <button id="err-video-3" class="warn-btn" onclick="showKeyError('video',3)">⚠️</button>
+          </div>
+          <input id="url-video" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
+          <input id="sk-video" type="text" value="Video, Animation, Motion" placeholder="Skills" oninput="saveAll()" />
         </div>
       </div>
 
+      <!-- 4. Audio -->
       <div class="agent-card">
         <div class="agent-top">
           <span>🎙️ Voice &amp; Audio AI</span>
-          <div style="display:flex;gap:6px;">
-            <button class="icon-btn" onclick="testAgent('audio')">Test</button>
-            <button class="icon-btn" onclick="toggleSet('audio')">⚙️</button>
-          </div>
+          <button class="icon-btn" onclick="toggleSet('audio')">⚙️</button>
         </div>
         <div class="row-2">
           <select id="prov-audio" onchange="saveAll()">
             <option value="google">Google Gemini</option>
             <option value="openrouter">OpenRouter</option>
             <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="groq">Groq</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="mistral">Mistral</option>
             <option value="custom">Custom URL</option>
           </select>
           <input id="mod-audio" type="text" placeholder="Model (Optional)" oninput="saveAll()" />
         </div>
-        <input id="k1-audio" type="password" placeholder="Primary API Key" oninput="saveAll()" />
+        <div class="key-wrap">
+          <input id="k1-audio" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('audio',1)" />
+          <button class="mini-test" onclick="verifySingleKey('audio',1)">Test</button>
+          <button id="err-audio-1" class="warn-btn" onclick="showKeyError('audio',1)">⚠️</button>
+        </div>
         <div id="set-audio" class="settings-panel">
-          <input id="k2-audio" type="password" placeholder="Backup Key #2 (Extra)" oninput="saveAll()" />
-          <input id="k3-audio" type="password" placeholder="Backup Key #3 (Extra)" oninput="saveAll()" />
-          <input id="url-audio" type="text" placeholder="Custom URL (Optional)" oninput="saveAll()" />
-          <input id="sk-audio" type="text" value="Voice, Music" placeholder="Skills" oninput="saveAll()" />
+          <div class="key-wrap">
+            <input id="k2-audio" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('audio',2)" />
+            <button class="mini-test" onclick="verifySingleKey('audio',2)">Test</button>
+            <button id="err-audio-2" class="warn-btn" onclick="showKeyError('audio',2)">⚠️</button>
+          </div>
+          <div class="key-wrap">
+            <input id="k3-audio" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('audio',3)" />
+            <button class="mini-test" onclick="verifySingleKey('audio',3)">Test</button>
+            <button id="err-audio-3" class="warn-btn" onclick="showKeyError('audio',3)">⚠️</button>
+          </div>
+          <input id="url-audio" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
+          <input id="sk-audio" type="text" value="Voice, Music, SFX" placeholder="Skills" oninput="saveAll()" />
         </div>
       </div>
-
+            <!-- 5. Editing -->
       <div class="agent-card">
         <div class="agent-top">
           <span>✂️ Subtitle &amp; Editing AI</span>
-          <div style="display:flex;gap:6px;">
-            <button class="icon-btn" onclick="testAgent('editing')">Test</button>
-            <button class="icon-btn" onclick="toggleSet('editing')">⚙️</button>
-          </div>
+          <button class="icon-btn" onclick="toggleSet('editing')">⚙️</button>
         </div>
         <div class="row-2">
           <select id="prov-editing" onchange="saveAll()">
             <option value="google">Google Gemini</option>
             <option value="openrouter">OpenRouter</option>
             <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="groq">Groq</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="mistral">Mistral</option>
             <option value="custom">Custom URL</option>
           </select>
           <input id="mod-editing" type="text" placeholder="Model (Optional)" oninput="saveAll()" />
         </div>
-        <input id="k1-editing" type="password" placeholder="Primary API Key" oninput="saveAll()" />
+        <div class="key-wrap">
+          <input id="k1-editing" class="key-input" type="password" placeholder="Primary API Key" oninput="onKeyChange('editing',1)" />
+          <button class="mini-test" onclick="verifySingleKey('editing',1)">Test</button>
+          <button id="err-editing-1" class="warn-btn" onclick="showKeyError('editing',1)">⚠️</button>
+        </div>
         <div id="set-editing" class="settings-panel">
-          <input id="k2-editing" type="password" placeholder="Backup Key #2 (Extra)" oninput="saveAll()" />
-          <input id="k3-editing" type="password" placeholder="Backup Key #3 (Extra)" oninput="saveAll()" />
-          <input id="url-editing" type="text" placeholder="Custom URL (Optional)" oninput="saveAll()" />
-          <input id="sk-editing" type="text" value="Subtitle, Editing" placeholder="Skills" oninput="saveAll()" />
+          <div class="key-wrap">
+            <input id="k2-editing" class="key-input" type="password" placeholder="Backup Key #2" oninput="onKeyChange('editing',2)" />
+            <button class="mini-test" onclick="verifySingleKey('editing',2)">Test</button>
+            <button id="err-editing-2" class="warn-btn" onclick="showKeyError('editing',2)">⚠️</button>
+          </div>
+          <div class="key-wrap">
+            <input id="k3-editing" class="key-input" type="password" placeholder="Backup Key #3" oninput="onKeyChange('editing',3)" />
+            <button class="mini-test" onclick="verifySingleKey('editing',3)">Test</button>
+            <button id="err-editing-3" class="warn-btn" onclick="showKeyError('editing',3)">⚠️</button>
+          </div>
+          <input id="url-editing" type="text" placeholder="Custom Endpoint URL (Optional)" oninput="saveAll()" />
+          <input id="sk-editing" type="text" value="Subtitle, Editing, Color" placeholder="Skills" oninput="saveAll()" />
         </div>
       </div>
     </div>
 
+    <!-- 6. Unused Assets -->
     <div class="card">
       <div class="card-head"><span>🗑 UNUSED / EXTRA ASSETS</span><button class="icon-btn" onclick="clearUnused()">Clear</button></div>
       <div id="unusedList" style="font-size:12px; color:var(--muted);">কোনো অতিরিক্ত অ্যাসেট নেই।</div>
     </div>
   </div>
 
+  <!-- Workflow Floating Tab -->
   <button class="wf-tab-btn" onclick="toggleDrawer()">◀</button>
 
+  <!-- Right Drawer: Workflow & Co-Work -->
   <div id="drawer" class="drawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <strong style="color:var(--accent);">⚡ Live Workflow</strong>
@@ -292,6 +425,18 @@
     </div>
   </div>
 
+  <!-- Error Detail Modal -->
+  <div id="errorModal" class="modal-bg">
+    <div class="modal">
+      <strong style="color:var(--red);">⚠️ API Server Error Details</strong>
+      <div id="errorModalText" class="err-pre"></div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="btn-secondary" onclick="closeErrorModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attach Modal -->
   <div id="attachModal" class="modal-bg">
     <div class="modal">
       <strong>📎 Attach Reference</strong>
@@ -305,10 +450,11 @@
     </div>
   </div>
 
+  <!-- Saved Checkpoints Modal -->
   <div id="historyModal" class="modal-bg">
     <div class="modal">
-      <strong>📁 Saved Projects</strong>
-      <div id="historyList" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+      <strong>📁 Saved Game-Style Checkpoints</strong>
+      <div id="historyList" style="max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
       <div style="display:flex;justify-content:flex-end;">
         <button class="btn-secondary" onclick="closeHistory()">Close</button>
       </div>
@@ -318,11 +464,17 @@
   <script>
     const IDS = ["director", "image", "video", "audio", "editing"];
     const NAMES = { director: "Director AI", image: "Image AI", video: "Video AI", audio: "Audio AI", editing: "Editing AI" };
+
     let chatHistory = [];
     let attachments = [];
     let unusedList = [];
     let finalOutput = "";
     let lastPrompt = "";
+    let workflowSteps = [{ l: "Waiting for task...", s: "Idle" }];
+    let keyErrors = {};
+    let keyStatus = {};
+    let isPaused = false;
+    let activeJobId = null;
 
     function getCfg(id) {
       return {
@@ -338,34 +490,97 @@
     }
 
     function saveAll() {
-      const data = { agents: {}, unused: unusedList, finalOutput: finalOutput };
+      const data = {
+        agents: {},
+        unused: unusedList,
+        finalOutput: finalOutput,
+        chatHistory: chatHistory,
+        lastPrompt: lastPrompt,
+        workflowSteps: workflowSteps,
+        keyStatus: keyStatus,
+        keyErrors: keyErrors,
+        activeJobId: activeJobId
+      };
       IDS.forEach(function(id) { data.agents[id] = getCfg(id); });
-      localStorage.setItem("studio_v3", JSON.stringify(data));
+      localStorage.setItem("studio_v4_auto", JSON.stringify(data));
     }
 
-    function loadAll() {
+    function applyKeyVisuals() {
+      IDS.forEach(function(id) {
+        [1, 2, 3].forEach(function(n) {
+          const inp = document.getElementById("k" + n + "-" + id);
+          const errBtn = document.getElementById("err-" + id + "-" + n);
+          const k = id + "-" + n;
+          inp.classList.remove("ok", "testing");
+          if (keyStatus[k] === "ok" && inp.value.trim() !== "") {
+            inp.classList.add("ok");
+            errBtn.classList.remove("show");
+          } else if (keyErrors[k]) {
+            errBtn.classList.add("show");
+          } else {
+            errBtn.classList.remove("show");
+          }
+        });
+      });
+    }
+
+    function onKeyChange(id, n) {
+      const k = id + "-" + n;
+      keyStatus[k] = "idle";
+      delete keyErrors[k];
+      applyKeyVisuals();
+      saveAll();
+    }
+
+    async function verifySingleKey(id, n) {
+      const cfg = getCfg(id);
+      const apiKey = cfg["key" + n];
+      const k = id + "-" + n;
+      const inp = document.getElementById("k" + n + "-" + id);
+      if (!apiKey) {
+        keyStatus[k] = "err";
+        keyErrors[k] = "API Key ফাঁকা রয়েছে। আগে Key বসাও।";
+        applyKeyVisuals();
+        saveAll();
+        return;
+      }
+      inp.classList.remove("ok");
+      inp.classList.add("testing");
       try {
-        const data = JSON.parse(localStorage.getItem("studio_v3") || "{}");
-        if (data.agents) {
-          IDS.forEach(function(id) {
-            const c = data.agents[id];
-            if (!c) return;
-            document.getElementById("prov-" + id).value = c.provider || "google";
-            document.getElementById("mod-" + id).value = c.model || "";
-            document.getElementById("k1-" + id).value = c.key1 || "";
-            document.getElementById("k2-" + id).value = c.key2 || "";
-            document.getElementById("k3-" + id).value = c.key3 || "";
-            document.getElementById("url-" + id).value = c.customUrl || "";
-            if (c.skills) document.getElementById("sk-" + id).value = c.skills;
-            document.getElementById("cw-" + id).checked = !!c.cowork;
-          });
+        const res = await fetch("/api/test-single-key", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider: cfg.provider,
+            model: cfg.model,
+            customUrl: cfg.customUrl,
+            apiKey: apiKey
+          })
+        }).then(function(r) { return r.json(); });
+
+        if (res.ok) {
+          keyStatus[k] = "ok";
+          delete keyErrors[k];
+        } else {
+          keyStatus[k] = "err";
+          keyErrors[k] = res.error || "Unknown Server Error";
         }
-        unusedList = data.unused || [];
-        finalOutput = data.finalOutput || "";
-      } catch (e) {}
-      renderOutput();
-      renderUnused();
-    }    function toggleSet(id) { document.getElementById("set-" + id).classList.toggle("open"); }
+      } catch (e) {
+        keyStatus[k] = "err";
+        keyErrors[k] = "Network Error: " + e.message;
+      }
+      applyKeyVisuals();
+      saveAll();
+    }
+
+    function showKeyError(id, n) {
+      const msg = keyErrors[id + "-" + n] || "কোনো এরর পাওয়া যায়নি।";
+      document.getElementById("errorModalText").innerText = msg;
+      document.getElementById("errorModal").classList.add("open");
+    }
+    function closeErrorModal() { document.getElementById("errorModal").classList.remove("open"); }
+
+    function toggleSet(id) { document.getElementById("set-" + id).classList.toggle("open"); }
     function toggleDrawer() { document.getElementById("drawer").classList.toggle("open"); }
     function toggleFullscreen() {
       const c = document.getElementById("chatCard");
@@ -373,45 +588,108 @@
       document.getElementById("fsBtn").innerText = c.classList.contains("fullscreen") ? "✕" : "⛶";
     }
 
+    function togglePause() {
+      isPaused = !isPaused;
+      const btn = document.getElementById("pauseBtn");
+      btn.innerText = isPaused ? "▶️ Resume" : "⏸️ Pause";
+      btn.classList.toggle("paused", isPaused);
+      if (isPaused) {
+        setWf([{ l: "Studio Paused by User", s: "Paused ⏸️" }]);
+      } else {
+        setWf([{ l: "Studio Resumed", s: "Ready ▶️" }]);
+      }
+    }
+
     function setWf(items) {
+      workflowSteps = items;
       document.getElementById("wfList").innerHTML = items.map(function(x) {
         return '<div class="wf-item"><span>' + x.l + '</span><strong>' + x.s + '</strong></div>';
       }).join("");
+      saveAll();
     }
 
-    async function testAgent(id) {
-      const cfg = getCfg(id);
-      if (!cfg.key1) { alert("আগে Primary API Key বসাও।"); return; }
-      const res = await fetch("/api/test-key", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: cfg })
-      }).then(function(r) { return r.json(); });
-      if (res.ok) alert("✅ Connected! (Key #" + res.used_key + ")");
-      else alert("❌ Error: " + res.error);
+    function renderChat() {
+      const box = document.getElementById("chatMessages");
+      box.innerHTML = "";
+      if (!chatHistory.length) {
+        box.innerHTML = '<div class="msg ai">হ্যালো! আমি তোমার Director AI। নিচে API Key বসিয়ে Test করো—ঘর সবুজ হয়ে গেলেই এখানে তোমার গল্প বা ভিডিওর প্রম্পট দাও।</div>';
+        return;
+      }
+      chatHistory.forEach(function(m) {
+        const d = document.createElement("div");
+        d.className = "msg " + (m.role === "user" ? "user" : "ai");
+        d.innerText = m.content;
+        box.appendChild(d);
+      });
+      box.scrollTop = box.scrollHeight;
     }
 
     function addMsg(role, txt) {
-      const box = document.getElementById("chatMessages");
-      const d = document.createElement("div");
-      d.className = "msg " + (role === "user" ? "user" : "ai");
-      d.innerText = txt;
-      box.appendChild(d);
-      box.scrollTop = box.scrollHeight;
       chatHistory.push({ role: role === "user" ? "user" : "assistant", content: txt });
+      renderChat();
+      saveAll();
     }
 
-    function clearChat() { chatHistory = []; document.getElementById("chatMessages").innerHTML = ""; addMsg("ai", "নতুন চ্যাট শুরু হয়েছে।"); }
+    function showTyping(statusText) {
+      removeTyping();
+      const box = document.getElementById("chatMessages");
+      const div = document.createElement("div");
+      div.id = "typingIndicator";
+      div.className = "typing-bubble";
+      div.innerHTML = '<div class="dots"><span></span><span></span><span></span></div><span>' + statusText + '</span>';
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
 
-    function teamPrompt() {
+    function removeTyping() {
+      const el = document.getElementById("typingIndicator");
+      if (el) el.remove();
+    }
+
+    function clearChat() { chatHistory = []; renderChat(); saveAll(); }
+
+    function buildDirectorPrompt() {
       const lines = IDS.map(function(id) {
         const c = getCfg(id);
-        const cnt = [c.key1, c.key2, c.key3].filter(Boolean).length;
-        return "- " + NAMES[id] + ": " + (cnt ? "ACTIVE (" + cnt + " keys, " + c.provider + ", Co-Work:" + (c.cowork ? "ON" : "OFF") + ")" : "INACTIVE") + " | Skills: ${c.skills}";
+        const okCount = [1, 2, 3].filter(function(n) { return keyStatus[id + "-" + n] === "ok" && c["key" + n]; }).length;
+        const anyCount = [c.key1, c.key2, c.key3].filter(Boolean).length;
+        return "- " + NAMES[id] + ": " + (anyCount ? "ACTIVE (" + anyCount + " keys, " + okCount + " verified green, " + c.provider + ", Co-Work:" + (c.cowork ? "ON" : "OFF") + ")" : "INACTIVE") + " | Skills: " + c.skills;
       });
-      return "You are Director AI of AI Video Studio. Reply in natural Bangla with simple English tech terms (Export, FPS, Full HD, Workflow, Sample, Co-Work).\nTeam Status:\n" + lines.join("\n");
+      return "You are the Lead Director AI of AI Video Studio. Always reply in natural Bangla mixed with simple English tech terms (FPS, Full HD, Export, Workflow, Sample, Co-Work).\n" +
+        "Live Team Status:\n" + lines.join("\n") + "\n\n" +
+        "Rules:\n" +
+        "1. When the user gives a video idea/story/prompt, act like a real Film Director: state clearly how many seconds, FPS, resolution, and scenes you can build, which AIs from the Live Team Status are ready, and then end by asking: 'তাহলে কি এবার কাজ শুরু করব?'\n" +
+        "2. Never make up fake team members. Report accurately from Live Team Status.";
+    }
+
+    async function pollBackgroundJob(jobId, onDone) {
+      activeJobId = jobId;
+      saveAll();
+      const timer = setInterval(async function() {
+        try {
+          const data = await fetch("/api/job/" + jobId).then(function(r) { return r.json(); });
+          if (!data.ok || data.status === "not_found") {
+            clearInterval(timer);
+            activeJobId = null;
+            removeTyping();
+            onDone({ ok: false, error: "সার্ভার জব খুঁজে পাওয়া যায়নি।" });
+            return;
+          }
+          if (data.status === "done" || data.status === "error") {
+            clearInterval(timer);
+            activeJobId = null;
+            saveAll();
+            removeTyping();
+            onDone(data.result);
+          }
+        } catch (e) {
+          // Keep polling if phone just woke up from minimize
+        }
+      }, 2000);
     }
 
     async function sendChat() {
+      if (isPaused) { alert("⏸️ স্টুডিও এখন Paused আছে। আগে Resume চাপো।"); return; }
       const inp = document.getElementById("chatInput");
       let txt = inp.value.trim();
       if (!txt && !attachments.length) return;
@@ -425,51 +703,107 @@
       addMsg("user", txt);
 
       const cfg = getCfg("director");
-      if (!cfg.key1) { addMsg("ai", "⚠️ নিচে Director & Chat AI-এর ঘরে তোমার API Key বসাও।"); return; }
+      if (!cfg.key1) {
+        addMsg("ai", "⚠️ নিচে Director & Chat AI-এর ঘরে তোমার API Key বসিয়ে Test করো।");
+        return;
+      }
 
-      setWf([{ l: "Director AI", s: "Working ⏳" }]);
-      const res = await fetch("/api/run-agent", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: cfg, prompt: txt, system_prompt: teamPrompt(), history: chatHistory.slice(0, -1), co_work: cfg.cowork })
-      }).then(function(r) { return r.json(); });
+      setWf([{ l: "Director AI", s: "Server-এ চলছে ⏳" }]);
+      showTyping("Director AI ভাবছে ও টিম চেক করছে...");
 
-      if (res.ok) {
-        addMsg("ai", res.text);
-        if (res.extras) res.extras.forEach(function(ex, i) { addUnused("Director Extra #" + (i + 1), ex); });
-        setWf([{ l: "Director AI", s: "Done ✅" }]);
-      } else {
-        addMsg("ai", "❌ Error: " + res.error);
-        setWf([{ l: "Director AI", s: "Error ❌" }]);
+      try {
+        const start = await fetch("/api/start-job", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "single",
+            config: cfg,
+            prompt: txt,
+            system_prompt: buildDirectorPrompt(),
+            history: chatHistory.slice(0, -1),
+            co_work: cfg.cowork
+          })
+        }).then(function(r) { return r.json(); });
+
+        if (!start.ok) {
+          removeTyping();
+          addMsg("ai", "❌ Job Error: " + start.error);
+          return;
+        }
+
+        pollBackgroundJob(start.job_id, function(res) {
+          if (res && res.ok) {
+            addMsg("ai", res.text);
+            if (res.extras && res.extras.length) {
+              res.extras.forEach(function(ex) { addUnused("Director Co-Work #" + ex.worker, ex.text); });
+            }
+            setWf([{ l: "Director AI", s: "Done ✅" }]);
+            if (res.text.indexOf("শুরু করব") !== -1 || txt.length > 25) {
+              showQuickStartCard();
+            }
+          } else {
+            const errMsg = (res && res.error) ? res.error : "Unknown Error";
+            keyErrors["director-1"] = errMsg;
+            keyStatus["director-1"] = "err";
+            applyKeyVisuals();
+            addMsg("ai", "❌ Error: " + errMsg);
+            setWf([{ l: "Director AI", s: "Error ❌" }]);
+          }
+        });
+      } catch (e) {
+        removeTyping();
+        addMsg("ai", "❌ Network Error: " + e.message);
       }
     }
 
+    function showQuickStartCard() {
+      const box = document.getElementById("chatMessages");
+      const card = document.createElement("div");
+      card.className = "choice-card";
+      card.innerHTML = '<strong>🎬 Director AI কাজ শুরু করার অনুমতি চাইছে:</strong><div style="display:flex;gap:8px;margin-top:8px;"><button class="btn-primary" id="yesStart">✅ হ্যাঁ, কাজ শুরু করো</button><button class="btn-secondary" id="noStart">পরে করব</button></div>';
+      card.querySelector("#yesStart").onclick = function() { card.remove(); runSampleFlow(); };
+      card.querySelector("#noStart").onclick = function() { card.remove(); };
+      box.appendChild(card);
+      box.scrollTop = box.scrollHeight;
+    }
+
     async function runSampleFlow() {
+      if (isPaused) { alert("⏸️ স্টুডিও এখন Paused আছে। আগে Resume চাপো।"); return; }
       const prompt = lastPrompt || document.getElementById("chatInput").value.trim();
-      if (!prompt) { addMsg("ai", "আগে চ্যাটে গল্প বা প্রম্পট লেখো।"); return; }
+      if (!prompt) { addMsg("ai", "আগে চ্যাটে গল্প বা ভিডিওর প্রম্পট লেখো।"); return; }
       const active = IDS.filter(function(id) { return getCfg(id).key1 !== ""; });
       if (!active.length) { addMsg("ai", "⚠️ কোনো API Key দেওয়া নেই।"); return; }
 
-      setWf([{ l: "1. Samples", s: "Working ⏳" }, { l: "2. Choice", s: "Pending" }, { l: "3. Final", s: "Pending" }]);
-      addMsg("ai", "⏳ স্যাম্পল তৈরি হচ্ছে...");
+      setWf([{ l: "1. Multi-AI Samples", s: "Running ⏳" }, { l: "2. Your Choice", s: "Pending" }, { l: "3. Final Output", s: "Pending" }]);
+      showTyping("সব সচল AI মিলে প্রথম ২টি ফ্রেম ও স্যাম্পল বানাচ্ছে...");
 
       const tasks = active.map(function(id) {
         return {
           agent_id: id, agent_name: NAMES[id], config: getCfg(id),
-          prompt: "Create Sample Preview (First 2 frames, script & audio idea) for: " + prompt,
-          system_prompt: "You are " + NAMES[id], co_work: getCfg(id).cowork
+          prompt: "Create Sample Preview (First 2 frames visual, script snippet & audio/music plan) for: " + prompt,
+          system_prompt: "You are " + NAMES[id] + ". Reply concisely in Bangla + English tech terms.",
+          co_work: getCfg(id).cowork
         };
       });
 
-      const data = await fetch("/api/run-multi", {
+      const start = await fetch("/api/start-job", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tasks: tasks })
+        body: JSON.stringify({ type: "multi", tasks: tasks })
       }).then(function(r) { return r.json(); });
 
-      const okRes = (data.results || []).filter(function(r) { return r.ok; });
-      if (!okRes.length) { addMsg("ai", "❌ স্যাম্পল তৈরি হয়নি।"); return; }
+      pollBackgroundJob(start.job_id, function(data) {
+        const okRes = (data && data.results) ? data.results.filter(function(r) { return r.ok; }) : [];
+        if (!okRes.length) {
+          addMsg("ai", "❌ স্যাম্পল তৈরি করা যায়নি। নিচের লাল ⚠️ আইকনগুলোতে চাপ দিয়ে এরর চেক করো।");
+          setWf([{ l: "Sample Generation", s: "Error ❌" }]);
+          return;
+        }
+        setWf([{ l: "1. Multi-AI Samples", s: "Done ✅" }, { l: "2. Your Choice", s: "Paused ⏸️" }, { l: "3. Final Output", s: "Pending" }]);
+        showChoiceCard(okRes, prompt);
+      });
+    }
 
-      setWf([{ l: "1. Samples", s: "Done ✅" }, { l: "2. Your Choice", s: "Paused ⏸️" }, { l: "3. Final", s: "Pending" }]);
-
+    function showChoiceCard(okRes, prompt) {
       const wrap = document.getElementById("chatMessages");
       const card = document.createElement("div");
       card.className = "choice-card";
@@ -477,22 +811,25 @@
       const draw = function() {
         let html = '<strong style="color:var(--accent);">⏸️ PAUSED — সেরা স্যাম্পল বেছে নাও:</strong>';
         okRes.forEach(function(r, i) {
-          html += '<div class="choice-option ' + (i === pick ? 'selected' : '') + '" data-i="' + i + '"><strong>' + r.agent_name + '</strong><div style="color:var(--muted);margin-top:4px;">' + r.text.slice(0, 180) + '...</div></div>';
+          html += '<div class="choice-option ' + (i === pick ? 'selected' : '') + '" data-i="' + i + '"><strong>' + r.agent_name + '</strong><div style="color:var(--muted);margin-top:4px;">' + r.text.slice(0, 200) + '...</div></div>';
         });
-        html += '<div style="display:flex;gap:8px;margin-top:8px;"><button class="btn-primary" id="okPick">✅ Approve &amp; Build</button><button class="btn-secondary" id="noPick">Cancel</button></div>';
+        html += '<div style="display:flex;gap:8px;margin-top:8px;"><button class="btn-primary" id="okPick">✅ Approve &amp; Build Final</button><button class="btn-secondary" id="noPick">Cancel</button></div>';
         card.innerHTML = html;
         card.querySelectorAll(".choice-option").forEach(function(el) {
           el.onclick = function() { pick = Number(el.dataset.i); draw(); };
         });
-        card.querySelector("#noPick").onclick = function() { card.remove(); };
+                card.querySelector("#noPick").onclick = function() { card.remove(); };
         card.querySelector("#okPick").onclick = function() {
-          okRes.forEach(function(r, i) { if (i !== pick) addUnused(r.agent_name + " (Extra)", r.text); });
-          finalOutput = "=== FINAL PRODUCTION ===\nPrompt: " + prompt + "\nLead: " + okRes[pick].agent_name + "\n\n" + okRes[pick].text;
+          okRes.forEach(function(r, i) {
+            if (i !== pick) addUnused(r.agent_name + " (Unselected)", r.text);
+            if (r.extras) r.extras.forEach(function(ex) { addUnused(r.agent_name + " Co-Work #" + ex.worker, ex.text); });
+          });
+          finalOutput = "=== FINAL PRODUCTION ===\nPrompt: " + prompt + "\nSelected Lead: " + okRes[pick].agent_name + "\n\n" + okRes[pick].text;
           saveAll();
           renderOutput();
           card.remove();
-          setWf([{ l: "1. Samples", s: "Done ✅" }, { l: "2. Approved", s: "Done ✅" }, { l: "3. Final Output", s: "Done ✅" }]);
-          addMsg("ai", "✅ ফাইনাল রেজাল্ট ওপরের Output Box-এ চলে এসেছে!");
+          setWf([{ l: "1. Multi-AI Samples", s: "Done ✅" }, { l: "2. Approved", s: "Done ✅" }, { l: "3. Final Output", s: "Done ✅" }]);
+          addMsg("ai", "✅ তোমার পছন্দ অনুযায়ী ফাইনাল প্রোডাকশন ওপরের Output Box-এ চলে এসেছে!");
         };
       };
       draw();
@@ -508,6 +845,7 @@
         document.getElementById("outStatus").innerText = "Ready ✅";
       } else {
         box.innerText = "কাজ শেষ হলে ফাইনাল রেজাল্ট এখানে দেখাবে..."; box.classList.remove("has-data"); btn.disabled = true;
+        document.getElementById("outStatus").innerText = "Empty";
       }
     }
 
@@ -552,29 +890,83 @@
       }
     }
 
-    function saveCurrentProject() {
-      const list = JSON.parse(localStorage.getItem("studio_proj") || "[]");
-      list.unshift({ name: "Project " + new Date().toLocaleString(), output: finalOutput });
-      localStorage.setItem("studio_proj", JSON.stringify(list.slice(0, 15)));
-      alert("💾 Saved!");
+    // Game-style Save & Load Checkpoints
+    function saveCheckpoint() {
+      const name = prompt("সেভ ফাইলের নাম লেখো (যেমন: Episode 1 - Scene 2):", "Checkpoint " + new Date().toLocaleTimeString());
+      if (!name) return;
+      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v4") || "[]");
+      list.unshift({
+        name: name,
+        time: new Date().toLocaleString(),
+        chatHistory: chatHistory,
+        finalOutput: finalOutput,
+        unusedList: unusedList,
+        lastPrompt: lastPrompt,
+        workflowSteps: workflowSteps
+      });
+      localStorage.setItem("studio_checkpoints_v4", JSON.stringify(list.slice(0, 20)));
+      alert("💾 Checkpoint Saved! পরদিন Files থেকে ঠিক এখান থেকেই লোড করতে পারবে।");
     }
+
     function openHistory() {
-      const list = JSON.parse(localStorage.getItem("studio_proj") || "[]");
+      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v4") || "[]");
       document.getElementById("historyList").innerHTML = list.length ? list.map(function(p, i) {
-        return '<button class="btn-secondary" onclick="loadProj(' + i + ')">📄 ' + p.name + '</button>';
-      }).join("") : "কোনো প্রজেক্ট নেই।";
+        return '<button class="btn-secondary" style="text-align:left;" onclick="loadCheckpoint(' + i + ')">🎮 ' + p.name + '<br><small style="color:var(--muted);">' + p.time + '</small></button>';
+      }).join("") : '<div style="color:var(--muted);font-size:13px;">কোনো সেভ করা Checkpoint নেই।</div>';
       document.getElementById("historyModal").classList.add("open");
     }
     function closeHistory() { document.getElementById("historyModal").classList.remove("open"); }
-    function loadProj(i) {
-      const list = JSON.parse(localStorage.getItem("studio_proj") || "[]");
-      if (list[i]) { finalOutput = list[i].output; renderOutput(); closeHistory(); }
+    function loadCheckpoint(i) {
+      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v4") || "[]");
+      if (list[i]) {
+        chatHistory = list[i].chatHistory || [];
+        finalOutput = list[i].finalOutput || "";
+        unusedList = list[i].unusedList || [];
+        lastPrompt = list[i].lastPrompt || "";
+        workflowSteps = list[i].workflowSteps || [{ l: "Loaded Checkpoint", s: "Ready ▶️" }];
+        renderChat();
+        renderOutput();
+        renderUnused();
+        setWf(workflowSteps);
+        saveAll();
+        closeHistory();
+        alert("✅ Checkpoint Loaded! ঠিক আগের জায়গা থেকে কাজ শুরু করতে পারো।");
+      }
+    }
+
+    function loadAll() {
+      try {
+        const data = JSON.parse(localStorage.getItem("studio_v4_auto") || "{}");
+        if (data.agents) {
+          IDS.forEach(function(id) {
+            const c = data.agents[id];
+            if (!c) return;
+            document.getElementById("prov-" + id).value = c.provider || "google";
+            document.getElementById("mod-" + id).value = c.model || "";
+            document.getElementById("k1-" + id).value = c.key1 || "";
+            document.getElementById("k2-" + id).value = c.key2 || "";
+            document.getElementById("k3-" + id).value = c.key3 || "";
+            document.getElementById("url-" + id).value = c.customUrl || "";
+            if (c.skills) document.getElementById("sk-" + id).value = c.skills;
+            document.getElementById("cw-" + id).checked = !!c.cowork;
+          });
+        }
+        unusedList = data.unused || [];
+        finalOutput = data.finalOutput || "";
+        chatHistory = data.chatHistory || [];
+        lastPrompt = data.lastPrompt || "";
+        workflowSteps = data.workflowSteps || [{ l: "Waiting for task...", s: "Idle" }];
+        keyStatus = data.keyStatus || {};
+        keyErrors = data.keyErrors || {};
+      } catch (e) {}
+      renderChat();
+      renderOutput();
+      renderUnused();
+      setWf(workflowSteps);
+      applyKeyVisuals();
     }
 
     loadAll();
   </script>
 </body>
 </html>
-
-
-    
