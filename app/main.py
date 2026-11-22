@@ -21,7 +21,6 @@ app.add_middleware(
 JOBS: Dict[str, Dict[str, Any]] = {}
 MAX_JOBS = 100
 
-# Role-based preferred model keywords for smart auto-selection
 ROLE_PREFS = {
     "director": [
         "gemini-2.5-pro",
@@ -75,10 +74,22 @@ def cleanup_old_jobs() -> None:
             JOBS.pop(k, None)
 
 
+def inject_continuity(system_prompt: str, project_memory: str) -> str:
+    mem = (project_memory or "").strip()
+    if not mem:
+        return system_prompt or ""
+    lock_block = (
+        "\n\n[LOCKED CHARACTER BIBLE & STORY CONTINUITY]\n"
+        f"{mem}\n"
+        "[STRICT RULE: Keep 100% consistent characters, outfits, art style, voice tone, and story continuity.]"
+    )
+    return (system_prompt or "") + lock_block
+
+
 def guess_provider_from_key(api_key: str, fallback: str = "google") -> str:
     k = (api_key or "").strip()
     if not k:
-        return fallback or "google"
+        return fallback
     if k.startswith("AIza"):
         return "google"
     if k.startswith("sk-or-"):
@@ -127,44 +138,6 @@ def pick_best_model(models: List[str], agent_id: str, provider: str) -> str:
     return models[0]
 
 
-def inject_continuity(system_prompt: str, project_memory: str) -> str:
-    mem = (project_memory or "").strip()
-    if not mem:
-        return system_prompt or ""
-    continuity_block = (
-        "\n\n=== STRICT CHARACTER BIBLE & PROJECT CONTINUITY (MUST FOLLOW) ===\n"
-        f"{mem}\n"
-        "=== CONTINUITY RULE ===\n"
-        "You are continuing an ongoing multi-part video project. "
-        "Keep EVERY character's face, hair, age, outfit, art style (2D/3D), color tone, voice style, "
-        "and story continuity 100% consistent with the Character Bible above. "
-        "Do NOT redesign or change established characters unless the user explicitly asks."
-    )
-    return (system_prompt or "").strip() + continuity_block
-
-
-def normalize_anthropic_messages(history: List[Dict[str, str]], prompt: str) -> List[Dict[str, str]]:
-    raw = []
-    for h in history[-12:]:
-        content = (h.get("content") or "").strip()
-        if not content:
-            continue
-        role = "user" if h.get("role") == "user" else "assistant"
-        raw.append({"role": role, "content": content})
-    raw.append({"role": "user", "content": prompt})
-
-    # Anthropic requires starting with 'user' and alternating roles
-    cleaned: List[Dict[str, str]] = []
-    for msg in raw:
-        if not cleaned and msg["role"] != "user":
-            continue
-        if cleaned and cleaned[-1]["role"] == msg["role"]:
-            cleaned[-1]["content"] += "\n\n" + msg["content"]
-        else:
-            cleaned.append(msg)
-    return cleaned or [{"role": "user", "content": prompt}]
-
-
 async def fetch_provider_models(
     client: httpx.AsyncClient, provider: str, api_key: str, custom_url: str = ""
 ) -> Dict[str, Any]:
@@ -178,9 +151,7 @@ async def fetch_provider_models(
             models = [
                 m["name"].replace("models/", "")
                 for m in data.get("models", [])
-                if isinstance(m, dict)
-                and "generateContent" in m.get("supportedGenerationMethods", [])
-                and m.get("name")
+                if "generateContent" in m.get("supportedGenerationMethods", [])
             ]
             return {"ok": True, "models": models}
 
@@ -204,8 +175,7 @@ async def fetch_provider_models(
             )
             if r.status_code != 200:
                 return {"ok": False, "error": f"Anthropic ({r.status_code}): {r.text[:250]}", "models": []}
-            data = r.json()
-            models = [m["id"] for m in data.get("data", []) if isinstance(m, dict) and m.get("id")]
+            models = [m["id"] for m in r.json().get("data", []) if isinstance(m, dict) and "id" in m]
             return {"ok": True, "models": models}
 
         if provider == "runway":
@@ -235,7 +205,7 @@ async def fetch_provider_models(
 
         data = r.json()
         raw_list = data.get("data", []) if isinstance(data, dict) else []
-        models = [m["id"] for m in raw_list if isinstance(m, dict) and m.get("id")]
+        models = [m["id"] for m in raw_list if isinstance(m, dict) and "id" in m]
         if provider == "openrouter" and "openrouter/free" not in models:
             models.insert(0, "openrouter/free")
         return {"ok": True, "models": models}
@@ -273,12 +243,11 @@ async def call_llm_single_key(
         if provider == "google":
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
             contents = []
-            for h in history[-12:]:
+            for h in history[-10:]:
                 txt = (h.get("content") or "").strip()
-                if not txt:
-                    continue
-                role = "user" if h.get("role") == "user" else "model"
-                contents.append({"role": role, "parts": [{"text": txt}]})
+                if txt:
+                    role = "user" if h.get("role") == "user" else "model"
+                    contents.append({"role": role, "parts": [{"text": txt}]})
             contents.append({"role": "user", "parts": [{"text": prompt}]})
             payload: Dict[str, Any] = {"contents": contents}
             if system_prompt:
@@ -299,10 +268,16 @@ async def call_llm_single_key(
 
         if provider == "anthropic":
             url = "https://api.anthropic.com/v1/messages"
-            msgs = normalize_anthropic_messages(history, prompt)
+            msgs = []
+            for h in history[-10:]:
+                txt = (h.get("content") or "").strip()
+                if txt:
+                    role = "user" if h.get("role") == "user" else "assistant"
+                    msgs.append({"role": role, "content": txt})
+            msgs.append({"role": "user", "content": prompt})
             payload = {
                 "model": model,
-                "max_tokens": 1400,
+                "max_tokens": 1500,
                 "system": system_prompt,
                 "messages": msgs,
             }
@@ -320,9 +295,7 @@ async def call_llm_single_key(
                 return {"ok": False, "error": f"Anthropic ({r.status_code}): {r.text[:300]}"}
             content_list = r.json().get("content") or []
             text = content_list[0].get("text", "") if content_list else ""
-            if not text:
-                return {"ok": False, "error": "Anthropic ফাঁকা উত্তর দিয়েছে।"}
-            return {"ok": True, "text": text}
+            return {"ok": True, "text": text or "কোনো উত্তর পাওয়া যায়নি।"}
 
         chat_urls = {
             "openrouter": "https://openrouter.ai/api/v1/chat/completions",
@@ -341,7 +314,7 @@ async def call_llm_single_key(
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
-        for h in history[-12:]:
+        for h in history[-10:]:
             txt = (h.get("content") or "").strip()
             if txt:
                 role = "user" if h.get("role") == "user" else "assistant"
@@ -350,7 +323,7 @@ async def call_llm_single_key(
 
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         if provider == "openrouter":
-            headers["HTTP-Referer"] = "https://ai-video-studio.onrender.com"
+            headers["HTTP-Referer"] = "https://ai-video-studio-joy.onrender.com"
             headers["X-Title"] = "AI Video Studio"
 
         r = await client.post(url, headers=headers, json={"model": model, "messages": messages}, timeout=40)
@@ -412,11 +385,11 @@ async def call_agent_with_fallbacks(
         last_err = res.get("error", "Failed")
     return {"ok": False, "error": last_err}
 
-@app.get("/")
+    @app.get("/")
 async def serve_index():
     index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "index.html")
     return FileResponse(index_path)
-    
+
 
 @app.post("/api/auto-detect-key")
 async def api_auto_detect_key(request: Request):
@@ -502,7 +475,7 @@ async def api_extract_continuity(request: Request):
         latest_context = (body.get("latest_context") or "").strip()
 
         if not latest_context:
-            return JSONResponse({"ok": False, "error": "লক করার মতো কোনো কনটেন্ট বা চ্যাট পাওয়া যায়নি।"})
+            return JSONResponse({"ok": False, "error": "লক করার মতো কোনো কন্টেন্ট বা চ্যাট পাওয়া যায়নি।"})
 
         sys_prompt = (
             "You are a Continuity Supervisor for an AI Video Studio. "
@@ -517,12 +490,12 @@ async def api_extract_continuity(request: Request):
             f"Latest Part / Chat / Output:\n{latest_context[:4000]}\n\n"
             "Write the updated Character Bible & Continuity Lock Sheet now:"
         )
-    async with httpx.AsyncClient() as client:
-        res = await call_agent_with_fallbacks(client, config, prompt, sys_prompt, [], False)
-        if not res.get("ok"):
-            return JSONResponse({"ok": False, "error": res.get("error", "Continuity তৈরি করা যায়নি")})
-        return JSONResponse({"ok": True, "memory": res["text"]})
-                    
+
+        async with httpx.AsyncClient() as client:
+            res = await call_agent_with_fallbacks(client, config, prompt, sys_prompt, [], False)
+            if not res.get("ok"):
+                return JSONResponse({"ok": False, "error": res.get("error", "Continuity তৈরি করা যায়নি")})
+            return JSONResponse({"ok": True, "memory": res["text"]})
     except Exception as e:
         return JSONResponse({"ok": False, "error": str(e)})
 
@@ -572,13 +545,13 @@ async def run_job_task(job_id: str, payload: Dict[str, Any]) -> None:
                 tasks_in = payload.get("tasks", [])
                 team_logs = []
 
-                async def run_one(t: Dict[str, Any]) -> Dict[str, Any]:
-                    agent_sys = inject_continuity(t.get("system_prompt", ""), project_memory)
+                async def run_one(t: Dict[str, Any]):
+                    full_sys = inject_continuity(t.get("system_prompt", ""), project_memory)
                     r = await call_agent_with_fallbacks(
                         client,
                         t.get("config", {}),
                         t.get("prompt", ""),
-                        agent_sys,
+                        full_sys,
                         [],
                         t.get("co_work", False),
                     )
@@ -587,7 +560,7 @@ async def run_job_task(job_id: str, payload: Dict[str, Any]) -> None:
                     team_logs.append({
                         "from": "Director AI",
                         "to": t.get("agent_name"),
-                        "msg": f"ক্যারেক্টার ও সিন নির্দেশনা পাঠানো হয়েছে: {(t.get('prompt', '') or '')[:90]}...",
+                        "msg": f"কাজ বুঝিয়ে দেওয়া হয়েছে: {(t.get('prompt', '') or '')[:90]}...",
                         "status": "Aligned ✅" if r.get("ok") else "Needs Fix ⚠️",
                     })
                     if r.get("ok"):
@@ -599,17 +572,13 @@ async def run_job_task(job_id: str, payload: Dict[str, Any]) -> None:
                         })
                     return r
 
-                results = await asyncio.gather(*[run_one(t) for t in tasks_in], return_exceptions=True)
-                clean_results = [
-                    r if isinstance(r, dict) else {"ok": False, "error": str(r), "agent_name": "Agent"}
-                    for r in results
-                ]
+                results = await asyncio.gather(*[run_one(t) for t in tasks_in])
                 if JOBS.get(job_id, {}).get("status") == "cancelled":
                     return
                 JOBS[job_id]["status"] = "done"
-                JOBS[job_id]["result"] = {"ok": True, "results": clean_results, "team_logs": team_logs}
+                JOBS[job_id]["result"] = {"ok": True, "results": results, "team_logs": team_logs}
     except Exception as e:
-        if job_id in JOBS and JOBS[job_id].get("status") != "cancelled":
+        if job_id in JOBS:
             JOBS[job_id]["status"] = "error"
             JOBS[job_id]["result"] = {"ok": False, "error": f"Server Job Error: {str(e)}"}
 
@@ -651,7 +620,11 @@ async def el_voices(request: Request):
         if not api_key:
             return JSONResponse({"ok": False, "error": "ElevenLabs API Key নেই।"})
         async with httpx.AsyncClient() as client:
-            r = await client.get("https://api.elevenlabs.io/v1/voices", headers={"xi-api-key": api_key}, timeout=15)
+            r = await client.get(
+                "https://api.elevenlabs.io/v1/voices",
+                headers={"xi-api-key": api_key},
+                timeout=15,
+            )
             if r.status_code != 200:
                 return JSONResponse({"ok": False, "error": r.text[:250]})
             voices = [
@@ -735,4 +708,4 @@ async def el_sfx(request: Request):
             return JSONResponse({"ok": True, "audio_base64": f"data:audio/mpeg;base64,{b64}"})
     except Exception as e:
         return JSONResponse({"ok": False, "error": str(e)})
-        
+            
