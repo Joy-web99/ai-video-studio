@@ -385,7 +385,7 @@ async def call_agent_with_fallbacks(
         last_err = res.get("error", "Failed")
     return {"ok": False, "error": last_err}
 
-    @app.get("/")
+@app.get("/")
 async def serve_index():
     index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "index.html")
     return FileResponse(index_path)
