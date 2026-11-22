@@ -15,6 +15,7 @@
     --accent: #38bdf8;
     --accent-soft: rgba(56, 189, 248, 0.14);
     --green: #22c55e;
+    --blue: #3b82f6;
     --yellow: #f59e0b;
     --red: #ef4444;
     --radius: 12px;
@@ -36,9 +37,9 @@
     background: var(--panel); border: 1px solid var(--border);
     border-radius: 10px; padding: 6px 10px; flex-shrink: 0;
   }
-  .brand { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; letter-spacing: 0.2px; }
+  .brand { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; }
   .brand-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-  .top-actions { display: flex; gap: 6px; align-items: center; }
+  .top-actions { display: flex; gap: 5px; align-items: center; }
   .btn-chip {
     background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
     border-radius: 8px; padding: 5px 8px; font-size: 11px; cursor: pointer;
@@ -49,20 +50,13 @@
   .btn-chip.locked { border-color: var(--green); color: var(--green); }
   .btn-chip.danger { border-color: rgba(239,68,68,0.45); color: #fca5a5; }
 
-  /* 6-Box Workspace matching sketch */
-  .workspace {
-    flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px;
-  }
-  .upper-row {
-    flex: 1.25; min-height: 0; display: grid;
-    grid-template-columns: 1.65fr 1fr; gap: 6px;
-  }
-  .lower-row {
-    flex: 1; min-height: 0; display: grid;
-    grid-template-columns: 1fr 1.25fr 0.62fr; gap: 6px;
-  }
+  /* 6-Box Workspace (Tools Collapsed by Default -> Bigger Workflow) */
+  .workspace { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+  .upper-row { flex: 1.25; min-height: 0; display: grid; grid-template-columns: 1.65fr 1fr; gap: 6px; }
+  .lower-row { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.65fr; gap: 6px; transition: 0.2s; }
+  .lower-row.tools-open { grid-template-columns: 0.95fr 1.2fr 0.62fr; }
 
-  /* Common Box Card */
+  /* Box Card */
   .box {
     background: var(--panel); border: 1px solid var(--border);
     border-radius: var(--radius); display: flex; flex-direction: column;
@@ -70,25 +64,33 @@
   }
   .box-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 6px 8px; border-bottom: 1px solid var(--border);
+    padding: 5px 8px; border-bottom: 1px solid var(--border);
     background: rgba(255,255,255,0.02); flex-shrink: 0;
   }
   .box-title {
     font-size: 11px; font-weight: 600; color: var(--muted);
     display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.4px;
   }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: #475569; display: inline-block; flex-shrink: 0; }
+
+  /* 4-Color Live Status Dots */
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #475569;
+    display: inline-block; flex-shrink: 0; transition: 0.2s;
+  }
   .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .dot.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); animation: pulse 1.4s infinite; }
-  .dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); animation: pulse 1.2s infinite; }
-  .dot.blue { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1.2s infinite; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .dot.blue { background: var(--blue); box-shadow: 0 0 8px var(--accent); animation: pulse 0.85s infinite; }
+  .dot.yellow { background: var(--yellow); box-shadow: 0 0 7px var(--yellow); animation: pulse 1.3s infinite; }
+  .dot.red { background: var(--red); box-shadow: 0 0 7px var(--red); animation: pulse 1.1s infinite; }
+  .dot-btn { cursor: pointer; padding: 2px; border-radius: 50%; display: inline-flex; align-items: center; }
+  .dot-btn:active { transform: scale(1.25); }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.88); } }
 
   .icon-btn {
     background: transparent; border: none; color: var(--muted);
-    cursor: pointer; font-size: 13px; padding: 2px 4px; border-radius: 6px;
+    cursor: pointer; font-size: 13px; padding: 2px 5px; border-radius: 6px;
   }
-  .icon-btn:hover, .icon-btn:active { background: var(--panel-2); color: var(--text); }
+  .icon-btn:active { background: var(--panel-2); color: var(--text); }
+  .icon-btn.glow { color: var(--accent); animation: pulse 1.1s infinite; }
 
   /* Box 1: Director Chat */
   .chat-feed {
@@ -99,28 +101,28 @@
     max-width: 92%; padding: 8px 10px; border-radius: 10px;
     line-height: 1.45; word-wrap: break-word; font-size: 12.5px; white-space: pre-wrap;
   }
-  .msg.user {
-    align-self: flex-end; background: #1d4ed8; color: #fff;
-    border-bottom-right-radius: 3px;
-  }
-  .msg.ai {
-    align-self: flex-start; background: var(--panel-2);
-    border: 1px solid var(--border); border-bottom-left-radius: 3px;
-  }
+  .msg.user { align-self: flex-end; background: #1d4ed8; color: #fff; border-bottom-right-radius: 3px; }
+  .msg.ai { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--border); border-bottom-left-radius: 3px; }
   .msg.sys {
     align-self: center; background: rgba(56,189,248,0.08);
     border: 1px dashed rgba(56,189,248,0.35); color: #bae6fd;
     font-size: 11px; padding: 5px 9px; text-align: center;
   }
-  .msg-tools {
-    display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center;
-  }
+  .msg-tools { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
   .mini-act {
     background: rgba(255,255,255,0.06); border: 1px solid var(--border);
     color: var(--text); border-radius: 6px; padding: 3px 7px; font-size: 11px; cursor: pointer;
   }
   .mini-act.primary { background: var(--accent); color: #06101c; border-color: var(--accent); font-weight: 600; }
   .mini-act.speaking { background: var(--red); border-color: var(--red); color: #fff; }
+
+  /* Draft Edit Bar (Before Sending / Voice Review) */
+  .draft-bar {
+    display: none; align-items: center; justify-content: space-between; gap: 6px;
+    padding: 4px 8px; background: rgba(56,189,248,0.1); border-top: 1px solid var(--border);
+    font-size: 11px; color: #bae6fd; flex-shrink: 0;
+  }
+  .draft-bar.show { display: flex; }
 
   .chat-input-wrap {
     display: flex; gap: 5px; padding: 6px; border-top: 1px solid var(--border);
@@ -133,27 +135,38 @@
   .chat-input:focus { border-color: var(--accent); }
   .send-btn {
     background: var(--accent); color: #06101c; border: none; border-radius: 8px;
-    padding: 7px 11px; font-weight: 700; font-size: 12px; cursor: pointer;
+    padding: 7px 10px; font-weight: 700; font-size: 11.5px; cursor: pointer;
   }
 
-  /* 4 Category Alert Strip below Chat (inside Box 1 bottom) */
-  .cat-strip {
+  /* 4 Category Columns + Per-Key LED Matrix under each Category */
+  .cat-matrix {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
     padding: 4px 6px 6px; border-top: 1px solid var(--border);
     background: rgba(0,0,0,0.22); flex-shrink: 0;
   }
-  .cat-pill {
+  .cat-col {
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px;
-    padding: 4px 5px; display: flex; align-items: center; justify-content: center;
-    gap: 4px; font-size: 10px; color: var(--muted); cursor: pointer;
+    padding: 4px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer;
   }
-  .cat-pill.has-alert { border-color: var(--yellow); color: #fde68a; background: rgba(245,158,11,0.12); }
+  .cat-col.has-alert { border-color: var(--yellow); background: rgba(245,158,11,0.12); }
+  .cat-top {
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    font-size: 9.5px; font-weight: 600; color: var(--text); width: 100%;
+  }
+  .cat-leds {
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    flex-wrap: wrap; min-height: 10px;
+  }
+  .badge-num {
+    background: var(--yellow); color: #0b0f17; font-weight: 700; font-size: 8.5px;
+    padding: 0 3px; border-radius: 6px;
+  }
 
-  /* Right Upper Column: Box 2 (Output) + Box 3 (Extra/Vault) */
+  /* Right Upper: Output + Vault */
   .right-upper { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
   .box-output { flex: 1.25; }
   .box-vault { flex: 0.85; }
-
   .output-body {
     flex: 1; min-height: 0; overflow-y: auto; padding: 6px;
     display: flex; flex-direction: column; gap: 6px; justify-content: center; align-items: center;
@@ -162,25 +175,17 @@
   .output-empty { color: var(--muted); font-size: 11px; text-align: center; opacity: 0.75; }
   .output-img { width: 100%; max-height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; }
   .output-text-snippet { font-size: 11px; color: #cbd5e1; line-height: 1.35; max-height: 70px; overflow: hidden; }
-  .output-pulse {
-    width: 100%; height: 4px; background: var(--panel-2); border-radius: 4px; overflow: hidden; display: none;
-  }
+  .output-pulse { width: 100%; height: 3px; background: var(--panel-2); overflow: hidden; display: none; }
   .output-pulse.active { display: block; }
-  .output-pulse::after {
-    content: ""; display: block; width: 45%; height: 100%; background: var(--accent);
-    animation: slide 1.1s infinite ease-in-out;
-  }
+  .output-pulse::after { content: ""; display: block; width: 45%; height: 100%; background: var(--accent); animation: slide 1.1s infinite ease-in-out; }
   @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
   .output-foot {
     display: flex; gap: 4px; padding: 4px 6px; border-top: 1px solid var(--border);
     justify-content: space-between; align-items: center; flex-shrink: 0;
   }
 
-  /* Box 3: Extra / Vault */
-  .vault-body {
-    flex: 1; min-height: 0; overflow-y: auto; padding: 5px;
-    display: flex; flex-direction: column; gap: 4px;
-  }
+  /* Vault */
+  .vault-body { flex: 1; min-height: 0; overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 4px; }
   .vault-item {
     display: flex; align-items: center; justify-content: space-between; gap: 4px;
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px;
@@ -188,25 +193,17 @@
   }
   .vault-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 
-  /* Box 4: API Control */
-  .api-list {
-    flex: 1; min-height: 0; overflow-y: auto; padding: 5px;
-    display: flex; flex-direction: column; gap: 5px;
-  }
+  /* Box 4: API Control with Per-Key Dots */
+  .api-list { flex: 1; min-height: 0; overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 5px; }
   .api-row {
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
     padding: 6px 7px; cursor: pointer; display: flex; flex-direction: column; gap: 3px;
   }
-  .api-row-top { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; }
+  .api-row-top { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; gap: 4px; }
+  .dots-wrap { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
   .api-row-sub { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  /* Box 5: Workflow Feed */
-  .disturb-bar {
-    padding: 4px 8px; font-size: 10.5px; display: flex; align-items: center; justify-content: space-between;
-    background: rgba(34,197,94,0.08); color: #86efac; border-bottom: 1px solid var(--border);
-    cursor: pointer; flex-shrink: 0;
-  }
-  .disturb-bar.error { background: rgba(239,68,68,0.18); color: #fecaca; border-bottom-color: var(--red); }
+  /* Box 5: Live Workflow + Bottom Blinking Notification Bar */
   .wf-feed {
     flex: 1; min-height: 0; overflow-y: auto; padding: 6px;
     display: flex; flex-direction: column; gap: 5px; scroll-behavior: smooth;
@@ -216,31 +213,44 @@
     border-radius: 6px; padding: 5px 7px; font-size: 11px; line-height: 1.35;
   }
   .wf-item.ok { border-left-color: var(--green); }
+  .wf-item.work { border-left-color: var(--blue); }
   .wf-item.warn { border-left-color: var(--yellow); }
   .wf-item.err { border-left-color: var(--red); }
   .wf-meta { font-size: 9.5px; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 2px; }
 
-  /* Box 6: Standby Toolbox */
+  .notif-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 8px; border-top: 1px solid var(--border);
+    background: rgba(255,255,255,0.02); font-size: 10.5px; color: var(--muted);
+    cursor: pointer; flex-shrink: 0;
+  }
+  .notif-bar.has-notif {
+    background: rgba(245,158,11,0.15); color: #fde68a; border-top-color: var(--yellow);
+  }
+  .notif-pill { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+  .notif-bar.has-notif .notif-pill { animation: pulse 1.1s infinite; }
+
+  /* Box 6: Collapsible Toolbox */
+  .box-tools { display: none; }
+  .lower-row.tools-open .box-tools { display: flex; }
   .toolbox-body {
     flex: 1; min-height: 0; padding: 6px; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 6px; cursor: pointer; text-align: center;
   }
   .toolbox-slot {
     width: 100%; border: 1px dashed var(--border); border-radius: 9px;
-    padding: 10px 4px; color: var(--muted); font-size: 10.5px; transition: 0.2s;
+    padding: 10px 4px; color: var(--muted); font-size: 10.5px;
   }
-  .toolbox-slot.active {
-    border-style: solid; border-color: var(--accent); background: var(--accent-soft); color: #e0f2fe;
-  }
+  .toolbox-slot.active { border-style: solid; border-color: var(--accent); background: var(--accent-soft); color: #e0f2fe; }
 
-  /* Compact Floating Popover (for Toolbox, Alerts, Disturb) */
+  /* Compact Floating Popover */
   .popover-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.48);
     display: none; align-items: center; justify-content: center; z-index: 60; padding: 14px;
   }
   .popover-backdrop.open { display: flex; }
   .popover-card {
-    width: 100%; max-width: 340px; max-height: 80dvh; overflow-y: auto;
+    width: 100%; max-width: 350px; max-height: 82dvh; overflow-y: auto;
     background: var(--panel); border: 1px solid var(--border);
     border-radius: 14px; padding: 12px; box-shadow: 0 18px 40px rgba(0,0,0,0.6);
   }
@@ -261,6 +271,10 @@
     background: var(--panel-2); border: 1px solid var(--border);
     border-radius: 10px; padding: 9px; margin-bottom: 8px;
   }
+  .mini-chat-box {
+    margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);
+    display: flex; gap: 5px;
+  }
   audio { width: 100%; height: 32px; margin-top: 4px; }
 </style>
 </head>
@@ -271,14 +285,14 @@
   <header class="topbar">
     <div class="brand"><span class="brand-dot"></span> AI Video Studio</div>
     <div class="top-actions">
-      <button class="btn-chip" id="btnLock" onclick="openLockPopover()" title="Character Lock">Lock</button>
-      <button class="btn-chip" id="btnSave" onclick="saveCurrentProject()" title="Save">Save</button>
-      <button class="btn-chip" id="btnFiles" onclick="openFilesPopover()" title="Files">Files</button>
-      <button class="btn-chip" id="btnPause" onclick="cancelActiveJob()" title="Stop Job">Stop</button>
+      <button class="btn-chip" id="btnLock" onclick="openLockPopover()">Lock</button>
+      <button class="btn-chip" id="btnSave" onclick="saveCurrentProject()">Save</button>
+      <button class="btn-chip" id="btnFiles" onclick="openFilesPopover()">Files</button>
+      <button class="btn-chip" id="btnPause" onclick="cancelActiveJob()">Stop</button>
     </div>
   </header>
 
-  <!-- 6-Box Layout -->
+  <!-- 6-Box Workspace -->
   <main class="workspace">
 
     <!-- Upper Row: Box 1 (Chat) + Box 2 (Output) & Box 3 (Vault) -->
@@ -287,34 +301,56 @@
       <!-- Box 1: Director AI Chat -->
       <div class="box">
         <div class="box-head">
-          <div class="box-title"><span class="dot green" id="directorDot"></span> Director AI</div>
+          <div class="box-title"><span class="dot" id="directorDot"></span> Director AI</div>
           <div>
             <button class="icon-btn" onclick="openChatFull()" title="Expand">⤢</button>
             <button class="icon-btn" onclick="clearChat()" title="Clear">🗑</button>
           </div>
         </div>
         <div class="chat-feed" id="chatFeed"></div>
+
+        <!-- Edit / Cancel Draft Bar before Sending -->
+        <div class="draft-bar" id="draftBar">
+          <span>Draft ready · Edit or send</span>
+          <div style="display:flex;gap:4px;">
+            <button class="mini-act" onclick="focusChatInput()">Edit</button>
+            <button class="mini-act" onclick="clearDraft()">Cancel</button>
+          </div>
+        </div>
+
         <div class="chat-input-wrap">
           <button class="icon-btn" id="micBtn" onclick="toggleVoiceInput()" title="Voice">🎤</button>
-          <input class="chat-input" id="chatInput" placeholder="গল্প বা নির্দেশ লেখো..." onkeydown="if(event.key==='Enter')sendChat()" />
-          <button class="send-btn" onclick="sendChat()">Send</button>
+          <input class="chat-input" id="chatInput" placeholder="কথা বলো বা কাজ লেখো..." oninput="onDraftInput()" onkeydown="if(event.key==='Enter')sendChat()" />
+          <button class="send-btn" id="sendBtn" onclick="sendChat()">Send</button>
         </div>
-        <!-- 4 Read-Only Category Alert Indicators -->
-        <div class="cat-strip">
-          <div class="cat-pill" id="pill-image" onclick="openAlertPopover('image')"><span class="dot" id="adot-image"></span>Image</div>
-          <div class="cat-pill" id="pill-video" onclick="openAlertPopover('video')"><span class="dot" id="adot-video"></span>Video</div>
-          <div class="cat-pill" id="pill-audio" onclick="openAlertPopover('audio')"><span class="dot" id="adot-audio"></span>Audio</div>
-          <div class="cat-pill" id="pill-editing" onclick="openAlertPopover('editing')"><span class="dot" id="adot-editing"></span>Edit</div>
+
+        <!-- 4 Categories + Per-Key LED Matrix under each Category -->
+        <div class="cat-matrix">
+          <div class="cat-col" id="col-image" onclick="openAgentAlertPopover('image')">
+            <div class="cat-top">Image <span class="badge-num" id="anum-image" style="display:none;">0</span></div>
+            <div class="cat-leds" id="leds-image"></div>
+          </div>
+          <div class="cat-col" id="col-video" onclick="openAgentAlertPopover('video')">
+            <div class="cat-top">Video <span class="badge-num" id="anum-video" style="display:none;">0</span></div>
+            <div class="cat-leds" id="leds-video"></div>
+          </div>
+          <div class="cat-col" id="col-audio" onclick="openAgentAlertPopover('audio')">
+            <div class="cat-top">Audio <span class="badge-num" id="anum-audio" style="display:none;">0</span></div>
+            <div class="cat-leds" id="leds-audio"></div>
+          </div>
+          <div class="cat-col" id="col-editing" onclick="openAgentAlertPopover('editing')">
+            <div class="cat-top">Edit <span class="badge-num" id="anum-editing" style="display:none;">0</span></div>
+            <div class="cat-leds" id="leds-editing"></div>
+          </div>
         </div>
       </div>
 
       <!-- Right Upper Stack: Box 2 (Output) + Box 3 (Vault) -->
       <div class="right-upper">
-        <!-- Box 2: Output -->
         <div class="box box-output">
           <div class="box-head">
             <div class="box-title"><span class="dot" id="outDot"></span> Output</div>
-            <button class="icon-btn" onclick="openOutputPopover()" title="View Full">⤢</button>
+            <button class="icon-btn" onclick="openOutputPopover()" title="Full">⤢</button>
           </div>
           <div class="output-pulse" id="outPulse"></div>
           <div class="output-body" id="outBody">
@@ -326,11 +362,10 @@
           </div>
         </div>
 
-        <!-- Box 3: Extra / Trash Vault -->
         <div class="box box-vault">
           <div class="box-head">
             <div class="box-title">Vault (<span id="vaultCount">0</span>)</div>
-            <button class="icon-btn" onclick="openVaultPopover()" title="Open Vault">⤢</button>
+            <button class="icon-btn" onclick="openVaultPopover()" title="Open">⤢</button>
           </div>
           <div class="vault-body" id="vaultBody">
             <div class="output-empty">বাড়তি ফাইল এখানে জমবে</div>
@@ -340,10 +375,10 @@
 
     </section>
 
-    <!-- Lower Row: Box 4 (API) + Box 5 (Workflow) + Box 6 (Toolbox) -->
-    <section class="lower-row">
+    <!-- Lower Row: Box 4 (API) + Box 5 (Big Workflow) + Collapsible Box 6 (Tools) -->
+    <section class="lower-row" id="lowerRow">
 
-      <!-- Box 4: API Control -->
+      <!-- Box 4: API Keys -->
       <div class="box">
         <div class="box-head">
           <div class="box-title">API Keys</div>
@@ -352,23 +387,27 @@
         <div class="api-list" id="apiList"></div>
       </div>
 
-      <!-- Box 5: Live Workflow -->
+      <!-- Box 5: Live Workflow + Bottom Blinking Notification Bar -->
       <div class="box">
         <div class="box-head">
-          <div class="box-title"><span class="dot" id="wfDot"></span> Workflow</div>
-          <button class="icon-btn" onclick="clearWorkflow()" title="Clear">🗑</button>
-        </div>
-        <div class="disturb-bar" id="disturbBar" onclick="openDisturbPopover()">
-          <span id="disturbLabel">System OK</span>
-          <span id="coworkBadge" style="font-size:9.5px;opacity:0.85;">Solo</span>
+          <div class="box-title"><span class="dot" id="wfDot"></span> Workflow <span id="coworkBadge" style="font-size:9px;color:var(--accent);margin-left:3px;">Solo</span></div>
+          <div style="display:flex;align-items:center;gap:2px;">
+            <button class="icon-btn" onclick="clearWorkflow()" title="Clear">🗑</button>
+            <button class="icon-btn" id="toolsToggleBtn" onclick="toggleToolsDrawer()" title="Tools">◀</button>
+          </div>
         </div>
         <div class="wf-feed" id="wfFeed"></div>
+        <div class="notif-bar" id="notifBar" onclick="openNotifPopover()">
+          <span class="notif-pill" id="notifText">🔔 0</span>
+          <span style="font-size:10px;">Tap</span>
+        </div>
       </div>
 
-      <!-- Box 6: Standby Toolbox -->
-      <div class="box">
+      <!-- Box 6: Collapsible Tools -->
+      <div class="box box-tools">
         <div class="box-head">
           <div class="box-title">Tools</div>
+          <button class="icon-btn" onclick="toggleToolsDrawer()" title="Hide">▶</button>
         </div>
         <div class="toolbox-body" onclick="openToolboxPopover()">
           <div class="toolbox-slot" id="toolboxSlot">
@@ -383,17 +422,11 @@
   </main>
 </div>
 
-<!-- Compact Floating Popover Container -->
+<!-- Compact Floating Popover -->
 <div class="popover-backdrop" id="popBackdrop" onclick="if(event.target===this)closePopover()">
   <div class="popover-card" id="popCard">
     <div class="pop-head">
-      <span id="popTitle">Panel</span>
-      <button class="icon-btn" onclick="closePopover()">✕</button>
-    </div>
-    <div id="popContent"></div>
-  </div>
-</div>
- <script>
+      <script>
 const AGENTS = [
   { id: "director", name: "Director AI", role: "Lead & Chat" },
   { id: "image", name: "Image AI", role: "Visuals" },
@@ -402,32 +435,51 @@ const AGENTS = [
   { id: "editing", name: "Editing AI", role: "Cut & Sub" }
 ];
 
+const CATEGORIES = ["image", "video", "audio", "editing"];
+
 const PROVIDERS = ["google", "openrouter", "groq", "openai", "anthropic", "deepseek", "mistral", "elevenlabs", "runway", "custom"];
 
-const STORE_KEY = "ai_studio_v10_state";
+const STORE_KEY = "ai_studio_v12_state";
 let state = loadState();
 let activeJobId = null;
 let handledJobs = new Set();
+let failedModelsByKey = {};
+let workingMap = {}; // { agentId: { keyIdx, cats: [] } }
 let speakingBtn = null;
 let recognition = null;
 let isListening = false;
 
+function makeSlot(provider = "openrouter") {
+  return {
+    provider,
+    model: "",
+    apiKey: "",
+    models: [],
+    status: "idle", // idle | ok | warn | error
+    lastMsg: "",
+    bnNote: "",
+    miniChat: []
+  };
+}
+
 function defaultAgentCfg() {
   return {
-    status: "idle",
-    customUrl: "",
-    keys: [
-      { provider: "google", model: "", apiKey: "", subKey: "", models: [], status: "idle", lastMsg: "" },
-      { provider: "openrouter", model: "", apiKey: "", subKey: "", models: [], status: "idle", lastMsg: "" }
-    ]
+    keys: [makeSlot("openrouter"), makeSlot("google")]
   };
 }
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { ...freshState(), ...parsed };
+    }
   } catch (e) {}
+  return freshState();
+}
+
+function freshState() {
   const agents = {};
   AGENTS.forEach(a => agents[a.id] = defaultAgentCfg());
   return {
@@ -436,17 +488,18 @@ function loadState() {
       {
         id: "welcome",
         role: "ai",
-        text: "হ্যালো! আমি তোমার Director AI। নিচে API Keys বক্সে গিয়ে অন্তত Director-এর Key বসাও—কোম্পানি ও সেরা মডেল অটো-সেট হয়ে যাবে। এরপর এখানে সরাসরি কথা বলো বা যেকোনো ভিডিও প্রজেক্ট শুরু করো।"
+        text: "হ্যালো! আমি তোমার Director AI। নিচে API Keys বক্সে গিয়ে Key বসাও—প্রতিটি Key-এর আলাদা আলো, ক্যাটাগরির নিচে LED এবং নিচে নোটিফিকেশন বার থাকবে। আগে কথা বলে পরিকল্পনা ঠিক করব, তারপর স্যাম্পল বানাব।"
       }
     ],
     workflow: [],
-    disturbs: [],
+    notifications: [], // { source, bnMsg, rawMsg, time, read, agentId, keyIdx }
     alerts: { image: [], video: [], audio: [], editing: [] },
     output: null,
     vault: [],
     savedProjects: [],
     memory: "",
     coWork: false,
+    toolsOpen: false,
     pendingProject: null,
     suggestedTool: null
   };
@@ -467,16 +520,59 @@ function nowTime() {
   return d.toTimeString().slice(0, 5);
 }
 
+/* ---------- TRANSLATE ERROR / MESSAGE TO SIMPLE BANGLA ---------- */
+function toBanglaMsg(raw) {
+  const s = String(raw || "");
+  if (/402|insufficient credits|credits/i.test(s)) return "এই Key বা মডেলে ক্রেডিট বা ব্যালেন্স নেই। অন্য মডেল বা Key ব্যবহার করো।";
+  if (/429|rate limit|quota/i.test(s)) return "ব্যবহারের সীমা (Rate Limit) ছুঁয়ে গেছে। একটু পরে চেষ্টা করো বা অন্য Key/মডেল নাও।";
+  if (/401|403|invalid api key|unauthorized/i.test(s)) return "API Key-টি সঠিক নয় বা মেয়াদ শেষ হয়ে গেছে।";
+  if (/404|model.*not found/i.test(s)) return "নির্বাচিত মডেলটি এই মুহূর্তে পাওয়া যাচ্ছে না। অন্য মডেল বেছে নাও।";
+  if (/timeout|network|fetch/i.test(s)) return "সার্ভারের সাথে সংযোগে সাময়িক দেরি বা নেটওয়ার্ক সমস্যা হয়েছে।";
+  return s ? `সার্ভার বার্তা: ${s.slice(0, 140)}` : "কাজ করতে গিয়ে একটি সমস্যা দেখা দিয়েছে।";
+}
+
+/* ---------- LED STATE RESOLUTION (BLUE > YELLOW > RED > GREEN > IDLE) ---------- */
+function getSlotColor(agentId, keyIdx, cat = null) {
+  const w = workingMap[agentId];
+  const isWorkingThisKey = !!(w && w.keyIdx === keyIdx);
+  const matchesCat = !cat || (w && Array.isArray(w.cats) && w.cats.includes(cat));
+  if (isWorkingThisKey && matchesCat) return "blue";
+
+  const slot = state.agents[agentId]?.keys?.[keyIdx];
+  if (!slot || !(slot.apiKey || "").trim()) return "";
+  if (slot.status === "error") return "red";
+  if (slot.status === "warn") return "yellow";
+  return "green";
+}
+
+function setWorking(agentId, keyIdx, cats = []) {
+  workingMap[agentId] = { keyIdx, cats };
+  renderAll();
+}
+
+function clearWorking(agentId = null) {
+  if (agentId) delete workingMap[agentId];
+  else workingMap = {};
+  renderAll();
+}
+
 /* ---------- RENDER FUNCTIONS ---------- */
 function renderAll() {
   renderChat();
+  renderCategoryMatrix();
   renderApiList();
   renderWorkflow();
+  renderNotifBar();
   renderOutput();
   renderVault();
-  renderAlerts();
-  renderDisturbBar();
   renderToolbox();
+
+  const lower = document.getElementById("lowerRow");
+  const tBtn = document.getElementById("toolsToggleBtn");
+  lower.classList.toggle("tools-open", !!state.toolsOpen);
+  tBtn.textContent = state.toolsOpen ? "▶" : "◀";
+  tBtn.classList.toggle("glow", !!state.suggestedTool && !state.toolsOpen);
+
   const lockBtn = document.getElementById("btnLock");
   lockBtn.classList.toggle("locked", !!(state.memory && state.memory.trim()));
   lockBtn.textContent = state.memory ? "Locked" : "Lock";
@@ -522,45 +618,114 @@ function renderChat() {
   feed.scrollTop = feed.scrollHeight;
 }
 
+/* Per-Category LED Matrix: shows LEDs for keys/agents working on or mapped to that category */
+function renderCategoryMatrix() {
+  CATEGORIES.forEach(cat => {
+    const col = document.getElementById("col-" + cat);
+    const badge = document.getElementById("anum-" + cat);
+    const ledsEl = document.getElementById("leds-" + cat);
+    if (!col || !badge || !ledsEl) return;
+
+    const alerts = state.alerts[cat] || [];
+    const unread = alerts.filter(x => !x.read).length;
+    col.classList.toggle("has-alert", unread > 0);
+    badge.style.display = unread > 0 ? "inline-block" : "none";
+    badge.textContent = unread;
+
+    // Collect LEDs for keys in this category + any key actively working on this category
+    let ledHtml = "";
+    const catKeys = state.agents[cat]?.keys || [];
+    catKeys.forEach((k, kIdx) => {
+      const c = getSlotColor(cat, kIdx, cat);
+      if (c) {
+        ledHtml += `<span class="dot ${c}" title="${cat.toUpperCase()} Key #${kIdx + 1}"></span>`;
+      }
+    });
+    // Also check if another agent's key is currently working on this category (e.g. Director or cross-task)
+    Object.keys(workingMap).forEach(aid => {
+      if (aid === cat) return;
+      const w = workingMap[aid];
+      if (w && Array.isArray(w.cats) && w.cats.includes(cat)) {
+        ledHtml += `<span class="dot blue" title="${aid} working on ${cat}"></span>`;
+      }
+    });
+    ledsEl.innerHTML = ledHtml || `<span style="font-size:8.5px;color:var(--muted);opacity:0.5;">—</span>`;
+  });
+}
+
+/* Each key slot has its own independent LED dot; tapping a red/yellow dot shows its Bangla message */
 function renderApiList() {
   const box = document.getElementById("apiList");
   box.innerHTML = "";
   AGENTS.forEach(a => {
     const cfg = state.agents[a.id] || defaultAgentCfg();
-    const activeSlots = (cfg.keys || []).filter(k => (k.apiKey || "").trim());
-    let dotClass = "";
-    let subText = "No Key";
-    if (activeSlots.length > 0) {
-      const hasErr = activeSlots.some(k => k.status === "error");
-      const hasWarn = activeSlots.some(k => k.status === "warn");
-      const hasOk = activeSlots.some(k => k.status === "ok");
-      dotClass = hasOk ? "green" : hasErr ? "red" : hasWarn ? "yellow" : "green";
-      const first = activeSlots[0];
-      subText = `${first.provider.toUpperCase()} · ${first.model || "Auto"} (${activeSlots.length})`;
-    }
     const row = document.createElement("div");
     row.className = "api-row";
-    row.onclick = () => openApiPopover(a.id);
-    row.innerHTML = `
-      <div class="api-row-top">
-        <span>${esc(a.name)}</span>
-        <span class="dot ${dotClass}"></span>
-      </div>
-      <div class="api-row-sub">${esc(subText)}</div>
-    `;
+
+    const dotsWrap = document.createElement("div");
+    dotsWrap.className = "dots-wrap";
+
+    let activeCount = 0;
+    let firstDesc = "No Key";
+
+    (cfg.keys || []).forEach((k, idx) => {
+      const hasK = !!(k.apiKey || "").trim();
+      if (hasK) activeCount++;
+      const color = getSlotColor(a.id, idx, null);
+      if (color) {
+        const span = document.createElement("span");
+        span.className = "dot-btn";
+        span.title = `Key #${idx + 1}`;
+        span.innerHTML = `<span class="dot ${color}"></span>`;
+        span.onclick = (ev) => {
+          ev.stopPropagation();
+          if (color === "red" || color === "yellow" || k.bnNote || k.lastMsg) {
+            openKeySpeechPopover(a.id, idx);
+          } else {
+            openApiPopover(a.id);
+          }
+        };
+        dotsWrap.appendChild(span);
+      }
+    });
+
+    if (activeCount > 0) {
+      const first = cfg.keys.find(k => (k.apiKey || "").trim());
+      firstDesc = `${first.provider.toUpperCase()} · ${first.model || "Auto"} (${activeCount})`;
+    }
+
+    const top = document.createElement("div");
+    top.className = "api-row-top";
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = a.name;
+    nameSpan.onclick = () => openApiPopover(a.id);
+
+    top.appendChild(nameSpan);
+    top.appendChild(dotsWrap);
+
+    const sub = document.createElement("div");
+    sub.className = "api-row-sub";
+    sub.textContent = firstDesc;
+    sub.onclick = () => openApiPopover(a.id);
+
+    row.appendChild(top);
+    row.appendChild(sub);
     box.appendChild(row);
   });
 
-  const dirKeys = (state.agents.director?.keys || []).filter(k => (k.apiKey || "").trim());
+  // Director header dot
   const dDot = document.getElementById("directorDot");
-  dDot.className = "dot " + (dirKeys.length ? "green" : "red");
+  const dWorking = !!workingMap.director;
+  const dHasKey = (state.agents.director?.keys || []).some(k => (k.apiKey || "").trim());
+  const dHasErr = (state.agents.director?.keys || []).some(k => (k.apiKey || "").trim() && k.status === "error");
+  dDot.className = "dot " + (dWorking ? "blue" : dHasErr ? "red" : dHasKey ? "green" : "");
 }
 
 function renderWorkflow() {
   const feed = document.getElementById("wfFeed");
   feed.innerHTML = "";
   if (!state.workflow.length) {
-    feed.innerHTML = `<div class="output-empty" style="margin-top:20px;">টিমের কাজ ও কথোপকথন এখানে দেখাবে</div>`;
+    feed.innerHTML = `<div class="output-empty" style="margin-top:16px;">টিমের কাজ ও বোঝাপড়া এখানে দেখাবে</div>`;
   } else {
     state.workflow.forEach(w => {
       const div = document.createElement("div");
@@ -573,31 +738,21 @@ function renderWorkflow() {
     });
   }
   feed.scrollTop = feed.scrollHeight;
-  document.getElementById("coworkBadge").textContent = state.coWork ? "Co-Work ON" : "Solo";
+  document.getElementById("coworkBadge").textContent = state.coWork ? "Co-Work" : "Solo";
 }
 
-function renderDisturbBar() {
-  const bar = document.getElementById("disturbBar");
-  const lbl = document.getElementById("disturbLabel");
-  if (state.disturbs.length > 0) {
-    bar.classList.add("error");
-    lbl.textContent = `Disturb (${state.disturbs.length}) · Tap to check`;
+/* Bottom Blinking Notification Bar inside Workflow */
+function renderNotifBar() {
+  const bar = document.getElementById("notifBar");
+  const txt = document.getElementById("notifText");
+  const unread = state.notifications.filter(n => !n.read).length;
+  if (unread > 0) {
+    bar.classList.add("has-notif");
+    txt.textContent = `🔔 ${unread}`;
   } else {
-    bar.classList.remove("error");
-    lbl.textContent = "System OK";
+    bar.classList.remove("has-notif");
+    txt.textContent = `🔔 ${state.notifications.length}`;
   }
-}
-
-function renderAlerts() {
-  ["image", "video", "audio", "editing"].forEach(cat => {
-    const list = state.alerts[cat] || [];
-    const unread = list.some(x => !x.read);
-    const pill = document.getElementById("pill-" + cat);
-    const dot = document.getElementById("adot-" + cat);
-    if (!pill || !dot) return;
-    pill.classList.toggle("has-alert", unread);
-    dot.className = "dot" + (unread ? " yellow" : (hasKey(cat) ? " green" : ""));
-  });
 }
 
 function renderOutput() {
@@ -664,31 +819,44 @@ function renderToolbox() {
   }
 }
 
-/* ---------- HELPERS ---------- */
-function hasKey(agentId) {
-  return ((state.agents[agentId]?.keys) || []).some(k => (k.apiKey || "").trim());
+function toggleToolsDrawer() {
+  state.toolsOpen = !state.toolsOpen;
+  saveState();
+  renderAll();
 }
 
+/* ---------- RECORDING EVENTS, BANGLA SPEECH & NOTIFICATIONS ---------- */
 function addWorkflow(from, to, msg, level = "") {
   state.workflow.push({ from, to, msg, level, time: nowTime() });
-  if (state.workflow.length > 80) state.workflow.shift();
+  if (state.workflow.length > 90) state.workflow.shift();
   saveState();
   renderWorkflow();
 }
 
-function addAlert(cat, msg) {
-  if (!state.alerts[cat]) state.alerts[cat] = [];
-  state.alerts[cat].unshift({ msg, time: nowTime(), read: false });
-  if (state.alerts[cat].length > 20) state.alerts[cat].pop();
+function pushNotification(source, rawMsg, agentId = "", keyIdx = null) {
+  const bnMsg = toBanglaMsg(rawMsg);
+  state.notifications.unshift({
+    source,
+    bnMsg,
+    rawMsg: String(rawMsg || ""),
+    time: nowTime(),
+    read: false,
+    agentId,
+    keyIdx
+  });
+  if (state.notifications.length > 40) state.notifications.pop();
+  if (agentId && keyIdx !== null && state.agents[agentId]?.keys?.[keyIdx]) {
+    state.agents[agentId].keys[keyIdx].bnNote = bnMsg;
+  }
+  if (CATEGORIES.includes(agentId)) {
+    state.alerts[agentId] = state.alerts[agentId] || [];
+    state.alerts[agentId].unshift({ msg: bnMsg, time: nowTime(), read: false, keyIdx });
+    if (state.alerts[agentId].length > 20) state.alerts[agentId].pop();
+  }
   saveState();
-  renderAlerts();
-}
-
-function addDisturb(agent, msg) {
-  state.disturbs.unshift({ agent, msg, time: nowTime() });
-  if (state.disturbs.length > 20) state.disturbs.pop();
-  saveState();
-  renderDisturbBar();
+  renderNotifBar();
+  renderCategoryMatrix();
+  renderApiList();
 }
 
 function pushChat(role, text, actions = []) {
@@ -717,8 +885,46 @@ function setOutputLoading(active) {
   document.getElementById("wfDot").className = active ? "dot blue" : "dot green";
   if (active) {
     document.getElementById("outDot").className = "dot blue";
-    document.getElementById("outTag").textContent = "Building...";
+    document.getElementById("outTag").textContent = "Working...";
   }
+}
+
+/* ---------- DRAFT EDIT BEFORE SEND & VOICE ---------- */
+function onDraftInput() {
+  const v = document.getElementById("chatInput").value;
+  document.getElementById("draftBar").classList.toggle("show", v.trim().length > 0 && !isListening);
+}
+function focusChatInput() {
+  const inp = document.getElementById("chatInput");
+  inp.focus();
+  document.getElementById("draftBar").classList.remove("show");
+}
+function clearDraft() {
+  document.getElementById("chatInput").value = "";
+  document.getElementById("draftBar").classList.remove("show");
+}
+
+function toggleVoiceInput() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert("এই ব্রাউজারে ভয়েস টাইপিং সাপোর্ট নেই।"); return; }
+  const btn = document.getElementById("micBtn");
+  if (isListening && recognition) { recognition.stop(); return; }
+  recognition = new SR();
+  recognition.lang = "bn-IN";
+  recognition.onstart = () => { isListening = true; btn.style.color = "var(--red)"; };
+  recognition.onend = () => {
+    isListening = false;
+    btn.style.color = "";
+    if (document.getElementById("chatInput").value.trim()) {
+      document.getElementById("draftBar").classList.add("show");
+    }
+  };
+  recognition.onresult = (e) => {
+    const t = e.results[0][0].transcript;
+    const inp = document.getElementById("chatInput");
+    inp.value = (inp.value ? inp.value + " " : "") + t;
+  };
+  recognition.start();
 }
 
 /* ---------- TTS WITH INSTANT STOP ---------- */
@@ -747,24 +953,6 @@ function toggleSpeak(text, btn) {
   btn.classList.add("speaking");
   btn.textContent = "⏹";
   window.speechSynthesis.speak(u);
-}
-
-/* ---------- VOICE INPUT ---------- */
-function toggleVoiceInput() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert("এই ব্রাউজারে ভয়েস টাইপিং সাপোর্ট নেই।"); return; }
-  const btn = document.getElementById("micBtn");
-  if (isListening && recognition) { recognition.stop(); return; }
-  recognition = new SR();
-  recognition.lang = "bn-IN";
-  recognition.onstart = () => { isListening = true; btn.style.color = "var(--red)"; };
-  recognition.onend = () => { isListening = false; btn.style.color = ""; };
-  recognition.onresult = (e) => {
-    const t = e.results[0][0].transcript;
-    const inp = document.getElementById("chatInput");
-    inp.value = (inp.value ? inp.value + " " : "") + t;
-  };
-  recognition.start();
 }
 
 /* ---------- ZERO-REPEAT SEQUENTIAL POLLING ---------- */
@@ -804,618 +992,16 @@ async function cancelActiveJob() {
   if (!activeJobId) return;
   const jid = activeJobId;
   activeJobId = null;
+  clearWorking();
   setOutputLoading(false);
   try { await fetch(`/api/cancel-job/${jid}`, { method: "POST" }); } catch (e) {}
   addWorkflow("User", "Studio", "চলমান কাজ বন্ধ করা হয়েছে।", "warn");
   pushChat("sys", "কাজটি থামানো হয়েছে।");
 }
 
-/* ---------- SMART CHAT & SAMPLE-FIRST FLOW ---------- */
-function isProjectIntent(text) {
-  const low = text.toLowerCase();
-  const kws = ["ভিডিও", "গল্প", "বানাও", "তৈরি", "স্ক্রিপ্ট", "স্যাম্পল", "সিন", "কার্টুন", "রিলস", "শর্টস", "video", "story", "script", "sample", "scene", "create", "make", "project", "কাজ শুরু"];
-  return kws.some(k => low.includes(k));
-}
-
-function getDirectorConfig() {
-  return state.agents.director || defaultAgentCfg();
-}
-
-function buildVisualUrl(promptText) {
-  const clean = encodeURIComponent("cinematic film frame, ultra detailed, lighting, " + promptText.slice(0, 180));
-  const seed = Math.floor(Math.random() * 99999);
-  return `https://image.pollinations.ai/prompt/${clean}?width=768&height=432&nologo=true&seed=${seed}`;
-}
-
-async function sendChat() {
-  const inp = document.getElementById("chatInput");
-  const text = inp.value.trim();
-  if (!text) return;
-  if (!hasKey("director")) {
-    pushChat("sys", "প্রথমে নিচে API Keys বক্স থেকে Director AI-এর একটি Key বসাও।");
-    openApiPopover("director");
-    return;
-  }
-  inp.value = "";
-  pushChat("user", text);
-
-  if (isProjectIntent(text)) {
-    state.pendingProject = { prompt: text, sampleCount: 0 };
-    const otherActive = ["image", "video", "audio", "editing"].filter(id => hasKey(id));
-    if (otherActive.length >= 2 && !state.coWork) {
-      pushChat(
-        "ai",
-        "এটি একটি প্রজেক্ট কাজ। শুরু করার আগে বলো—আমি একা করব নাকি সবাই একসাথে (Co-Work) মিলে স্যাম্পল বানাব?",
-        [
-          { label: "একাই বানাও (Solo)", type: "start_sample", payload: { coWork: false } },
-          { label: "সবাই মিলে (Co-Work)", type: "start_sample", payload: { coWork: true }, primary: true }
-        ]
-      );
-      return;
-    }
-    await generateProjectSample(text, state.coWork);
-    return;
-  }
-
-  // Free conversational mode for Director AI
-  addWorkflow("User", "Director AI", text.slice(0, 80));
-  setOutputLoading(true);
-  const history = state.chat.filter(m => m.role === "user" || m.role === "ai").slice(-8).map(m => ({
-    role: m.role === "user" ? "user" : "assistant",
-    content: m.text
-  }));
-  const sysPrompt = "You are Director AI, an independent, intelligent creative video studio director speaking naturally in Bangla. Reply concisely and helpfully. Do not repeat yourself. If external design tool like Canva or Drive would help, mention it briefly.";
-  const res = await runBackendJob({
-    type: "single",
-    config: getDirectorConfig(),
-    prompt: text,
-    system_prompt: sysPrompt,
-    history,
-    co_work: state.coWork,
-    project_memory: state.memory
-  });
-  setOutputLoading(false);
-  if (res.cancelled || res.duplicate) return;
-
-  if (!res.ok) {
-    addDisturb("Director AI", res.error || "Connection error");
-    addWorkflow("Director AI", "System", "Error: " + (res.error || ""), "err");
-    pushChat("ai", "দুঃখিত, Director AI-এর সাথে সংযোগে সমস্যা হয়েছে। Workflow-এর লাল বারে ট্যাপ করে কারণ দেখে নাও।");
-    return;
-  }
-  addWorkflow("Director AI", "Chat", "উত্তর দেওয়া হয়েছে।", "ok");
-  pushChat("ai", res.text);
-}
-
-async function generateProjectSample(promptText, useCoWork) {
-  state.coWork = !!useCoWork;
-  saveState();
-  renderWorkflow();
-
-  if (state.output) moveOutputToVault("Previous");
-
-  pushChat("sys", "একটা স্যাম্পল তৈরি করা হচ্ছে, দেখে নিন...");
-  addWorkflow("Director AI", "Team", `স্যাম্পল প্রস্তুতি শুরু (${state.coWork ? "Co-Work" : "Solo"}): ${promptText.slice(0, 70)}`);
-  setOutputLoading(true);
-
-  const tasks = [
-    {
-      agent_id: "director",
-      agent_name: "Director AI",
-      config: getDirectorConfig(),
-      system_prompt: "Create a crisp, clean Bangla + English visual sample plan (2 key frames, mood, short dialogue) without messy markdown.",
-      prompt: `Create a short sample preview for: ${promptText}`,
-      co_work: state.coWork
-    }
-  ];
-
-  ["image", "video", "audio", "editing"].forEach(id => {
-    if (hasKey(id)) {
-      const a = AGENTS.find(x => x.id === id);
-      tasks.push({
-        agent_id: id,
-        agent_name: a.name,
-        config: state.agents[id],
-        system_prompt: `You are ${a.name}. Give a concise 2-line sample contribution for the Director.`,
-        prompt: `Sample input for project: ${promptText}`,
-        co_work: false
-      });
-    }
-  });
-
-  const res = await runBackendJob({
-    type: "multi",
-    tasks,
-    project_memory: state.memory
-  });
-
-  if (res.cancelled || res.duplicate) { setOutputLoading(false); return; }
-
-  const results = res.results || [];
-  let leadText = "";
-  let imgPrompt = promptText;
-
-  results.forEach(r => {
-    if (r.ok) {
-      addWorkflow(r.agent_name, "Director AI", (r.text || "").slice(0, 110), "ok");
-      if (r.agent_id === "director") leadText = r.text;
-      if (r.agent_id === "image") imgPrompt = r.text.slice(0, 160);
-      if (r.agent_id !== "director") addAlert(r.agent_id, `স্যাম্পল তৈরি হয়েছে: ${(r.text || "").slice(0, 90)}`);
-    } else {
-      addDisturb(r.agent_name, r.error || "Failed");
-      addWorkflow(r.agent_name, "Director AI", "Error: " + (r.error || ""), "err");
-      if (r.agent_id !== "director") addAlert(r.agent_id, "সার্ভার এরর: " + (r.error || ""));
-    }
-  });
-
-  // Optional ElevenLabs sample audio if audio agent uses elevenlabs
-  let audioData = "";
-  const elKey = getElevenLabsKey();
-  if (elKey && leadText) {
-    try {
-      addWorkflow("Director AI", "Audio AI", "ElevenLabs স্যাম্পল ভয়েস তৈরি হচ্ছে...");
-      const tr = await fetch("/api/elevenlabs/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey: elKey, text: leadText.slice(0, 180) })
-      });
-      const td = await tr.json();
-      if (td.ok && td.audio_base64) {
-        audioData = td.audio_base64;
-        addWorkflow("Audio AI", "Output", "স্যাম্পল অডিও রেডি।", "ok");
-      }
-    } catch (e) {}
-  }
-
-  // Suggest external tool only if design/graphic requested
-  if (/thumbnail|poster|graphic|design|ডিজাইন|থাম্বনেইল|পোস্টার/i.test(promptText)) {
-    state.suggestedTool = { name: "Canva", icon: "🎨", mode: "Optional", note: "গ্রাফিক্স ও থাম্বনেইল ফিনিশিং-এর জন্য কানেক্ট করতে পারো।" };
-    renderToolbox();
-  }
-
-  state.output = {
-    kind: "sample",
-    prompt: promptText,
-    text: leadText || "স্যাম্পল তৈরি হয়েছে।",
-    imageUrl: buildVisualUrl(imgPrompt),
-    audioData
-  };
-  saveState();
-  setOutputLoading(false);
-  renderOutput();
-
-  pushChat(
-    "ai",
-    "স্যাম্পল তৈরি হয়ে গেছে—ডানদিকের Output বক্সে ছবি ও বিবরণ দেখে নাও। পছন্দ হলে ফাইনাল বানাই, অথবা বদলাতে চাইলে বলো।",
-    [
-      { label: "ঠিক আছে, ফাইনাল বানাও", type: "approve_final", primary: true },
-      { label: "আরেকটা ভালো বানাও", type: "retry_sample" }
-    ]
-  );
-}
-
-async function generateFinalProduction() {
-  if (!state.pendingProject) return;
-  const promptText = state.pendingProject.prompt;
-  pushChat("sys", "অনুমোদন পাওয়া গেছে। ফাইনাল প্রোডাকশন তৈরি হচ্ছে...");
-  addWorkflow("Director AI", "All Agents", "ফাইনাল প্রোডাকশন শুরু হয়েছে।", "ok");
-  setOutputLoading(true);
-
-  const res = await runBackendJob({
-    type: "single",
-    config: getDirectorConfig(),
-    prompt: `Write the complete, polished Final Production package (Scene breakdown, Visual prompts, Voiceover script, Audio/SFX cues) for: ${promptText}`,
-    system_prompt: "You are Director AI. Deliver a clean, structured Final Production script in Bangla + English technical terms.",
-    history: [],
-    co_work: state.coWork,
-    project_memory: state.memory
-  });
-
-  setOutputLoading(false);
-  if (res.cancelled || res.duplicate) return;
-
-  if (!res.ok) {
-    addDisturb("Director AI", res.error || "Final build failed");
-    pushChat("ai", "ফাইনাল বানাতে গিয়ে সমস্যা হয়েছে—Workflow লাল বারে দেখো।");
-    return;
-  }
-
-  if (state.output) moveOutputToVault("Approved Sample");
-  state.output = {
-    kind: "final",
-    prompt: promptText,
-    text: res.text,
-    imageUrl: buildVisualUrl("masterpiece final cinematic frame " + promptText),
-    audioData: state.output?.audioData || ""
-  };
-  saveState();
-  renderOutput();
-  addWorkflow("Studio", "Output", "ফাইনাল প্রোডাকশন সম্পূর্ণ!", "ok");
-
-  pushChat(
-    "ai",
-    "কাজ সম্পূর্ণ হয়ে গেছে! ডানদিকের Output বক্সে ফাইনাল ফাইল রেডি আছে। এখানটা কি সেভ করে রাখবো?",
-    [
-      { label: "Yes, Save", type: "smart_save", primary: true },
-      { label: "Export Now", type: "export_now" }
-    ]
-  );
-}
-
-function handleChatAction(type, payload) {
-  if (type === "start_sample" && state.pendingProject) {
-    generateProjectSample(state.pendingProject.prompt, payload?.coWork);
-  } else if (type === "approve_final") {
-    generateFinalProduction();
-  } else if (type === "retry_sample" && state.pendingProject) {
-    generateProjectSample(state.pendingProject.prompt + " (আরও উন্নত ও সিনেমাটিক ভার্সন)", state.coWork);
-  } else if (type === "smart_save") {
-    saveCurrentProject();
-  } else if (type === "export_now") {
-    downloadCurrentOutput();
-  }
-}
-
-/* ---------- EXPORT & SAVE ---------- */
-function downloadCurrentOutput() {
-  if (!state.output) { alert("এখনো কোনো আউটপুট তৈরি হয়নি।"); return; }
-  pushChat("sys", "এক্সপোর্ট করা হচ্ছে...");
-  const content = `=== AI VIDEO STUDIO (${state.output.kind.toUpperCase()}) ===\nPrompt: ${state.output.prompt || ""}\n\n${state.output.text || ""}`;
-  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `AI-Studio-${state.output.kind}-${Date.now()}.txt`;
-  a.click();
-  setTimeout(() => pushChat("sys", "এক্সপোর্ট কমপ্লিট হয়েছে!"), 500);
-}
-
-function saveCurrentProject() {
-  const title = (state.pendingProject?.prompt || state.output?.prompt || "Project " + nowTime()).slice(0, 36);
-  state.savedProjects.unshift({
-    id: "p_" + Date.now(),
-    title,
-    time: nowTime(),
-    chat: state.chat.slice(-20),
-    output: state.output,
-    memory: state.memory
-  });
-  if (state.savedProjects.length > 15) state.savedProjects.pop();
-  saveState();
-  pushChat("sys", `প্রজেক্ট সেভ হয়েছে: "${title}" (Files-এ পাওয়া যাবে)`);
-}
-
-function clearChat() {
-  if (!confirm("চ্যাট পরিষ্কার করবে?")) return;
-  state.chat = [{ id: "c0", role: "ai", text: "নতুন সেশন শুরু হলো। কী বানাতে চাও বলো।" }];
-  saveState();
-  renderChat();
-}
-
-function clearWorkflow() {
-  state.workflow = [];
-  state.disturbs = [];
-  saveState();
-  renderWorkflow();
-  renderDisturbBar();
-}
-
-function getElevenLabsKey() {
-  const keys = state.agents.audio?.keys || [];
-  for (const k of keys) {
-    if ((k.apiKey || "").trim() && (k.provider === "elevenlabs" || k.apiKey.startsWith("sk_"))) return k.apiKey.trim();
-  }
-  return "";
-}
-
-/* ---------- COMPACT POPOVER SYSTEM ---------- */
-function openPopover(title, html, wide = false) {
-  document.getElementById("popTitle").textContent = title;
-  document.getElementById("popContent").innerHTML = html;
-  document.getElementById("popCard").classList.toggle("wide", wide);
-  document.getElementById("popBackdrop").classList.add("open");
-}
-function closePopover() {
-  document.getElementById("popBackdrop").classList.remove("open");
-}
-
-function openChatFull() {
-  const lines = state.chat.map(m => `<div class="key-card"><b>${m.role === "user" ? "You" : "Director AI"}:</b><div style="margin-top:4px;white-space:pre-wrap;">${esc(m.text)}</div></div>`).join("");
-  openPopover("Director AI Chat", lines || "Empty", true);
-}
-
-function openOutputPopover() {
-  if (!state.output) { openPopover("Output", "<div class='output-empty'>কোনো আউটপুট নেই।</div>"); return; }
-  const o = state.output;
-  let html = "";
-  if (o.imageUrl) html += `<img src="${esc(o.imageUrl)}" style="width:100%;border-radius:10px;margin-bottom:8px;" />`;
-  if (o.audioData) html += `<audio controls src="${o.audioData}"></audio>`;
-  html += `<div style="white-space:pre-wrap;font-size:12px;line-height:1.5;margin-top:8px;">${esc(o.text)}</div>`;
-  html += `<div class="row-gap">
-    <button class="btn-chip active" onclick="downloadCurrentOutput()">Download Text</button>
-    ${o.imageUrl ? `<a class="btn-chip" href="${esc(o.imageUrl)}" target="_blank">Open Image</a>` : ""}
-  </div>`;
-  openPopover(o.kind === "final" ? "Final Output" : "Sample Output", html, true);
-}
-
-function openVaultPopover() {
-  if (!state.vault.length) { openPopover("Vault", "<div class='output-empty'>ভল্ট ফাঁকা আছে।</div>"); return; }
-  const html = state.vault.slice().reverse().map((v, rIdx) => {
-    const idx = state.vault.length - 1 - rIdx;
-    return `<div class="key-card" style="display:flex;justify-content:space-between;align-items:center;">
-      <div onclick="openVaultItemPopover(${idx})" style="cursor:pointer;flex:1;"><b>${esc(v.title)}</b><div style="font-size:10px;color:var(--muted);">${esc(v.time)}</div></div>
-      <button class="btn-chip danger" onclick="deleteVaultItem(${idx})">Del</button>
-    </div>`;
-  }).join("");
-  openPopover("Extra / Vault", html, true);
-}
-
-function openVaultItemPopover(idx) {
-  const v = state.vault[idx];
-  if (!v) return;
-  let html = "";
-  if (v.imageUrl) html += `<img src="${esc(v.imageUrl)}" style="width:100%;border-radius:8px;margin-bottom:8px;" />`;
-  if (v.audioData) html += `<audio controls src="${v.audioData}"></audio>`;
-  html += `<div style="white-space:pre-wrap;font-size:12px;max-height:200px;overflow-y:auto;">${esc(v.text)}</div>`;
-  html += `<div class="row-gap">
-    <button class="btn-chip active" onclick="downloadVaultItem(${idx})">Download</button>
-    <button class="btn-chip danger" onclick="deleteVaultItem(${idx});closePopover();">Delete</button>
-  </div>`;
-  openPopover(v.title, html, true);
-}
-
-function downloadVaultItem(idx) {
-  const v = state.vault[idx];
-  if (!v) return;
-  const blob = new Blob([v.text || ""], { type: "text/plain;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `Vault-${idx + 1}.txt`;
-  a.click();
-}
-
-function deleteVaultItem(idx) {
-  state.vault.splice(idx, 1);
-  saveState();
-  renderVault();
-  if (document.getElementById("popBackdrop").classList.contains("open")) openVaultPopover();
-}
-
-function openAlertPopover(cat) {
-  const list = state.alerts[cat] || [];
-  list.forEach(x => x.read = true);
-  saveState();
-  renderAlerts();
-  const html = list.length
-    ? list.map(x => `<div class="key-card"><div style="font-size:10px;color:var(--muted);">${esc(x.time)}</div><div>${esc(x.msg)}</div></div>`).join("")
-    : `<div class="output-empty">কোনো নতুন মেসেজ বা সতর্কতা নেই।</div>`;
-  openPopover(cat.toUpperCase() + " Alerts (Read-Only)", html);
-}
-
-function openDisturbPopover() {
-  const html = state.disturbs.length
-    ? state.disturbs.map(d => `<div class="key-card" style="border-color:var(--red);"><b>${esc(d.agent)}</b> <span style="font-size:10px;color:var(--muted);">${esc(d.time)}</span><div style="margin-top:4px;color:#fecaca;">${esc(d.msg)}</div></div>`).join("") +
-      `<button class="btn-chip" onclick="state.disturbs=[];saveState();renderDisturbBar();closePopover();">Clear Errors</button>`
-    : `<div class="output-empty">সব সিস্টেম একদম ঠিকঠাক চলছে।</div>`;
-  openPopover("System Disturbances", html);
-}
-
-function openToolboxPopover() {
-  const t = state.suggestedTool;
-  if (!t) {
-    openPopover("Toolbox (Standby)", `<div class="output-empty" style="padding:14px 0;">এখন কোনো এক্সটার্নাল টুলের প্রয়োজন নেই। কাজের সময় প্রয়োজন হলে AI এখানে কানেক্ট করার অপশন দেখাবে।</div>`);
-    return;
-  }
-  const html = `
-    <div class="key-card" style="text-align:center;">
-      <div style="font-size:28px;">${esc(t.icon)}</div>
-      <div style="font-weight:700;margin-top:4px;">${esc(t.name)} <span style="font-size:10px;color:var(--accent);">(${esc(t.mode)})</span></div>
-      <div style="font-size:11.5px;color:var(--muted);margin:6px 0 10px;">${esc(t.note)}</div>
-      <button class="btn-chip active" onclick="alert('${esc(t.name)} কানেক্টর পরবর্তী আপডেটে যুক্ত হবে।')">Connect ${esc(t.name)}</button>
-    </div>`;
-  openPopover("Toolbox Connector", html);
-}
-
-function openFilesPopover() {
-  if (!state.savedProjects.length) { openPopover("Saved Files", "<div class='output-empty'>কোনো সেভ করা প্রজেক্ট নেই।</div>"); return; }
-  const html = state.savedProjects.map((p, idx) => `
-    <div class="key-card" style="display:flex;justify-content:space-between;align-items:center;">
-      <div><b>${esc(p.title)}</b><div style="font-size:10px;color:var(--muted);">${esc(p.time)}</div></div>
-      <div class="row-gap" style="margin:0;">
-        <button class="btn-chip active" onclick="loadSavedProject(${idx})">Open</button>
-        <button class="btn-chip danger" onclick="state.savedProjects.splice(${idx},1);saveState();openFilesPopover();">Del</button>
-      </div>
-    </div>`).join("");
-  openPopover("Saved Projects", html, true);
-}
-
-function loadSavedProject(idx) {
-  const p = state.savedProjects[idx];
-  if (!p) return;
-  state.chat = p.chat || [];
-  state.output = p.output || null;
-  state.memory = p.memory || "";
-  saveState();
-  renderAll();
-  closePopover();
-}
-
-function openLockPopover() {
-  const html = `
-    <label class="field-label">Character Bible & Continuity (Part 2+)</label>
-    <textarea class="field-textarea" id="memInput" placeholder="চরিত্রের চেহারা, পোশাক ও গল্পের ধারাবাহিকতা...">${esc(state.memory)}</textarea>
-    <div class="row-gap">
-      <button class="btn-chip active" onclick="saveMemoryManual()">Save Lock</button>
-      <button class="btn-chip" onclick="autoExtractMemory()">Auto-Extract</button>
-      <button class="btn-chip danger" onclick="state.memory='';saveState();renderAll();closePopover();">Clear</button>
-    </div>`;
-  openPopover("Continuity Lock", html, true);
-}
-
-function saveMemoryManual() {
-  state.memory = document.getElementById("memInput").value.trim();
-  saveState();
-  renderAll();
-  closePopover();
-}
-
-async function autoExtractMemory() {
-  const ctx = state.output?.text || state.chat.slice(-4).map(m => m.text).join("\n");
-  if (!ctx) { alert("লক করার মতো কোনো কন্টেন্ট নেই।"); return; }
-  const r = await fetch("/api/extract-continuity", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ config: getDirectorConfig(), existing_memory: state.memory, latest_context: ctx })
-  });
-  const d = await r.json();
-  if (d.ok && d.memory) {
-    state.memory = d.memory;
-    saveState();
-    renderAll();
-    document.getElementById("memInput").value = d.memory;
-  } else {
-    alert(d.error || "Continuity তৈরি করা যায়নি।");
-  }
-}
-
-/* ---------- API SETTINGS POPOVER (ALL AGENTS + AUTO-DETECT + SUB-KEYS) ---------- */
-function openApiPopover(agentId) {
-  const cfg = state.agents[agentId] || defaultAgentCfg();
-  state.agents[agentId] = cfg;
-
-  const tabs = AGENTS.map(a => `<button class="btn-chip ${a.id === agentId ? "active" : ""}" onclick="openApiPopover('${a.id}')">${a.name.split(" ")[0]}</button>`).join("");
-
-  const slotsHtml = cfg.keys.map((k, idx) => {
-    const provOpts = PROVIDERS.map(p => `<option value="${p}" ${k.provider === p ? "selected" : ""}>${p.toUpperCase()}</option>`).join("");
-    const modList = (k.models && k.models.length)
-      ? `<select class="field-select" onchange="updateSlot('${agentId}',${idx},'model',this.value)">
-          ${k.models.map(m => `<option value="${esc(m)}" ${k.model === m ? "selected" : ""}>${esc(m)}</option>`).join("")}
-         </select>`
-      : `<input class="field-input" value="${esc(k.model)}" placeholder="Model (Auto)" onchange="updateSlot('${agentId}',${idx},'model',this.value)" />`;
-    const dotCls = k.status === "ok" ? "green" : k.status === "error" ? "red" : k.status === "warn" ? "yellow" : "";
-
-    return `<div class="key-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-weight:600;font-size:11.5px;"><span class="dot ${dotCls}" style="margin-right:5px;"></span>Key #${idx + 1}</span>
-        <div style="display:flex;gap:4px;">
-          <button class="btn-chip active" onclick="autoDetectSlot('${agentId}',${idx})">Auto-Detect</button>
-          ${cfg.keys.length > 1 ? `<button class="btn-chip danger" onclick="removeSlot('${agentId}',${idx})">✕</button>` : ""}
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:5px;">
-        <select class="field-select" onchange="updateSlot('${agentId}',${idx},'provider',this.value)">${provOpts}</select>
-        ${modList}
-      </div>
-      <input class="field-input" style="margin-top:5px;" type="password" value="${esc(k.apiKey)}" placeholder="Main API Key..." onchange="updateSlot('${agentId}',${idx},'apiKey',this.value)" />
-      <input class="field-input" style="margin-top:5px;" type="password" value="${esc(k.subKey || "")}" placeholder="Backup Sub-Key (Optional)..." onchange="updateSlot('${agentId}',${idx},'subKey',this.value)" />
-      ${k.lastMsg ? `<div style="font-size:10px;color:${k.status === "error" ? "#fca5a5" : "#86efac"};margin-top:4px;">${esc(k.lastMsg)}</div>` : ""}
-    </div>`;
-  }).join("");
-
-  let extraAudio = "";
-  if (agentId === "audio") {
-    extraAudio = `<div class="key-card">
-      <div style="font-weight:600;margin-bottom:5px;">ElevenLabs Quick SFX / Voice Test</div>
-      <input class="field-input" id="elQuickText" placeholder="ভয়েস বা সাউন্ড ইফেক্ট লেখো..." />
-      <div class="row-gap">
-        <button class="btn-chip active" onclick="quickEleven('tts')">Test Voice</button>
-        <button class="btn-chip" onclick="quickEleven('sfx')">Test SFX</button>
-      </div>
-      <div id="elQuickOut"></div>
-    </div>`;
-  }
-
-  const html = `
-    <div class="row-gap" style="margin-top:0;margin-bottom:10px;">${tabs}</div>
-    ${slotsHtml}
-    <div class="row-gap">
-      <button class="btn-chip" onclick="addSlot('${agentId}')">+ Add Key Slot</button>
-      <button class="btn-chip active" onclick="closePopover()">Done</button>
-    </div>
-    ${extraAudio}
-  `;
-  openPopover("API Control · " + agentId.toUpperCase(), html, true);
-}
-
-function updateSlot(agentId, idx, field, val) {
-  state.agents[agentId].keys[idx][field] = val.trim();
-  saveState();
-  renderApiList();
-}
-
-function addSlot(agentId) {
-  state.agents[agentId].keys.push({ provider: "openrouter", model: "", apiKey: "", subKey: "", models: [], status: "idle", lastMsg: "" });
-  saveState();
-  openApiPopover(agentId);
-}
-
-function removeSlot(agentId, idx) {
-  state.agents[agentId].keys.splice(idx, 1);
-  saveState();
-  renderApiList();
-  openApiPopover(agentId);
-}
-
-async function autoDetectSlot(agentId, idx) {
-  const slot = state.agents[agentId].keys[idx];
-  if (!slot.apiKey) { alert("আগে API Key পেস্ট করো।"); return; }
-  slot.status = "warn";
-  slot.lastMsg = "Checking...";
-  openApiPopover(agentId);
-
-  try {
-    const r = await fetch("/api/auto-detect-key", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        apiKey: slot.apiKey,
-        provider: slot.provider,
-        model: slot.model,
-        agentId
-      })
-    });
-    const d = await r.json();
-    if (d.ok) {
-      slot.provider = d.provider || slot.provider;
-      slot.model = d.model || d.auto_model || slot.model;
-      slot.models = d.models || [];
-      slot.status = "ok";
-      slot.lastMsg = `Connected · ${slot.provider.toUpperCase()} (${slot.models.length} models)`;
-    } else {
-      slot.status = "error";
-      slot.lastMsg = d.error || "Key কাজ করেনি";
-      addDisturb(agentId.toUpperCase(), slot.lastMsg);
-      if (agentId !== "director") addAlert(agentId, slot.lastMsg);
-    }
-  } catch (e) {
-    slot.status = "error";
-    slot.lastMsg = String(e);
-  }
-  saveState();
-  renderApiList();
-  openApiPopover(agentId);
-}
-
-async function quickEleven(mode) {
-  const key = getElevenLabsKey();
-  const txt = document.getElementById("elQuickText")?.value.trim();
-  if (!key || !txt) { alert("ElevenLabs Key এবং লেখা দুটোই দাও।"); return; }
-  const out = document.getElementById("elQuickOut");
-  out.innerHTML = "<div style='font-size:11px;margin-top:5px;'>Generating...</div>";
-  const r = await fetch(mode === "sfx" ? "/api/elevenlabs/sfx" : "/api/elevenlabs/tts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ apiKey: key, text: txt })
-  });
-  const d = await r.json();
-  if (d.ok && d.audio_base64) {
-    out.innerHTML = `<audio controls autoplay src="${d.audio_base64}"></audio>`;
-  } else {
-    out.innerHTML = `<div style='color:#fca5a5;font-size:11px;margin-top:5px;'>${esc(d.error || "Error")}</div>`;
-  }
-}
-
-renderAll();
-</script>
-</body>
-</html>
- 
+/* ---------- SMART INTENT: QUESTION VS PROJECT COMMAND ---------- */
+function isCapabilityQuestion(text) {
+  const t = text.trim().toLowerCase();
+  const qWords = ["পারবে", "পারো", "কীভাবে", "কিভাবে", "ক্ষমতা", "কি কি", "কী কী", "কাজ করো", "ব্যাপারে বলো", "can you", "how do you", "what can you", "capable", "?"];
+  const hasMake = ["বানাও", "তৈরি করো", "শুরু করো", "লিখে দাও", "create", "make", "generate", "build"].some(w => t.includes(w));
+    
