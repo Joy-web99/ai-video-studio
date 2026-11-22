@@ -415,7 +415,8 @@ async def call_agent_with_fallbacks(
 
 @app.get("/")
 async def serve_index():
-    index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+        index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "index.html")
+    
     return FileResponse(index_path)
 
 
