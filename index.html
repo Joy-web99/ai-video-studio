@@ -1,878 +1,1421 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Video Studio Pro</title>
-  <style>
-    :root {
-      --bg: #0b0f19; --card: #131a2a; --card2: #1a2338; --border: #26324d;
-      --text: #eef2ff; --muted: #94a3b8; --accent: #38bdf8; --ok: #22c55e;
-      --err: #ef4444; --warn: #facc15; --purple: #a855f7;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 10px; line-height: 1.45; }
-    .topbar { display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; align-items: center; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
-    .brand { font-weight: 700; font-size: 16px; color: var(--accent); }
-    .top-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-    button { cursor: pointer; border: none; border-radius: 8px; padding: 7px 11px; font-size: 13px; font-weight: 600; transition: 0.15s; }
-    .btn-primary { background: var(--accent); color: #06131f; }
-    .btn-secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
-    .btn-danger { background: #3b151a; color: #fca5a5; border: 1px solid #7f1d1d; }
-    .btn-warn { background: #3b2f0b; color: var(--warn); border: 1px solid #854d0e; }
-    .btn-sm { padding: 4px 8px; font-size: 12px; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
-    .card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .chat-box { display: flex; flex-direction: column; height: 340px; }
-    .chat-box.fullscreen { position: fixed; inset: 0; z-index: 999; height: 100vh; border-radius: 0; margin: 0; }
-    .chat-msgs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 6px; background: #0d1322; border-radius: 8px; border: 1px solid var(--border); }
-    .msg { max-width: 90%; padding: 9px 11px; border-radius: 10px; font-size: 14px; white-space: pre-wrap; word-break: break-word; }
-    .msg.user { align-self: flex-end; background: #1e3a5f; }
-    .msg.ai { align-self: flex-start; background: var(--card2); border: 1px solid var(--border); }
-    .msg-actions { display: flex; gap: 6px; margin-top: 5px; }
-    .chat-input-row { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
-    input, textarea, select { background: #0d1322; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 13px; width: 100%; }
-    textarea { resize: vertical; }
-    .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .wf-step { display: flex; justify-content: space-between; padding: 6px 8px; background: var(--card2); border-radius: 7px; font-size: 13px; margin-bottom: 5px; }
-    .sub-box { background: #0d1322; border: 1px dashed var(--accent); border-radius: 9px; padding: 8px; margin-top: 8px; display: none; }
-    .sub-box.open { display: block; }
-    .log-item { font-size: 12px; padding: 6px; border-bottom: 1px solid var(--border); }
-    .agent-card { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 9px; margin-bottom: 8px; }
-    .key-slot { background: #0d1322; border: 1px solid var(--border); border-radius: 8px; padding: 7px; margin-top: 6px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #475569; }
-    .dot.ok { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
-    .dot.err { background: var(--err); box-shadow: 0 0 6px var(--err); }
-    .model-drawer { display: none; max-height: 150px; overflow-y: auto; background: #070b14; border: 1px solid var(--border); border-radius: 7px; padding: 6px; margin-top: 6px; }
-    .model-drawer.open { display: block; }
-    .model-pill { display: inline-block; background: var(--card2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; margin: 2px; font-size: 11px; cursor: pointer; }
-    .model-pill.active { border-color: var(--warn); color: var(--warn); }
-    .choice-card { background: #162238; border: 1px solid var(--accent); border-radius: 10px; padding: 10px; margin-top: 6px; }
-    .choice-option { background: #0d1322; border: 1px solid var(--border); border-radius: 8px; padding: 8px; margin-top: 6px; cursor: pointer; font-size: 13px; }
-    .choice-option.selected { border-color: var(--ok); background: #0f291e; }
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 12px; }
-    .modal.open { display: flex; }
-    .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; }
-    .attach-chip { background: #1e293b; color: var(--accent); padding: 3px 7px; border-radius: 6px; font-size: 11px; }
-    .output-box { background: #0d1322; border: 1px solid var(--border); border-radius: 8px; padding: 10px; min-height: 70px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; font-size: 13px; color: var(--muted); }
-    .output-box.has-data { color: var(--text); border-color: var(--ok); }
-    .star { color: var(--warn); font-weight: bold; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>AI Video Studio</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --panel: #121826;
+    --panel-2: #172033;
+    --border: #243047;
+    --text: #e6edf7;
+    --muted: #8b9bb4;
+    --accent: #38bdf8;
+    --accent-soft: rgba(56, 189, 248, 0.14);
+    --green: #22c55e;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%; width: 100%; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px; overflow: hidden;
+  }
+  .app-shell {
+    display: flex; flex-direction: column; height: 100dvh; width: 100%;
+    padding: 6px; gap: 6px;
+  }
+
+  /* Top Bar */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 6px 10px; flex-shrink: 0;
+  }
+  .brand { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; letter-spacing: 0.2px; }
+  .brand-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .top-actions { display: flex; gap: 6px; align-items: center; }
+  .btn-chip {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 8px; font-size: 11px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 4px; transition: 0.15s;
+  }
+  .btn-chip:active { transform: scale(0.96); }
+  .btn-chip.active { border-color: var(--accent); background: var(--accent-soft); color: #fff; }
+  .btn-chip.locked { border-color: var(--green); color: var(--green); }
+  .btn-chip.danger { border-color: rgba(239,68,68,0.45); color: #fca5a5; }
+
+  /* 6-Box Workspace matching sketch */
+  .workspace {
+    flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px;
+  }
+  .upper-row {
+    flex: 1.25; min-height: 0; display: grid;
+    grid-template-columns: 1.65fr 1fr; gap: 6px;
+  }
+  .lower-row {
+    flex: 1; min-height: 0; display: grid;
+    grid-template-columns: 1fr 1.25fr 0.62fr; gap: 6px;
+  }
+
+  /* Common Box Card */
+  .box {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); display: flex; flex-direction: column;
+    min-height: 0; overflow: hidden; position: relative;
+  }
+  .box-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 8px; border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02); flex-shrink: 0;
+  }
+  .box-title {
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #475569; display: inline-block; flex-shrink: 0; }
+  .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); animation: pulse 1.4s infinite; }
+  .dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); animation: pulse 1.2s infinite; }
+  .dot.blue { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  .icon-btn {
+    background: transparent; border: none; color: var(--muted);
+    cursor: pointer; font-size: 13px; padding: 2px 4px; border-radius: 6px;
+  }
+  .icon-btn:hover, .icon-btn:active { background: var(--panel-2); color: var(--text); }
+
+  /* Box 1: Director Chat */
+  .chat-feed {
+    flex: 1; min-height: 0; overflow-y: auto; padding: 8px;
+    display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth;
+  }
+  .msg {
+    max-width: 92%; padding: 8px 10px; border-radius: 10px;
+    line-height: 1.45; word-wrap: break-word; font-size: 12.5px; white-space: pre-wrap;
+  }
+  .msg.user {
+    align-self: flex-end; background: #1d4ed8; color: #fff;
+    border-bottom-right-radius: 3px;
+  }
+  .msg.ai {
+    align-self: flex-start; background: var(--panel-2);
+    border: 1px solid var(--border); border-bottom-left-radius: 3px;
+  }
+  .msg.sys {
+    align-self: center; background: rgba(56,189,248,0.08);
+    border: 1px dashed rgba(56,189,248,0.35); color: #bae6fd;
+    font-size: 11px; padding: 5px 9px; text-align: center;
+  }
+  .msg-tools {
+    display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center;
+  }
+  .mini-act {
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 3px 7px; font-size: 11px; cursor: pointer;
+  }
+  .mini-act.primary { background: var(--accent); color: #06101c; border-color: var(--accent); font-weight: 600; }
+  .mini-act.speaking { background: var(--red); border-color: var(--red); color: #fff; }
+
+  .chat-input-wrap {
+    display: flex; gap: 5px; padding: 6px; border-top: 1px solid var(--border);
+    background: var(--panel); align-items: center; flex-shrink: 0;
+  }
+  .chat-input {
+    flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 9px; font-size: 12.5px; outline: none; min-width: 0;
+  }
+  .chat-input:focus { border-color: var(--accent); }
+  .send-btn {
+    background: var(--accent); color: #06101c; border: none; border-radius: 8px;
+    padding: 7px 11px; font-weight: 700; font-size: 12px; cursor: pointer;
+  }
+
+  /* 4 Category Alert Strip below Chat (inside Box 1 bottom) */
+  .cat-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    padding: 4px 6px 6px; border-top: 1px solid var(--border);
+    background: rgba(0,0,0,0.22); flex-shrink: 0;
+  }
+  .cat-pill {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px;
+    padding: 4px 5px; display: flex; align-items: center; justify-content: center;
+    gap: 4px; font-size: 10px; color: var(--muted); cursor: pointer;
+  }
+  .cat-pill.has-alert { border-color: var(--yellow); color: #fde68a; background: rgba(245,158,11,0.12); }
+
+  /* Right Upper Column: Box 2 (Output) + Box 3 (Extra/Vault) */
+  .right-upper { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+  .box-output { flex: 1.25; }
+  .box-vault { flex: 0.85; }
+
+  .output-body {
+    flex: 1; min-height: 0; overflow-y: auto; padding: 6px;
+    display: flex; flex-direction: column; gap: 6px; justify-content: center; align-items: center;
+  }
+  .output-body.has-content { justify-content: flex-start; align-items: stretch; }
+  .output-empty { color: var(--muted); font-size: 11px; text-align: center; opacity: 0.75; }
+  .output-img { width: 100%; max-height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; }
+  .output-text-snippet { font-size: 11px; color: #cbd5e1; line-height: 1.35; max-height: 70px; overflow: hidden; }
+  .output-pulse {
+    width: 100%; height: 4px; background: var(--panel-2); border-radius: 4px; overflow: hidden; display: none;
+  }
+  .output-pulse.active { display: block; }
+  .output-pulse::after {
+    content: ""; display: block; width: 45%; height: 100%; background: var(--accent);
+    animation: slide 1.1s infinite ease-in-out;
+  }
+  @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+  .output-foot {
+    display: flex; gap: 4px; padding: 4px 6px; border-top: 1px solid var(--border);
+    justify-content: space-between; align-items: center; flex-shrink: 0;
+  }
+
+  /* Box 3: Extra / Vault */
+  .vault-body {
+    flex: 1; min-height: 0; overflow-y: auto; padding: 5px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .vault-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 4px;
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px;
+    padding: 4px 6px; font-size: 10.5px; cursor: pointer;
+  }
+  .vault-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+
+  /* Box 4: API Control */
+  .api-list {
+    flex: 1; min-height: 0; overflow-y: auto; padding: 5px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .api-row {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 7px; cursor: pointer; display: flex; flex-direction: column; gap: 3px;
+  }
+  .api-row-top { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; }
+  .api-row-sub { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Box 5: Workflow Feed */
+  .disturb-bar {
+    padding: 4px 8px; font-size: 10.5px; display: flex; align-items: center; justify-content: space-between;
+    background: rgba(34,197,94,0.08); color: #86efac; border-bottom: 1px solid var(--border);
+    cursor: pointer; flex-shrink: 0;
+  }
+  .disturb-bar.error { background: rgba(239,68,68,0.18); color: #fecaca; border-bottom-color: var(--red); }
+  .wf-feed {
+    flex: 1; min-height: 0; overflow-y: auto; padding: 6px;
+    display: flex; flex-direction: column; gap: 5px; scroll-behavior: smooth;
+  }
+  .wf-item {
+    background: var(--panel-2); border-left: 2px solid var(--accent);
+    border-radius: 6px; padding: 5px 7px; font-size: 11px; line-height: 1.35;
+  }
+  .wf-item.ok { border-left-color: var(--green); }
+  .wf-item.warn { border-left-color: var(--yellow); }
+  .wf-item.err { border-left-color: var(--red); }
+  .wf-meta { font-size: 9.5px; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 2px; }
+
+  /* Box 6: Standby Toolbox */
+  .toolbox-body {
+    flex: 1; min-height: 0; padding: 6px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px; cursor: pointer; text-align: center;
+  }
+  .toolbox-slot {
+    width: 100%; border: 1px dashed var(--border); border-radius: 9px;
+    padding: 10px 4px; color: var(--muted); font-size: 10.5px; transition: 0.2s;
+  }
+  .toolbox-slot.active {
+    border-style: solid; border-color: var(--accent); background: var(--accent-soft); color: #e0f2fe;
+  }
+
+  /* Compact Floating Popover (for Toolbox, Alerts, Disturb) */
+  .popover-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: center; justify-content: center; z-index: 60; padding: 14px;
+  }
+  .popover-backdrop.open { display: flex; }
+  .popover-card {
+    width: 100%; max-width: 340px; max-height: 80dvh; overflow-y: auto;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px; box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+  }
+  .popover-card.wide { max-width: 460px; }
+  .pop-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--border);
+    font-weight: 700; font-size: 13px;
+  }
+  .field-label { font-size: 11px; color: var(--muted); margin: 7px 0 3px; display: block; }
+  .field-input, .field-select, .field-textarea {
+    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 9px; font-size: 12px; outline: none;
+  }
+  .field-textarea { min-height: 75px; resize: vertical; }
+  .row-gap { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .key-card {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px; margin-bottom: 8px;
+  }
+  audio { width: 100%; height: 32px; margin-top: 4px; }
+</style>
 </head>
 <body>
+<div class="app-shell">
 
-  <!-- Top Bar -->
-  <div class="topbar">
-    <div class="brand">🎬 AI Video Studio Pro</div>
+  <!-- Top Header -->
+  <header class="topbar">
+    <div class="brand"><span class="brand-dot"></span> AI Video Studio</div>
     <div class="top-actions">
-      <button class="btn-secondary btn-sm" id="pauseBtn" onclick="togglePause()">⏸️ Pause</button>
-      <button class="btn-secondary btn-sm" onclick="saveCheckpoint()">💾 Save</button>
-      <button class="btn-secondary btn-sm" onclick="openHistory()">📁 Files</button>
-      <button class="btn-primary btn-sm" onclick="runSampleFlow()">🚀 স্যাম্পল বানাও</button>
+      <button class="btn-chip" id="btnLock" onclick="openLockPopover()" title="Character Lock">Lock</button>
+      <button class="btn-chip" id="btnSave" onclick="saveCurrentProject()" title="Save">Save</button>
+      <button class="btn-chip" id="btnFiles" onclick="openFilesPopover()" title="Files">Files</button>
+      <button class="btn-chip" id="btnPause" onclick="cancelActiveJob()" title="Stop Job">Stop</button>
     </div>
-  </div>
+  </header>
 
-  <!-- Final Output Box -->
-  <div class="card">
-    <div class="card-head">
-      <strong>📦 Final Production Output <span id="outStatus" style="font-size:12px;color:var(--muted);">(Empty)</span></strong>
-      <button class="btn-primary btn-sm" id="exportBtn" onclick="exportFinal()" disabled>⬇️ Export</button>
-    </div>
-    <div id="outputBox" class="output-box">কাজ শেষ হলে ফাইনাল রেজাল্ট এখানে দেখাবে...</div>
-  </div>
+  <!-- 6-Box Layout -->
+  <main class="workspace">
 
-  <!-- Character Bible & Continuity Lock -->
-  <div class="card">
-    <div class="card-head">
-      <strong>🔒 Character Bible &amp; Part 2 Continuity</strong>
-      <div class="row">
-        <button class="btn-warn btn-sm" onclick="extractContinuity()">✨ অটো-লক করো</button>
-        <button class="btn-secondary btn-sm" onclick="toggleEl('continuityBody')">খুলুন/বন্ধ</button>
+    <!-- Upper Row: Box 1 (Chat) + Box 2 (Output) & Box 3 (Vault) -->
+    <section class="upper-row">
+
+      <!-- Box 1: Director AI Chat -->
+      <div class="box">
+        <div class="box-head">
+          <div class="box-title"><span class="dot green" id="directorDot"></span> Director AI</div>
+          <div>
+            <button class="icon-btn" onclick="openChatFull()" title="Expand">⤢</button>
+            <button class="icon-btn" onclick="clearChat()" title="Clear">🗑</button>
+          </div>
+        </div>
+        <div class="chat-feed" id="chatFeed"></div>
+        <div class="chat-input-wrap">
+          <button class="icon-btn" id="micBtn" onclick="toggleVoiceInput()" title="Voice">🎤</button>
+          <input class="chat-input" id="chatInput" placeholder="গল্প বা নির্দেশ লেখো..." onkeydown="if(event.key==='Enter')sendChat()" />
+          <button class="send-btn" onclick="sendChat()">Send</button>
+        </div>
+        <!-- 4 Read-Only Category Alert Indicators -->
+        <div class="cat-strip">
+          <div class="cat-pill" id="pill-image" onclick="openAlertPopover('image')"><span class="dot" id="adot-image"></span>Image</div>
+          <div class="cat-pill" id="pill-video" onclick="openAlertPopover('video')"><span class="dot" id="adot-video"></span>Video</div>
+          <div class="cat-pill" id="pill-audio" onclick="openAlertPopover('audio')"><span class="dot" id="adot-audio"></span>Audio</div>
+          <div class="cat-pill" id="pill-editing" onclick="openAlertPopover('editing')"><span class="dot" id="adot-editing"></span>Edit</div>
+        </div>
       </div>
-    </div>
-    <div id="continuityBody" class="sub-box">
-      <small style="color:var(--muted);">পার্ট ১ শেষ হলে "অটো-লক করো" চাপো অথবা নিজে ক্যারেক্টারের বিবরণ লেখো। পার্ট ২-এ সব AI এটি মেনে চলবে:</small>
-      <textarea id="projectMemory" rows="4" style="margin-top:6px;" placeholder="ক্যারেক্টারের নাম, চেহারা, পোশাক, 2D/3D স্টাইল, ভয়েস ও গল্পের সারাংশ..." oninput="saveAll()"></textarea>
-    </div>
-  </div>
 
-  <!-- Live Workflow & Team Understanding Sub-Box -->
-  <div class="card">
-    <div class="card-head">
-      <strong>⚡ Live Workflow</strong>
-      <div class="row">
-        <button class="btn-secondary btn-sm" onclick="toggleEl('teamSubBox')">🤝 টিমের বোঝাপড়া</button>
-        <button class="btn-secondary btn-sm" onclick="toggleEl('wfBody')">খুলুন/বন্ধ</button>
+      <!-- Right Upper Stack: Box 2 (Output) + Box 3 (Vault) -->
+      <div class="right-upper">
+        <!-- Box 2: Output -->
+        <div class="box box-output">
+          <div class="box-head">
+            <div class="box-title"><span class="dot" id="outDot"></span> Output</div>
+            <button class="icon-btn" onclick="openOutputPopover()" title="View Full">⤢</button>
+          </div>
+          <div class="output-pulse" id="outPulse"></div>
+          <div class="output-body" id="outBody">
+            <div class="output-empty">স্যাম্পল বা ফাইনাল আউটপুট এখানে দেখাবে</div>
+          </div>
+          <div class="output-foot">
+            <span id="outTag" style="font-size:10px;color:var(--muted);">Standby</span>
+            <button class="btn-chip" style="padding:3px 7px;" onclick="downloadCurrentOutput()">Download</button>
+          </div>
+        </div>
+
+        <!-- Box 3: Extra / Trash Vault -->
+        <div class="box box-vault">
+          <div class="box-head">
+            <div class="box-title">Vault (<span id="vaultCount">0</span>)</div>
+            <button class="icon-btn" onclick="openVaultPopover()" title="Open Vault">⤢</button>
+          </div>
+          <div class="vault-body" id="vaultBody">
+            <div class="output-empty">বাড়তি ফাইল এখানে জমবে</div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div id="wfBody">
-      <div id="wfList"></div>
-    </div>
-    <div id="teamSubBox" class="sub-box">
-      <div class="card-head" style="margin-bottom:4px;">
-        <strong style="color:var(--accent);font-size:13px;">💬 AI-to-AI বোঝাপড়া ও ডিরেকশন লগ</strong>
-        <button class="btn-secondary btn-sm" onclick="teamLogs=[];renderTeamLogs();saveAll();">Clear</button>
+
+    </section>
+
+    <!-- Lower Row: Box 4 (API) + Box 5 (Workflow) + Box 6 (Toolbox) -->
+    <section class="lower-row">
+
+      <!-- Box 4: API Control -->
+      <div class="box">
+        <div class="box-head">
+          <div class="box-title">API Keys</div>
+          <button class="icon-btn" onclick="openApiPopover('director')" title="Settings">⚙</button>
+        </div>
+        <div class="api-list" id="apiList"></div>
       </div>
-      <div id="teamLogList" style="max-height:170px;overflow-y:auto;"></div>
-    </div>
-  </div>
 
-  <!-- Chat Box (Trash on LEFT, Fullscreen on RIGHT) -->
-  <div class="card chat-box" id="chatCard">
-    <div class="card-head">
-      <div class="row">
-        <button class="btn-danger btn-sm" title="সব চ্যাট মুছুন" onclick="clearChat()">🗑</button>
-        <strong>💬 Director AI Chat</strong>
+      <!-- Box 5: Live Workflow -->
+      <div class="box">
+        <div class="box-head">
+          <div class="box-title"><span class="dot" id="wfDot"></span> Workflow</div>
+          <button class="icon-btn" onclick="clearWorkflow()" title="Clear">🗑</button>
+        </div>
+        <div class="disturb-bar" id="disturbBar" onclick="openDisturbPopover()">
+          <span id="disturbLabel">System OK</span>
+          <span id="coworkBadge" style="font-size:9.5px;opacity:0.85;">Solo</span>
+        </div>
+        <div class="wf-feed" id="wfFeed"></div>
       </div>
-      <div class="row">
-        <button class="btn-secondary btn-sm" onclick="editLastUserMsg()">✏️ Edit</button>
-        <button class="btn-secondary btn-sm" id="fsBtn" title="বড় করুন" onclick="toggleFullscreen()">⛶</button>
+
+      <!-- Box 6: Standby Toolbox -->
+      <div class="box">
+        <div class="box-head">
+          <div class="box-title">Tools</div>
+        </div>
+        <div class="toolbox-body" onclick="openToolboxPopover()">
+          <div class="toolbox-slot" id="toolboxSlot">
+            <div id="toolboxIcon" style="font-size:16px;margin-bottom:3px;">+</div>
+            <div id="toolboxText">Standby</div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div id="chatMessages" class="chat-msgs"></div>
-    <div id="attachPreview" class="row" style="display:none;margin-top:6px;"></div>
+    </section>
 
-    <div class="chat-input-row">
-      <button class="btn-secondary btn-sm" onclick="openAttach()" title="ফাইল/লিংক যুক্ত করুন">📎</button>
-      <button class="btn-secondary btn-sm" id="micBtn" onclick="toggleVoiceInput()" title="বাংলা ভয়েস টাইপিং">🎤</button>
-      <input id="chatInput" placeholder="গল্প, পার্ট ২-এর স্ক্রিপ্ট বা নির্দেশ লেখো..." onkeydown="if(event.key==='Enter')sendChat()" />
-      <button class="btn-primary btn-sm" id="sendBtn" onclick="sendChat()">Send</button>
-      <button class="btn-danger btn-sm" id="stopBtn" style="display:none;" onclick="stopCurrentJob()">■</button>
+  </main>
+</div>
+
+<!-- Compact Floating Popover Container -->
+<div class="popover-backdrop" id="popBackdrop" onclick="if(event.target===this)closePopover()">
+  <div class="popover-card" id="popCard">
+    <div class="pop-head">
+      <span id="popTitle">Panel</span>
+      <button class="icon-btn" onclick="closePopover()">✕</button>
     </div>
+    <div id="popContent"></div>
   </div>
+</div>
+ <script>
+const AGENTS = [
+  { id: "director", name: "Director AI", role: "Lead & Chat" },
+  { id: "image", name: "Image AI", role: "Visuals" },
+  { id: "video", name: "Video AI", role: "Motion" },
+  { id: "audio", name: "Audio AI", role: "Voice & SFX" },
+  { id: "editing", name: "Editing AI", role: "Cut & Sub" }
+];
 
-  <!-- AI Team & API Key Management -->
-  <div class="card">
-    <div class="card-head">
-      <strong>🤖 AI Team &amp; Smart API Keys</strong>
-      <button class="btn-secondary btn-sm" onclick="toggleEl('agentsContainer')">খুলুন/বন্ধ</button>
-    </div>
-    <div id="agentsContainer"></div>
-  </div>
+const PROVIDERS = ["google", "openrouter", "groq", "openai", "anthropic", "deepseek", "mistral", "elevenlabs", "runway", "custom"];
 
-  <!-- Unused Assets -->
-  <div class="card">
-    <div class="card-head">
-      <strong>🗂️ Unused Assets</strong>
-      <button class="btn-secondary btn-sm" onclick="clearUnused()">Clear</button>
-    </div>
-    <div id="unusedList" style="font-size:12px;color:var(--muted);max-height:140px;overflow-y:auto;">কোনো অতিরিক্ত অ্যাসেট নেই।</div>
-  </div>
+const STORE_KEY = "ai_studio_v10_state";
+let state = loadState();
+let activeJobId = null;
+let handledJobs = new Set();
+let speakingBtn = null;
+let recognition = null;
+let isListening = false;
 
-  <!-- Attach Modal -->
-  <div class="modal" id="attachModal">
-    <div class="modal-box">
-      <h3 style="margin-bottom:8px;">📎 রিসোর্স যুক্ত করো</h3>
-      <input id="ytLinkInput" placeholder="YouTube বা রেফারেন্স লিংক" style="margin-bottom:6px;" />
-      <input id="resNoteInput" placeholder="অতিরিক্ত নোট" style="margin-bottom:6px;" />
-      <input type="file" id="resFileInput" style="margin-bottom:10px;" />
-      <div class="row" style="justify-content:flex-end;">
-        <button class="btn-secondary" onclick="closeAttach()">Cancel</button>
-        <button class="btn-primary" onclick="confirmAttach()">Add</button>
-      </div>
-    </div>
-  </div>
+function defaultAgentCfg() {
+  return {
+    status: "idle",
+    customUrl: "",
+    keys: [
+      { provider: "google", model: "", apiKey: "", subKey: "", models: [], status: "idle", lastMsg: "" },
+      { provider: "openrouter", model: "", apiKey: "", subKey: "", models: [], status: "idle", lastMsg: "" }
+    ]
+  };
+}
 
-  <!-- Checkpoint History Modal -->
-  <div class="modal" id="historyModal">
-    <div class="modal-box">
-      <h3 style="margin-bottom:8px;">📁 Saved Checkpoints</h3>
-      <div id="historyList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
-      <button class="btn-secondary" style="width:100%;" onclick="closeHistory()">Close</button>
-    </div>
-  </div>
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  const agents = {};
+  AGENTS.forEach(a => agents[a.id] = defaultAgentCfg());
+  return {
+    agents,
+    chat: [
+      {
+        id: "welcome",
+        role: "ai",
+        text: "হ্যালো! আমি তোমার Director AI। নিচে API Keys বক্সে গিয়ে অন্তত Director-এর Key বসাও—কোম্পানি ও সেরা মডেল অটো-সেট হয়ে যাবে। এরপর এখানে সরাসরি কথা বলো বা যেকোনো ভিডিও প্রজেক্ট শুরু করো।"
+      }
+    ],
+    workflow: [],
+    disturbs: [],
+    alerts: { image: [], video: [], audio: [], editing: [] },
+    output: null,
+    vault: [],
+    savedProjects: [],
+    memory: "",
+    coWork: false,
+    pendingProject: null,
+    suggestedTool: null
+  };
+}
 
-  <script>
-    const IDS = ["director", "image", "video", "audio", "editing"];
-    const NAMES = {
-      director: "🎬 Director & Chat AI",
-      image: "🎨 Image & Character AI",
-      video: "🎥 Video Generation AI",
-      audio: "🎙️ Voice & Audio AI",
-      editing: "✂️ Subtitle & Editing AI"
-    };
-    const PROVIDERS = ["google", "openrouter", "groq", "openai", "anthropic", "deepseek", "mistral", "elevenlabs", "runway", "custom"];
+function saveState() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}
 
-    let chatHistory = [], finalOutput = "", unusedList = [], lastPrompt = "";
-    let workflowSteps = [{ l: "Waiting for task...", s: "Idle" }];
-    let teamLogs = [];
-    let keyStatus = {}, keyErrors = {}, keyAutoModels = {}, keyModelLists = {};
-    let attachments = [], isPaused = false, activeJobId = null, pollTimer = null;
-    let lastReportedTeamSig = "", recognition = null, isListening = false;
+function esc(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 
-    function toggleEl(id) {
-      const el = document.getElementById(id);
-      if (el.classList.contains("sub-box")) el.classList.toggle("open");
-      else el.style.display = (el.style.display === "none") ? "" : "none";
-    }
+function nowTime() {
+  const d = new Date();
+  return d.toTimeString().slice(0, 5);
+}
 
-    function toggleFullscreen() {
-      const card = document.getElementById("chatCard");
-      card.classList.toggle("fullscreen");
-      document.getElementById("fsBtn").innerText = card.classList.contains("fullscreen") ? "✕" : "⛶";
-    }
+/* ---------- RENDER FUNCTIONS ---------- */
+function renderAll() {
+  renderChat();
+  renderApiList();
+  renderWorkflow();
+  renderOutput();
+  renderVault();
+  renderAlerts();
+  renderDisturbBar();
+  renderToolbox();
+  const lockBtn = document.getElementById("btnLock");
+  lockBtn.classList.toggle("locked", !!(state.memory && state.memory.trim()));
+  lockBtn.textContent = state.memory ? "Locked" : "Lock";
+}
 
-    function togglePause() {
-      isPaused = !isPaused;
-      document.getElementById("pauseBtn").innerText = isPaused ? "▶️ Resume" : "⏸️ Pause";
-    }
+function renderChat() {
+  const feed = document.getElementById("chatFeed");
+  feed.innerHTML = "";
+  state.chat.forEach((m, idx) => {
+    const div = document.createElement("div");
+    div.className = "msg " + (m.role === "user" ? "user" : m.role === "sys" ? "sys" : "ai");
+    div.textContent = m.text;
 
-    function buildAgentsUI() {
-      const wrap = document.getElementById("agentsContainer");
-      wrap.innerHTML = IDS.map(function(id) {
-        let slotsHtml = [1, 2].map(function(n) {
-          const opts = PROVIDERS.map(function(p) { return '<option value="' + p + '">' + p.toUpperCase() + '</option>'; }).join("");
-          return (
-            '<div class="key-slot">' +
-              '<div class="row" style="justify-content:space-between;margin-bottom:5px;">' +
-                '<div class="row"><span class="dot" id="dot-' + id + '-' + n + '"></span><strong style="font-size:12px;">Key #' + n + '</strong> <span id="star-' + id + '-' + n + '" class="star" style="display:none;" title="Auto-selected best model">★</span><span id="err-' + id + '-' + n + '" style="display:none;cursor:pointer;" onclick="showKeyErr(\'' + id + '-' + n + '\')">⚠️</span></div>' +
-                '<div class="row">' +
-                  '<button class="btn-secondary btn-sm" id="mbtn-' + id + '-' + n + '" onclick="toggleModelList(\'' + id + '\',' + n + ')">📋 মডেল লিস্ট</button>' +
-                  '<button class="btn-primary btn-sm" onclick="autoDetectKey(\'' + id + '\',' + n + ')">⚡ Auto</button>' +
-                '</div>' +
-              '</div>' +
-              '<div class="row" style="margin-bottom:5px;">' +
-                '<select id="prov-' + id + '-' + n + '" style="flex:1;" onchange="saveAll()">' + opts + '</select>' +
-                '<input id="mod-' + id + '-' + n + '" style="flex:1.5;" placeholder="Model (Auto)" oninput="saveAll()" />' +
-              '</div>' +
-              '<input id="k-' + id + '-' + n + '" type="password" placeholder="Primary API Key #' + n + '" onchange="autoDetectKey(\'' + id + '\',' + n + ')" style="margin-bottom:4px;" />' +
-              '<input id="subk-' + id + '-' + n + '" type="password" placeholder="Sub-API Key (এই Key-এর নিজস্ব ব্যাকআপ - ঐচ্ছিক)" oninput="saveAll()" />' +
-              '<div class="model-drawer" id="mdraw-' + id + '-' + n + '"></div>' +
-            '</div>'
-          );
-        }).join("");
+    if (m.role === "ai") {
+      const tools = document.createElement("div");
+      tools.className = "msg-tools";
 
-        let audioExtra = "";
-        if (id === "audio") {
-          audioExtra =
-            '<div style="margin-top:8px;">' +
-              '<button class="btn-warn btn-sm" style="width:100%;" onclick="toggleEl(\'audioControlBox\')">🎛️ Audio Studio Control Box (ElevenLabs Voices, History, TTS &amp; SFX)</button>' +
-              '<div id="audioControlBox" class="sub-box">' +
-                '<div class="row" style="margin-bottom:6px;">' +
-                  '<button class="btn-secondary btn-sm" onclick="loadElVoices()">🗣️ Load Voices</button>' +
-                  '<button class="btn-secondary btn-sm" onclick="loadElHistory()">📜 Load History</button>' +
-                '</div>' +
-                '<select id="elVoiceSelect" style="margin-bottom:6px;"><option value="21m00Tcm4TlvDq8ikWAM">Default Voice (Rachel)</option></select>' +
-                '<textarea id="elText" rows="2" placeholder="ভয়েসওভার ডায়ালগ অথবা সাউন্ড ইফেক্টের বর্ণনা লেখো..." style="margin-bottom:6px;"></textarea>' +
-                '<div class="row" style="margin-bottom:6px;">' +
-                  '<button class="btn-primary btn-sm" onclick="genElTTS()">🔊 Generate Voice MP3</button>' +
-                  '<button class="btn-secondary btn-sm" onclick="genElSFX()">🎵 Generate Sound Effect</button>' +
-                '</div>' +
-                '<div id="elAudioOut" style="font-size:12px;"></div>' +
-                '<div id="elHistoryOut" style="font-size:11px;color:var(--muted);margin-top:6px;max-height:100px;overflow-y:auto;"></div>' +
-              '</div>' +
-            '</div>';
-        }
+      const spk = document.createElement("button");
+      spk.className = "mini-act";
+      spk.textContent = "🔊";
+      spk.onclick = () => toggleSpeak(m.text, spk);
+      tools.appendChild(spk);
 
-        return (
-          '<div class="agent-card">' +
-            '<div class="card-head" style="margin-bottom:4px;">' +
-              '<strong>' + NAMES[id] + '</strong>' +
-              '<label style="font-size:12px;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="cw-' + id + '" style="width:auto;" onchange="saveAll()"> Co-Work</label>' +
-            '</div>' +
-            '<input id="url-' + id + '" placeholder="Custom Endpoint URL (শুধু Custom-এর জন্য)" oninput="saveAll()" style="margin-bottom:4px;" />' +
-            '<input id="sk-' + id + '" placeholder="Skills / বিশেষ নির্দেশ" value="Expert ' + id + '" oninput="saveAll()" />' +
-            slotsHtml + audioExtra +
-          '</div>'
-        );
-      }).join("");
-    }
+      const cp = document.createElement("button");
+      cp.className = "mini-act";
+      cp.textContent = "Copy";
+      cp.onclick = () => { navigator.clipboard?.writeText(m.text); cp.textContent = "Copied"; setTimeout(() => cp.textContent = "Copy", 1200); };
+      tools.appendChild(cp);
 
-    function getCfg(id) {
-      return {
-        customUrl: (document.getElementById("url-" + id)?.value || "").trim(),
-        skills: (document.getElementById("sk-" + id)?.value || "").trim(),
-        cowork: !!document.getElementById("cw-" + id)?.checked,
-        keys: [1, 2].map(function(n) {
-          return {
-            idx: n,
-            provider: document.getElementById("prov-" + id + "-" + n)?.value || "google",
-            model: (document.getElementById("mod-" + id + "-" + n)?.value || "").trim(),
-            apiKey: (document.getElementById("k-" + id + "-" + n)?.value || "").trim(),
-            subKey: (document.getElementById("subk-" + id + "-" + n)?.value || "").trim()
-          };
-        })
-      };
-    }
-
-    function applyKeyVisuals() {
-      IDS.forEach(function(id) {
-        [1, 2].forEach(function(n) {
-          const tag = id + "-" + n;
-          const dot = document.getElementById("dot-" + tag);
-          const err = document.getElementById("err-" + tag);
-          const star = document.getElementById("star-" + tag);
-          const mbtn = document.getElementById("mbtn-" + tag);
-          if (!dot) return;
-          dot.className = "dot " + (keyStatus[tag] === "ok" ? "ok" : (keyStatus[tag] === "err" ? "err" : ""));
-          err.style.display = keyStatus[tag] === "err" ? "inline" : "none";
-          const curMod = (document.getElementById("mod-" + tag)?.value || "").trim();
-          star.style.display = (keyAutoModels[tag] && curMod === keyAutoModels[tag]) ? "inline" : "none";
-          const list = keyModelLists[tag] || [];
-          mbtn.innerText = list.length ? ("📋 মডেল (" + list.length + ")") : "📋 মডেল লিস্ট";
+      if (m.actions && m.actions.length) {
+        m.actions.forEach(act => {
+          const b = document.createElement("button");
+          b.className = "mini-act" + (act.primary ? " primary" : "");
+          b.textContent = act.label;
+          b.onclick = () => handleChatAction(act.type, act.payload, idx);
+          tools.appendChild(b);
         });
-      });
-    }
-
-    function showKeyErr(tag) {
-      alert("❌ Error Details:\n" + (keyErrors[tag] || "Unknown error"));
-    }
-
-    async function autoDetectKey(id, n) {
-      const tag = id + "-" + n;
-      const apiKey = (document.getElementById("k-" + tag).value || "").trim();
-      if (!apiKey) { keyStatus[tag] = ""; applyKeyVisuals(); saveAll(); return; }
-      const prov = document.getElementById("prov-" + tag).value;
-      const mod = (document.getElementById("mod-" + tag).value || "").trim();
-      const customUrl = (document.getElementById("url-" + id).value || "").trim();
-
-      try {
-        const res = await fetch("/api/auto-detect-key", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ apiKey: apiKey, provider: prov, model: mod, customUrl: customUrl, agentId: id })
-        }).then(function(r) { return r.json(); });
-
-        if (res.ok) {
-          document.getElementById("prov-" + tag).value = res.provider;
-          document.getElementById("mod-" + tag).value = res.model;
-          keyStatus[tag] = "ok";
-          keyErrors[tag] = "";
-          keyAutoModels[tag] = res.auto_model || res.model;
-          keyModelLists[tag] = res.models || [];
-          renderModelDrawer(id, n);
-        } else {
-               keyStatus[tag] = "err";
-          keyErrors[tag] = res.error || "Invalid Key";
-        }
-      } catch (e) {
-        keyStatus[tag] = "err";
-        keyErrors[tag] = e.message;
       }
-      applyKeyVisuals();
-      saveAll();
+      div.appendChild(tools);
     }
+    feed.appendChild(div);
+  });
+  feed.scrollTop = feed.scrollHeight;
+}
 
-    async function toggleModelList(id, n) {
-      const tag = id + "-" + n;
-      const drawer = document.getElementById("mdraw-" + tag);
-      if (drawer.classList.contains("open")) { drawer.classList.remove("open"); return; }
-      drawer.classList.add("open");
-      if (!(keyModelLists[tag] || []).length) {
-        drawer.innerHTML = "<small>মডেল লোড হচ্ছে...</small>";
-        await autoDetectKey(id, n);
-      }
-      renderModelDrawer(id, n);
+function renderApiList() {
+  const box = document.getElementById("apiList");
+  box.innerHTML = "";
+  AGENTS.forEach(a => {
+    const cfg = state.agents[a.id] || defaultAgentCfg();
+    const activeSlots = (cfg.keys || []).filter(k => (k.apiKey || "").trim());
+    let dotClass = "";
+    let subText = "No Key";
+    if (activeSlots.length > 0) {
+      const hasErr = activeSlots.some(k => k.status === "error");
+      const hasWarn = activeSlots.some(k => k.status === "warn");
+      const hasOk = activeSlots.some(k => k.status === "ok");
+      dotClass = hasOk ? "green" : hasErr ? "red" : hasWarn ? "yellow" : "green";
+      const first = activeSlots[0];
+      subText = `${first.provider.toUpperCase()} · ${first.model || "Auto"} (${activeSlots.length})`;
     }
+    const row = document.createElement("div");
+    row.className = "api-row";
+    row.onclick = () => openApiPopover(a.id);
+    row.innerHTML = `
+      <div class="api-row-top">
+        <span>${esc(a.name)}</span>
+        <span class="dot ${dotClass}"></span>
+      </div>
+      <div class="api-row-sub">${esc(subText)}</div>
+    `;
+    box.appendChild(row);
+  });
 
-    function renderModelDrawer(id, n) {
-      const tag = id + "-" + n;
-      const drawer = document.getElementById("mdraw-" + tag);
-      const list = keyModelLists[tag] || [];
-      const cur = (document.getElementById("mod-" + tag)?.value || "").trim();
-      if (!list.length) { drawer.innerHTML = "<small style='color:var(--muted);'>কোনো মডেল পাওয়া যায়নি।</small>"; return; }
-      let html = '<div style="font-size:11px;color:var(--accent);margin-bottom:4px;">এই API Key-তে মোট ' + list.length + 'টি মডেল আছে (যেকোনোটিতে চাপ দিন):</div>';
-      list.slice(0, 120).forEach(function(m) {
-        const isAuto = (m === keyAutoModels[tag]);
-        html += '<span class="model-pill ' + (m === cur ? 'active' : '') + '" onclick="pickModel(\'' + id + '\',' + n + ',\'' + m.replace(/'/g, "\\'") + '\')">' + (isAuto ? '★ ' : '') + m + '</span>';
-      });
-      drawer.innerHTML = html;
-    }
+  const dirKeys = (state.agents.director?.keys || []).filter(k => (k.apiKey || "").trim());
+  const dDot = document.getElementById("directorDot");
+  dDot.className = "dot " + (dirKeys.length ? "green" : "red");
+}
 
-    function pickModel(id, n, m) {
-      document.getElementById("mod-" + id + "-" + n).value = m;
-      applyKeyVisuals();
-      renderModelDrawer(id, n);
-      saveAll();
-    }
-
-    function setWf(steps) {
-      workflowSteps = steps;
-      document.getElementById("wfList").innerHTML = steps.map(function(x) {
-        return '<div class="wf-step"><span>' + x.l + '</span><strong>' + x.s + '</strong></div>';
-      }).join("");
-      saveAll();
-    }
-
-    function renderTeamLogs() {
-      const box = document.getElementById("teamLogList");
-      box.innerHTML = teamLogs.length ? teamLogs.map(function(l) {
-        return '<div class="log-item"><strong style="color:var(--accent);">' + l.from + ' → ' + l.to + '</strong> <span style="float:right;">' + l.status + '</span><div style="color:var(--muted);margin-top:2px;">' + l.msg + '</div></div>';
-      }).join("") : '<small style="color:var(--muted);">কাজ শুরু হলে AI-দের বোঝাপড়া এখানে দেখাবে...</small>';
-    }
-
-    function speakFast(txt) {
-      if (!("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(txt.replace(/[#*`]/g, "").slice(0, 600));
-      u.lang = "bn-IN";
-      u.rate = 1.08;
-      window.speechSynthesis.speak(u);
-    }
-
-    function toggleVoiceInput() {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) { alert("এই ব্রাউজারে ভয়েস টাইপিং সাপোর্ট নেই।"); return; }
-      if (isListening && recognition) { recognition.stop(); return; }
-      recognition = new SR();
-      recognition.lang = "bn-IN";
-      recognition.onstart = function() { isListening = true; document.getElementById("micBtn").innerText = "🔴"; };
-      recognition.onend = function() { isListening = false; document.getElementById("micBtn").innerText = "🎤"; };
-      recognition.onresult = function(e) {
-        document.getElementById("chatInput").value += " " + e.results[0][0].transcript;
-      };
-      recognition.start();
-    }
-
-    function renderChat() {
-      const box = document.getElementById("chatMessages");
-      box.innerHTML = "";
-      chatHistory.forEach(function(m) {
-        const div = document.createElement("div");
-        div.className = "msg " + (m.role === "user" ? "user" : "ai");
-        div.innerText = m.content;
-        if (m.role !== "user") {
-          const act = document.createElement("div");
-          act.className = "msg-actions";
-          const spk = document.createElement("button");
-          spk.className = "btn-secondary btn-sm";
-          spk.innerText = "🔊 শুনুন";
-          spk.onclick = function() { speakFast(m.content); };
-          act.appendChild(spk);
-          div.appendChild(act);
-        }
-        box.appendChild(div);
-      });
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function addMsg(role, content) {
-      chatHistory.push({ role: role, content: content });
-      renderChat();
-      saveAll();
-    }
-
-    function showTyping(txt) {
-      removeTyping();
-      const box = document.getElementById("chatMessages");
+function renderWorkflow() {
+  const feed = document.getElementById("wfFeed");
+  feed.innerHTML = "";
+  if (!state.workflow.length) {
+    feed.innerHTML = `<div class="output-empty" style="margin-top:20px;">টিমের কাজ ও কথোপকথন এখানে দেখাবে</div>`;
+  } else {
+    state.workflow.forEach(w => {
       const div = document.createElement("div");
-      div.id = "typingIndicator";
-      div.className = "msg ai";
-      div.innerText = "⏳ " + txt;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
-    }
-    function removeTyping() { const el = document.getElementById("typingIndicator"); if (el) el.remove(); }
+      div.className = "wf-item " + (w.level || "");
+      div.innerHTML = `
+        <div class="wf-meta"><span>${esc(w.from)} → ${esc(w.to)}</span><span>${esc(w.time || "")}</span></div>
+        <div>${esc(w.msg)}</div>
+      `;
+      feed.appendChild(div);
+    });
+  }
+  feed.scrollTop = feed.scrollHeight;
+  document.getElementById("coworkBadge").textContent = state.coWork ? "Co-Work ON" : "Solo";
+}
 
-    function clearChat() {
-      if (!confirm("সব চ্যাট মুছে ফেলবেন? (আগে 💾 Save করে নিলে কাজ হারাবে না)")) return;
-      if (activeJobId) stopCurrentJob();
-      chatHistory = [];
-      lastReportedTeamSig = "";
-      renderChat();
-      saveAll();
-    }
+function renderDisturbBar() {
+  const bar = document.getElementById("disturbBar");
+  const lbl = document.getElementById("disturbLabel");
+  if (state.disturbs.length > 0) {
+    bar.classList.add("error");
+    lbl.textContent = `Disturb (${state.disturbs.length}) · Tap to check`;
+  } else {
+    bar.classList.remove("error");
+    lbl.textContent = "System OK";
+  }
+}
 
-    function editLastUserMsg() {
-      for (let i = chatHistory.length - 1; i >= 0; i--) {
-        if (chatHistory[i].role === "user") {
-          document.getElementById("chatInput").value = chatHistory[i].content;
-          chatHistory = chatHistory.slice(0, i);
-          renderChat();
-          saveAll();
-          return;
-        }
-      }
-    }
+function renderAlerts() {
+  ["image", "video", "audio", "editing"].forEach(cat => {
+    const list = state.alerts[cat] || [];
+    const unread = list.some(x => !x.read);
+    const pill = document.getElementById("pill-" + cat);
+    const dot = document.getElementById("adot-" + cat);
+    if (!pill || !dot) return;
+    pill.classList.toggle("has-alert", unread);
+    dot.className = "dot" + (unread ? " yellow" : (hasKey(cat) ? " green" : ""));
+  });
+}
 
-    function setRunningUI(running) {
-      document.getElementById("sendBtn").style.display = running ? "none" : "inline-block";
-      document.getElementById("stopBtn").style.display = running ? "inline-block" : "none";
-    }
+function renderOutput() {
+  const body = document.getElementById("outBody");
+  const dot = document.getElementById("outDot");
+  const tag = document.getElementById("outTag");
+  const out = state.output;
 
-    async function stopCurrentJob() {
-      if (pollTimer) clearInterval(pollTimer);
-      if (activeJobId) {
-        try { await fetch("/api/cancel-job/" + activeJobId, { method: "POST" }); } catch (e) {}
-      }
-      activeJobId = null;
-      removeTyping();
-      setRunningUI(false);
-    }
+  if (!out) {
+    body.className = "output-body";
+    body.innerHTML = `<div class="output-empty">স্যাম্পল বা ফাইনাল আউটপুট এখানে দেখাবে</div>`;
+    dot.className = "dot";
+    tag.textContent = "Standby";
+    return;
+  }
 
-    function getTeamSnapshot() {
-      const lines = [], sigParts = [];
-      IDS.forEach(function(id) {
-        const c = getCfg(id);
-        const activeKeys = c.keys.filter(function(x) { return x.apiKey !== ""; });
-        const okKeys = activeKeys.filter(function(x) { return keyStatus[id + "-" + x.idx] === "ok"; });
-        lines.push("- " + NAMES[id] + ": " + (activeKeys.length ? ("ACTIVE (" + activeKeys.length + " key, " + okKeys.length + " green)") : "INACTIVE"));
-        sigParts.push(id + ":" + activeKeys.length + ":" + okKeys.length);
+  body.className = "output-body has-content";
+  dot.className = "dot green";
+  tag.textContent = out.kind === "final" ? "Final Ready" : "Sample Ready";
+
+  let html = "";
+  if (out.imageUrl) {
+    html += `<img class="output-img" src="${esc(out.imageUrl)}" alt="Preview" onclick="openOutputPopover()" />`;
+  }
+  if (out.audioData) {
+    html += `<audio controls src="${out.audioData}"></audio>`;
+  }
+  if (out.text) {
+    html += `<div class="output-text-snippet">${esc(out.text.slice(0, 220))}${out.text.length > 220 ? "..." : ""}</div>`;
+  }
+  body.innerHTML = html;
+}
+
+function renderVault() {
+  const body = document.getElementById("vaultBody");
+  document.getElementById("vaultCount").textContent = state.vault.length;
+  if (!state.vault.length) {
+    body.innerHTML = `<div class="output-empty" style="margin-top:8px;">বাড়তি ফাইল এখানে জমবে</div>`;
+    return;
+  }
+  body.innerHTML = "";
+  state.vault.slice().reverse().forEach((item, rIdx) => {
+    const idx = state.vault.length - 1 - rIdx;
+    const row = document.createElement("div");
+    row.className = "vault-item";
+    row.onclick = () => openVaultItemPopover(idx);
+    row.innerHTML = `<span class="vault-name">${esc(item.title)}</span><span style="color:var(--muted);font-size:10px;">${esc(item.time)}</span>`;
+    body.appendChild(row);
+  });
+}
+
+function renderToolbox() {
+  const slot = document.getElementById("toolboxSlot");
+  const icon = document.getElementById("toolboxIcon");
+  const text = document.getElementById("toolboxText");
+  if (state.suggestedTool) {
+    slot.classList.add("active");
+    icon.textContent = state.suggestedTool.icon || "⚡";
+    text.textContent = state.suggestedTool.name;
+  } else {
+    slot.classList.remove("active");
+    icon.textContent = "+";
+    text.textContent = "Standby";
+  }
+}
+
+/* ---------- HELPERS ---------- */
+function hasKey(agentId) {
+  return ((state.agents[agentId]?.keys) || []).some(k => (k.apiKey || "").trim());
+}
+
+function addWorkflow(from, to, msg, level = "") {
+  state.workflow.push({ from, to, msg, level, time: nowTime() });
+  if (state.workflow.length > 80) state.workflow.shift();
+  saveState();
+  renderWorkflow();
+}
+
+function addAlert(cat, msg) {
+  if (!state.alerts[cat]) state.alerts[cat] = [];
+  state.alerts[cat].unshift({ msg, time: nowTime(), read: false });
+  if (state.alerts[cat].length > 20) state.alerts[cat].pop();
+  saveState();
+  renderAlerts();
+}
+
+function addDisturb(agent, msg) {
+  state.disturbs.unshift({ agent, msg, time: nowTime() });
+  if (state.disturbs.length > 20) state.disturbs.pop();
+  saveState();
+  renderDisturbBar();
+}
+
+function pushChat(role, text, actions = []) {
+  state.chat.push({ id: "m_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6), role, text, actions });
+  if (state.chat.length > 80) state.chat.shift();
+  saveState();
+  renderChat();
+}
+
+function moveOutputToVault(reason) {
+  if (!state.output) return;
+  state.vault.push({
+    title: `${state.output.kind === "final" ? "Final" : "Sample"} (${reason})`,
+    text: state.output.text || "",
+    imageUrl: state.output.imageUrl || "",
+    audioData: state.output.audioData || "",
+    time: nowTime()
+  });
+  if (state.vault.length > 30) state.vault.shift();
+  saveState();
+  renderVault();
+}
+
+function setOutputLoading(active) {
+  document.getElementById("outPulse").classList.toggle("active", active);
+  document.getElementById("wfDot").className = active ? "dot blue" : "dot green";
+  if (active) {
+    document.getElementById("outDot").className = "dot blue";
+    document.getElementById("outTag").textContent = "Building...";
+  }
+}
+
+/* ---------- TTS WITH INSTANT STOP ---------- */
+function toggleSpeak(text, btn) {
+  if (!("speechSynthesis" in window)) return;
+  if (speakingBtn === btn && window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    btn.classList.remove("speaking");
+    btn.textContent = "🔊";
+    speakingBtn = null;
+    return;
+  }
+  window.speechSynthesis.cancel();
+  if (speakingBtn) {
+    speakingBtn.classList.remove("speaking");
+    speakingBtn.textContent = "🔊";
+  }
+  const u = new SpeechSynthesisUtterance(text.replace(/[*#_`]/g, ""));
+  u.lang = /[\u0980-\u09FF]/.test(text) ? "bn-IN" : "en-US";
+  u.onend = u.onerror = () => {
+    btn.classList.remove("speaking");
+    btn.textContent = "🔊";
+    if (speakingBtn === btn) speakingBtn = null;
+  };
+  speakingBtn = btn;
+  btn.classList.add("speaking");
+  btn.textContent = "⏹";
+  window.speechSynthesis.speak(u);
+}
+
+/* ---------- VOICE INPUT ---------- */
+function toggleVoiceInput() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert("এই ব্রাউজারে ভয়েস টাইপিং সাপোর্ট নেই।"); return; }
+  const btn = document.getElementById("micBtn");
+  if (isListening && recognition) { recognition.stop(); return; }
+  recognition = new SR();
+  recognition.lang = "bn-IN";
+  recognition.onstart = () => { isListening = true; btn.style.color = "var(--red)"; };
+  recognition.onend = () => { isListening = false; btn.style.color = ""; };
+  recognition.onresult = (e) => {
+    const t = e.results[0][0].transcript;
+    const inp = document.getElementById("chatInput");
+    inp.value = (inp.value ? inp.value + " " : "") + t;
+  };
+  recognition.start();
+}
+
+/* ---------- ZERO-REPEAT SEQUENTIAL POLLING ---------- */
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function runBackendJob(payload) {
+  const startRes = await fetch("/api/start-job", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const startData = await startRes.json();
+  if (!startData.ok || !startData.job_id) {
+    return { ok: false, error: startData.error || "Job শুরু করা যায়নি।" };
+  }
+  const jobId = startData.job_id;
+  activeJobId = jobId;
+
+  for (let i = 0; i < 90; i++) {
+    await sleep(1100);
+    if (activeJobId !== jobId) return { ok: false, cancelled: true };
+    const r = await fetch(`/api/job/${jobId}`);
+    const d = await r.json();
+    if (!d.ok) return { ok: false, error: "Job পাওয়া যায়নি।" };
+    if (d.status === "cancelled") return { ok: false, cancelled: true };
+    if (d.status === "done" || d.status === "error") {
+      if (handledJobs.has(jobId)) return { ok: false, duplicate: true };
+      handledJobs.add(jobId);
+      if (activeJobId === jobId) activeJobId = null;
+      return d.result || { ok: false, error: "ফাঁকা উত্তর এসেছে।" };
+    }
+  }
+  return { ok: false, error: "সার্ভার থেকে উত্তর আসতে বেশি সময় লাগছে।" };
+}
+
+async function cancelActiveJob() {
+  if (!activeJobId) return;
+  const jid = activeJobId;
+  activeJobId = null;
+  setOutputLoading(false);
+  try { await fetch(`/api/cancel-job/${jid}`, { method: "POST" }); } catch (e) {}
+  addWorkflow("User", "Studio", "চলমান কাজ বন্ধ করা হয়েছে।", "warn");
+  pushChat("sys", "কাজটি থামানো হয়েছে।");
+}
+
+/* ---------- SMART CHAT & SAMPLE-FIRST FLOW ---------- */
+function isProjectIntent(text) {
+  const low = text.toLowerCase();
+  const kws = ["ভিডিও", "গল্প", "বানাও", "তৈরি", "স্ক্রিপ্ট", "স্যাম্পল", "সিন", "কার্টুন", "রিলস", "শর্টস", "video", "story", "script", "sample", "scene", "create", "make", "project", "কাজ শুরু"];
+  return kws.some(k => low.includes(k));
+}
+
+function getDirectorConfig() {
+  return state.agents.director || defaultAgentCfg();
+}
+
+function buildVisualUrl(promptText) {
+  const clean = encodeURIComponent("cinematic film frame, ultra detailed, lighting, " + promptText.slice(0, 180));
+  const seed = Math.floor(Math.random() * 99999);
+  return `https://image.pollinations.ai/prompt/${clean}?width=768&height=432&nologo=true&seed=${seed}`;
+}
+
+async function sendChat() {
+  const inp = document.getElementById("chatInput");
+  const text = inp.value.trim();
+  if (!text) return;
+  if (!hasKey("director")) {
+    pushChat("sys", "প্রথমে নিচে API Keys বক্স থেকে Director AI-এর একটি Key বসাও।");
+    openApiPopover("director");
+    return;
+  }
+  inp.value = "";
+  pushChat("user", text);
+
+  if (isProjectIntent(text)) {
+    state.pendingProject = { prompt: text, sampleCount: 0 };
+    const otherActive = ["image", "video", "audio", "editing"].filter(id => hasKey(id));
+    if (otherActive.length >= 2 && !state.coWork) {
+      pushChat(
+        "ai",
+        "এটি একটি প্রজেক্ট কাজ। শুরু করার আগে বলো—আমি একা করব নাকি সবাই একসাথে (Co-Work) মিলে স্যাম্পল বানাব?",
+        [
+          { label: "একাই বানাও (Solo)", type: "start_sample", payload: { coWork: false } },
+          { label: "সবাই মিলে (Co-Work)", type: "start_sample", payload: { coWork: true }, primary: true }
+        ]
+      );
+      return;
+    }
+    await generateProjectSample(text, state.coWork);
+    return;
+  }
+
+  // Free conversational mode for Director AI
+  addWorkflow("User", "Director AI", text.slice(0, 80));
+  setOutputLoading(true);
+  const history = state.chat.filter(m => m.role === "user" || m.role === "ai").slice(-8).map(m => ({
+    role: m.role === "user" ? "user" : "assistant",
+    content: m.text
+  }));
+  const sysPrompt = "You are Director AI, an independent, intelligent creative video studio director speaking naturally in Bangla. Reply concisely and helpfully. Do not repeat yourself. If external design tool like Canva or Drive would help, mention it briefly.";
+  const res = await runBackendJob({
+    type: "single",
+    config: getDirectorConfig(),
+    prompt: text,
+    system_prompt: sysPrompt,
+    history,
+    co_work: state.coWork,
+    project_memory: state.memory
+  });
+  setOutputLoading(false);
+  if (res.cancelled || res.duplicate) return;
+
+  if (!res.ok) {
+    addDisturb("Director AI", res.error || "Connection error");
+    addWorkflow("Director AI", "System", "Error: " + (res.error || ""), "err");
+    pushChat("ai", "দুঃখিত, Director AI-এর সাথে সংযোগে সমস্যা হয়েছে। Workflow-এর লাল বারে ট্যাপ করে কারণ দেখে নাও।");
+    return;
+  }
+  addWorkflow("Director AI", "Chat", "উত্তর দেওয়া হয়েছে।", "ok");
+  pushChat("ai", res.text);
+}
+
+async function generateProjectSample(promptText, useCoWork) {
+  state.coWork = !!useCoWork;
+  saveState();
+  renderWorkflow();
+
+  if (state.output) moveOutputToVault("Previous");
+
+  pushChat("sys", "একটা স্যাম্পল তৈরি করা হচ্ছে, দেখে নিন...");
+  addWorkflow("Director AI", "Team", `স্যাম্পল প্রস্তুতি শুরু (${state.coWork ? "Co-Work" : "Solo"}): ${promptText.slice(0, 70)}`);
+  setOutputLoading(true);
+
+  const tasks = [
+    {
+      agent_id: "director",
+      agent_name: "Director AI",
+      config: getDirectorConfig(),
+      system_prompt: "Create a crisp, clean Bangla + English visual sample plan (2 key frames, mood, short dialogue) without messy markdown.",
+      prompt: `Create a short sample preview for: ${promptText}`,
+      co_work: state.coWork
+    }
+  ];
+
+  ["image", "video", "audio", "editing"].forEach(id => {
+    if (hasKey(id)) {
+      const a = AGENTS.find(x => x.id === id);
+      tasks.push({
+        agent_id: id,
+        agent_name: a.name,
+        config: state.agents[id],
+        system_prompt: `You are ${a.name}. Give a concise 2-line sample contribution for the Director.`,
+        prompt: `Sample input for project: ${promptText}`,
+        co_work: false
       });
-      return { text: lines.join("\n"), sig: sigParts.join("|") };
     }
+  });
 
-    function buildDirectorPrompt() {
-      const snap = getTeamSnapshot();
-      const isFirst = chatHistory.filter(function(m) { return m.role === "user"; }).length <= 1;
-      const changed = (lastReportedTeamSig !== "" && lastReportedTeamSig !== snap.sig);
-      let rule = "Do NOT repeat active/inactive AI list unless asked.";
-      if (isFirst) rule = "Briefly greet and note which AIs are active.";
-      else if (changed) rule = "Briefly mention ONLY the AI status that just changed.";
-      lastReportedTeamSig = snap.sig;
-      saveAll();
-      return "You are the Lead Director AI at AI Video Studio. Reply in natural Bangla + simple English tech terms.\nTeam Status:\n" + snap.text + "\nRule: " + rule + "\nWhen the user gives a video idea/script, plan scenes clearly and ask 'কাজ শুরু করব?' at the end.";
+  const res = await runBackendJob({
+    type: "multi",
+    tasks,
+    project_memory: state.memory
+  });
+
+  if (res.cancelled || res.duplicate) { setOutputLoading(false); return; }
+
+  const results = res.results || [];
+  let leadText = "";
+  let imgPrompt = promptText;
+
+  results.forEach(r => {
+    if (r.ok) {
+      addWorkflow(r.agent_name, "Director AI", (r.text || "").slice(0, 110), "ok");
+      if (r.agent_id === "director") leadText = r.text;
+      if (r.agent_id === "image") imgPrompt = r.text.slice(0, 160);
+      if (r.agent_id !== "director") addAlert(r.agent_id, `স্যাম্পল তৈরি হয়েছে: ${(r.text || "").slice(0, 90)}`);
+    } else {
+      addDisturb(r.agent_name, r.error || "Failed");
+      addWorkflow(r.agent_name, "Director AI", "Error: " + (r.error || ""), "err");
+      if (r.agent_id !== "director") addAlert(r.agent_id, "সার্ভার এরর: " + (r.error || ""));
     }
+  });
 
-    function pollBackgroundJob(jobId, onDone) {
-      activeJobId = jobId;
-      setRunningUI(true);
-      clearInterval(pollTimer);
-      pollTimer = setInterval(async function() {
-        try {
-          const data = await fetch("/api/job/" + jobId).then(function(r) { return r.json(); });
-          if (!data.ok || data.status === "not_found" || data.status === "cancelled") {
-            clearInterval(pollTimer);
-            activeJobId = null;
-            removeTyping();
-            setRunningUI(false);
-            if (data.status !== "cancelled") onDone({ ok: false, error: "সার্ভার জব পাওয়া যায়নি।" });
-            return;
-          }
-          if (data.status === "done" || data.status === "error") {
-            clearInterval(pollTimer);
-            activeJobId = null;
-            removeTyping();
-            setRunningUI(false);
-            if (data.result && Array.isArray(data.result.team_logs)) {
-              teamLogs = data.result.team_logs.concat(teamLogs).slice(0, 40);
-              renderTeamLogs();
-            }
-            saveAll();
-            onDone(data.result);
-          }
-        } catch (e) {}
-      }, 300);
-    }
-
-    async function sendChat() {
-      if (isPaused) { alert("⏸️ স্টুডিও Paused আছে। আগে Resume চাপো।"); return; }
-      const inp = document.getElementById("chatInput");
-      let txt = inp.value.trim();
-      if (!txt && !attachments.length) return;
-      if (attachments.length) {
-        txt += "\n[Attached: " + attachments.join(" | ") + "]";
-        attachments = [];
-        document.getElementById("attachPreview").style.display = "none";
-      }
-      inp.value = "";
-      lastPrompt = txt;
-      addMsg("user", txt);
-
-      const cfg = getCfg("director");
-      if (!cfg.keys.some(function(x) { return x.apiKey !== ""; })) {
-        addMsg("ai", "⚠️ নিচে Director & Chat AI-এর ঘরে API Key বসাও।");
-        return;
-      }
-
-      setWf([{ l: "Director AI", s: "Working ⏳" }]);
-      showTyping("Director AI উত্তর তৈরি করছে...");
-
-      try {
-        const start = await fetch("/api/start-job", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "single", config: cfg, prompt: txt,
-            system_prompt: buildDirectorPrompt(),
-            history: chatHistory.slice(0, -1),
-            co_work: cfg.cowork,
-            project_memory: document.getElementById("projectMemory").value.trim()
-          })
-        }).then(function(r) { return r.json(); });
-
-        if (!start.ok) { removeTyping(); addMsg("ai", "❌ " + start.error); return; }
-
-        pollBackgroundJob(start.job_id, function(res) {
-          if (res && res.ok) {
-            addMsg("ai", res.text);
-            if (res.extras) res.extras.forEach(function(ex) { addUnused("Director Co-Work #" + ex.worker, ex.text); });
-            setWf([{ l: "Director AI", s: "Done ✅" }]);
-            if (res.text.indexOf("শুরু করব") !== -1) showQuickStartCard();
-          } else {
-            const errMsg = (res && res.error) ? res.error : "Unknown Error";
-            keyErrors["director-1"] = errMsg; keyStatus["director-1"] = "err"; applyKeyVisuals();
-            addMsg("ai", "❌ Error: " + errMsg);
-            setWf([{ l: "Director AI", s: "Error ❌" }]);
-          }
-        });
-      } catch (e) { removeTyping(); addMsg("ai", "❌ Network Error: " + e.message); }
-    }
-
-    function showQuickStartCard() {
-      const box = document.getElementById("chatMessages");
-      const card = document.createElement("div");
-      card.className = "choice-card";
-      card.innerHTML = '<strong>🎬 Director AI কাজ শুরু করার অনুমতি চাইছে:</strong><div class="row" style="margin-top:8px;"><button class="btn-primary btn-sm" id="yesStart">✅ হ্যাঁ, কাজ শুরু করো</button><button class="btn-secondary btn-sm" id="noStart">পরে করব</button></div>';
-      card.querySelector("#yesStart").onclick = function() { card.remove(); runSampleFlow(); };
-      card.querySelector("#noStart").onclick = function() { card.remove(); };
-      box.appendChild(card);
-      box.scrollTop = box.scrollHeight;
-    }
-
-    async function runSampleFlow() {
-      if (isPaused) { alert("⏸️ স্টুডিও Paused আছে।"); return; }
-      const prompt = lastPrompt || document.getElementById("chatInput").value.trim();
-      if (!prompt) { addMsg("ai", "আগে চ্যাটে গল্প বা ভিডিওর প্রম্পট লেখো।"); return; }
-      const active = IDS.filter(function(id) { return getCfg(id).keys.some(function(x) { return x.apiKey !== ""; }); });
-      if (!active.length) { addMsg("ai", "⚠️ কোনো API Key দেওয়া নেই।"); return; }
-
-      setWf([{ l: "1. Multi-AI Samples", s: "Running ⏳" }, { l: "2. Your Choice", s: "Pending" }, { l: "3. Final Output", s: "Pending" }]);
-      showTyping("সব সচল AI মিলে প্রথম ২টি ফ্রেম ও স্যাম্পল বানাচ্ছে...");
-
-      const tasks = active.map(function(id) {
-        return {
-          agent_id: id, agent_name: NAMES[id], config: getCfg(id),
-          prompt: "Create Sample Preview (First 2 frames visual, script snippet & audio/music plan) for: " + prompt,
-          system_prompt: "You are " + NAMES[id] + ". Reply concisely in Bangla + English tech terms.",
-          co_work: getCfg(id).cowork
-        };
+  // Optional ElevenLabs sample audio if audio agent uses elevenlabs
+  let audioData = "";
+  const elKey = getElevenLabsKey();
+  if (elKey && leadText) {
+    try {
+      addWorkflow("Director AI", "Audio AI", "ElevenLabs স্যাম্পল ভয়েস তৈরি হচ্ছে...");
+      const tr = await fetch("/api/elevenlabs/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: elKey, text: leadText.slice(0, 180) })
       });
-
-      const start = await fetch("/api/start-job", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "multi", tasks: tasks,
-          project_memory: document.getElementById("projectMemory").value.trim()
-        })
-      }).then(function(r) { return r.json(); });
-
-      pollBackgroundJob(start.job_id, function(data) {
-        const okRes = (data && data.results) ? data.results.filter(function(r) { return r.ok; }) : [];
-        if (!okRes.length) { addMsg("ai", "❌ স্যাম্পল তৈরি করা যায়নি। নিচের লাল ⚠️ আইকন চেক করো।"); setWf([{ l: "Sample", s: "Error ❌" }]); return; }
-        setWf([{ l: "1. Multi-AI Samples", s: "Done ✅" }, { l: "2. Your Choice", s: "Paused ⏸️" }, { l: "3. Final Output", s: "Pending" }]);
-        showChoiceCard(okRes, prompt);
-      });
-    }
-
-    function showChoiceCard(okRes, prompt) {
-      const wrap = document.getElementById("chatMessages");
-      const card = document.createElement("div");
-      card.className = "choice-card";
-      let pick = 0;
-      const draw = function() {
-        let html = '<strong style="color:var(--accent);">⏸️ PAUSED — সেরা স্যাম্পল বেছে নাও:</strong>';
-        okRes.forEach(function(r, i) {
-          html += '<div class="choice-option ' + (i === pick ? 'selected' : '') + '" data-i="' + i + '"><strong>' + r.agent_name + '</strong><div style="color:var(--muted);margin-top:4px;">' + r.text.slice(0, 180) + '...</div></div>';
-        });
-        html += '<div class="row" style="margin-top:8px;"><button class="btn-primary btn-sm" id="okPick">✅ Approve &amp; Build Final</button><button class="btn-secondary btn-sm" id="noPick">Cancel</button></div>';
-        card.innerHTML = html;
-        card.querySelectorAll(".choice-option").forEach(function(el) { el.onclick = function() { pick = Number(el.dataset.i); draw(); }; });
-        card.querySelector("#noPick").onclick = function() { card.remove(); };
-        card.querySelector("#okPick").onclick = function() {
-          okRes.forEach(function(r, i) {
-            if (i !== pick) addUnused(r.agent_name + " (Unselected)", r.text);
-            if (r.extras) r.extras.forEach(function(ex) { addUnused(r.agent_name + " Co-Work #" + ex.worker, ex.text); });
-          });
-          finalOutput = "=== FINAL PRODUCTION ===\nPrompt: " + prompt + "\nSelected Lead: " + okRes[pick].agent_name + "\n\n" + okRes[pick].text;
-          saveAll(); renderOutput(); card.remove();
-          setWf([{ l: "1. Multi-AI Samples", s: "Done ✅" }, { l: "2. Approved", s: "Done ✅" }, { l: "3. Final Output", s: "Done ✅" }]);
-          addMsg("ai", "✅ ফাইনাল প্রোডাকশন ওপরের Output Box-এ চলে এসেছে! পরের পার্টের জন্য ওপরের '✨ অটো-লক করো' চাপতে পারো।");
-        };
-      };
-      draw(); wrap.appendChild(card); wrap.scrollTop = wrap.scrollHeight;
-    }
-
-    async function extractContinuity() {
-      const cfg = getCfg("director");
-      if (!cfg.keys.some(function(x) { return x.apiKey !== ""; })) { alert("⚠️ আগে Director AI-তে API Key দাও।"); return; }
-      const ctx = finalOutput || chatHistory.map(function(m) { return m.role + ": " + m.content; }).join("\n");
-      if (!ctx.trim()) { alert("আগে পার্ট ১-এর কিছু চ্যাট বা আউটপুট তৈরি করো।"); return; }
-      const memBox = document.getElementById("projectMemory");
-      document.getElementById("continuityBody").classList.add("open");
-      const old = memBox.value;
-      memBox.value = "⏳ ক্যারেক্টার ও গল্পের ধারাবাহিকতা লক করা হচ্ছে...";
-      try {
-        const res = await fetch("/api/extract-continuity", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ config: cfg, existing_memory: old, latest_context: ctx })
-        }).then(function(r) { return r.json(); });
-        if (res.ok) { memBox.value = res.memory; saveAll(); alert("🔒 Character Bible লক হয়েছে! এখন 💾 Save করে রাখো।"); }
-        else { memBox.value = old; alert("❌ " + res.error); }
-      } catch (e) { memBox.value = old; alert("❌ " + e.message); }
-    }
-
-    // --- ElevenLabs Audio Studio Control Box ---
-    function getElevenKey() {
-      const c = getCfg("audio");
-      for (const slot of c.keys) {
-        if (slot.apiKey) return slot.apiKey;
-        if (slot.subKey) return slot.subKey;
+      const td = await tr.json();
+      if (td.ok && td.audio_base64) {
+        audioData = td.audio_base64;
+        addWorkflow("Audio AI", "Output", "স্যাম্পল অডিও রেডি।", "ok");
       }
-      return "";
-    }
+    } catch (e) {}
+  }
 
-    async function loadElVoices() {
-      const k = getElevenKey();
-      if (!k) { alert("⚠️ Voice & Audio AI-এর ঘরে ElevenLabs API Key বসাও।"); return; }
-      const res = await fetch("/api/elevenlabs/voices", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ apiKey: k }) }).then(function(r) { return r.json(); });
-      if (!res.ok) { alert("❌ " + res.error); return; }
-      document.getElementById("elVoiceSelect").innerHTML = res.voices.map(function(v) {
-        return '<option value="' + v.voice_id + '">' + v.name + ' (' + v.category + ')</option>';
-      }).join("");
-      alert("✅ " + res.voices.length + "টি ভয়েস লোড হয়েছে!");
-    }
+  // Suggest external tool only if design/graphic requested
+  if (/thumbnail|poster|graphic|design|ডিজাইন|থাম্বনেইল|পোস্টার/i.test(promptText)) {
+    state.suggestedTool = { name: "Canva", icon: "🎨", mode: "Optional", note: "গ্রাফিক্স ও থাম্বনেইল ফিনিশিং-এর জন্য কানেক্ট করতে পারো।" };
+    renderToolbox();
+  }
 
-    async function loadElHistory() {
-      const k = getElevenKey();
-      if (!k) { alert("⚠️ ElevenLabs API Key নেই।"); return; }
-      const res = await fetch("/api/elevenlabs/history", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ apiKey: k }) }).then(function(r) { return r.json(); });
-      if (!res.ok) { alert("❌ " + res.error); return; }
-      document.getElementById("elHistoryOut").innerHTML = res.history.length ? res.history.map(function(h) {
-        return '<div>• <strong>' + h.voice + ':</strong> ' + h.text + '</div>';
-      }).join("") : "কোনো হিস্ট্রি নেই।";
-    }
+  state.output = {
+    kind: "sample",
+    prompt: promptText,
+    text: leadText || "স্যাম্পল তৈরি হয়েছে।",
+    imageUrl: buildVisualUrl(imgPrompt),
+    audioData
+  };
+  saveState();
+  setOutputLoading(false);
+  renderOutput();
 
-    async function genElTTS() {
-      const k = getElevenKey();
-      const text = document.getElementById("elText").value.trim();
-      const voiceId = document.getElementById("elVoiceSelect").value;
-      if (!k || !text) { alert("⚠️ ElevenLabs Key এবং টেক্সট দুটোই দাও।"); return; }
-      document.getElementById("elAudioOut").innerText = "⏳ ভয়েস তৈরি হচ্ছে...";
-      const res = await fetch("/api/elevenlabs/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ apiKey: k, voiceId: voiceId, text: text }) }).then(function(r) { return r.json(); });
-      if (!res.ok) { document.getElementById("elAudioOut").innerText = "❌ " + res.error; return; }
-      document.getElementById("elAudioOut").innerHTML = '<audio controls src="' + res.audio_base64 + '" style="width:100%;margin-top:4px;"></audio><a href="' + res.audio_base64 + '" download="voiceover.mp3" style="color:var(--accent);display:inline-block;margin-top:4px;">⬇️ MP3 ডাউনলোড করো</a>';
-    }
+  pushChat(
+    "ai",
+    "স্যাম্পল তৈরি হয়ে গেছে—ডানদিকের Output বক্সে ছবি ও বিবরণ দেখে নাও। পছন্দ হলে ফাইনাল বানাই, অথবা বদলাতে চাইলে বলো।",
+    [
+      { label: "ঠিক আছে, ফাইনাল বানাও", type: "approve_final", primary: true },
+      { label: "আরেকটা ভালো বানাও", type: "retry_sample" }
+    ]
+  );
+}
 
-    async function genElSFX() {
-      const k = getElevenKey();
-      const text = document.getElementById("elText").value.trim();
-      if (!k || !text) { alert("⚠️ ElevenLabs Key এবং সাউন্ড ইফেক্টের বর্ণনা দাও।"); return; }
-      document.getElementById("elAudioOut").innerText = "⏳ সাউন্ড ইফেক্ট তৈরি হচ্ছে...";
-      const res = await fetch("/api/elevenlabs/sfx", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ apiKey: k, text: text }) }).then(function(r) { return r.json(); });
-      if (!res.ok) { document.getElementById("elAudioOut").innerText = "❌ " + res.error; return; }
-          document.getElementById("elAudioOut").innerHTML = '<audio controls src="' + res.audio_base64 + '" style="width:100%;margin-top:4px;"></audio><a href="' + res.audio_base64 + '" download="sfx.mp3" style="color:var(--accent);display:inline-block;margin-top:4px;">⬇️ SFX MP3 ডাউনলোড করো</a>';
-    }
+async function generateFinalProduction() {
+  if (!state.pendingProject) return;
+  const promptText = state.pendingProject.prompt;
+  pushChat("sys", "অনুমোদন পাওয়া গেছে। ফাইনাল প্রোডাকশন তৈরি হচ্ছে...");
+  addWorkflow("Director AI", "All Agents", "ফাইনাল প্রোডাকশন শুরু হয়েছে।", "ok");
+  setOutputLoading(true);
 
-    function renderOutput() {
-      const box = document.getElementById("outputBox"), btn = document.getElementById("exportBtn");
-      if (finalOutput) { box.innerText = finalOutput; box.classList.add("has-data"); btn.disabled = false; document.getElementById("outStatus").innerText = "(Ready ✅)"; }
-      else { box.innerText = "কাজ শেষ হলে ফাইনাল রেজাল্ট এখানে দেখাবে..."; box.classList.remove("has-data"); btn.disabled = true; document.getElementById("outStatus").innerText = "(Empty)"; }
-    }
+  const res = await runBackendJob({
+    type: "single",
+    config: getDirectorConfig(),
+    prompt: `Write the complete, polished Final Production package (Scene breakdown, Visual prompts, Voiceover script, Audio/SFX cues) for: ${promptText}`,
+    system_prompt: "You are Director AI. Deliver a clean, structured Final Production script in Bangla + English technical terms.",
+    history: [],
+    co_work: state.coWork,
+    project_memory: state.memory
+  });
 
-    function exportFinal() {
-      if (!finalOutput) return;
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([finalOutput], { type: "text/plain;charset=utf-8" }));
-      a.download = "AI-Video-Studio-Output.txt";
-      a.click();
-    }
+  setOutputLoading(false);
+  if (res.cancelled || res.duplicate) return;
 
-    function addUnused(title, content) { unusedList.unshift({ title: title, content: content, time: new Date().toLocaleTimeString() }); saveAll(); renderUnused(); }
-    function renderUnused() {
-      document.getElementById("unusedList").innerHTML = unusedList.length ? unusedList.map(function(u) {
-        return '<div style="padding:6px;border-bottom:1px solid var(--border);"><strong>' + u.title + '</strong> (' + u.time + ')<div style="white-space:pre-wrap;margin-top:3px;">' + u.content + '</div></div>';
-      }).join("") : "কোনো অতিরিক্ত অ্যাসেট নেই।";
-    }
-    function clearUnused() { unusedList = []; saveAll(); renderUnused(); }
+  if (!res.ok) {
+    addDisturb("Director AI", res.error || "Final build failed");
+    pushChat("ai", "ফাইনাল বানাতে গিয়ে সমস্যা হয়েছে—Workflow লাল বারে দেখো।");
+    return;
+  }
 
-    function openAttach() { document.getElementById("attachModal").classList.add("open"); }
-    function closeAttach() { document.getElementById("attachModal").classList.remove("open"); }
-    function confirmAttach() {
-      const yt = document.getElementById("ytLinkInput").value.trim(), nt = document.getElementById("resNoteInput").value.trim(), fl = document.getElementById("resFileInput").files[0];
-      if (yt) attachments.push("YouTube: " + yt);
-      if (nt) attachments.push("Note: " + nt);
-      if (fl) attachments.push("File: " + fl.name);
-      document.getElementById("ytLinkInput").value = ""; document.getElementById("resNoteInput").value = ""; document.getElementById("resFileInput").value = "";
-      closeAttach();
-      const p = document.getElementById("attachPreview");
-      if (attachments.length) { p.style.display = "flex"; p.innerHTML = attachments.map(function(x) { return '<span class="attach-chip">' + x + '</span>'; }).join(""); }
-    }
+  if (state.output) moveOutputToVault("Approved Sample");
+  state.output = {
+    kind: "final",
+    prompt: promptText,
+    text: res.text,
+    imageUrl: buildVisualUrl("masterpiece final cinematic frame " + promptText),
+    audioData: state.output?.audioData || ""
+  };
+  saveState();
+  renderOutput();
+  addWorkflow("Studio", "Output", "ফাইনাল প্রোডাকশন সম্পূর্ণ!", "ok");
 
-    function saveCheckpoint() {
-      const name = prompt("সেভ ফাইলের নাম লেখো (যেমন: Part 1 Complete):", "Checkpoint " + new Date().toLocaleTimeString());
-      if (!name) return;
-      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v7") || "[]");
-      list.unshift({
-        name: name, time: new Date().toLocaleString(),
-        chatHistory: chatHistory, finalOutput: finalOutput, unusedList: unusedList,
-        lastPrompt: lastPrompt, workflowSteps: workflowSteps, teamLogs: teamLogs,
-        projectMemory: document.getElementById("projectMemory").value
-      });
-      localStorage.setItem("studio_checkpoints_v7", JSON.stringify(list.slice(0, 20)));
-      alert("💾 Checkpoint Saved! কালকে 📁 Files থেকে লোড করলেই ঠিক এখান থেকে ও একই ক্যারেক্টার নিয়ে পার্ট ২ শুরু করতে পারবে।");
-    }
+  pushChat(
+    "ai",
+    "কাজ সম্পূর্ণ হয়ে গেছে! ডানদিকের Output বক্সে ফাইনাল ফাইল রেডি আছে। এখানটা কি সেভ করে রাখবো?",
+    [
+      { label: "Yes, Save", type: "smart_save", primary: true },
+      { label: "Export Now", type: "export_now" }
+    ]
+  );
+}
 
-    function openHistory() {
-      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v7") || "[]");
-      document.getElementById("historyList").innerHTML = list.length ? list.map(function(p, i) {
-        return '<button class="btn-secondary" style="text-align:left;" onclick="loadCheckpoint(' + i + ')">🎮 ' + p.name + '<br><small style="color:var(--muted);">' + p.time + '</small></button>';
-      }).join("") : '<small style="color:var(--muted);">কোনো সেভ করা Checkpoint নেই।</small>';
-      document.getElementById("historyModal").classList.add("open");
-    }
-    function closeHistory() { document.getElementById("historyModal").classList.remove("open"); }
-    function loadCheckpoint(i) {
-      const list = JSON.parse(localStorage.getItem("studio_checkpoints_v7") || "[]");
-      if (list[i]) {
-        chatHistory = list[i].chatHistory || [];
-        finalOutput = list[i].finalOutput || "";
-        unusedList = list[i].unusedList || [];
-        lastPrompt = list[i].lastPrompt || "";
-        workflowSteps = list[i].workflowSteps || [{ l: "Loaded Checkpoint", s: "Ready ▶️" }];
-        teamLogs = list[i].teamLogs || [];
-        document.getElementById("projectMemory").value = list[i].projectMemory || "";
-        renderChat(); renderOutput(); renderUnused(); setWf(workflowSteps); renderTeamLogs(); saveAll(); closeHistory();
-        alert("✅ Checkpoint Loaded! একই ক্যারেক্টার ও গল্পের ধারাবাহিকতা নিয়ে কাজ শুরু করো।");
-      }
-    }
+function handleChatAction(type, payload) {
+  if (type === "start_sample" && state.pendingProject) {
+    generateProjectSample(state.pendingProject.prompt, payload?.coWork);
+  } else if (type === "approve_final") {
+    generateFinalProduction();
+  } else if (type === "retry_sample" && state.pendingProject) {
+    generateProjectSample(state.pendingProject.prompt + " (আরও উন্নত ও সিনেমাটিক ভার্সন)", state.coWork);
+  } else if (type === "smart_save") {
+    saveCurrentProject();
+  } else if (type === "export_now") {
+    downloadCurrentOutput();
+  }
+}
 
-    function saveAll() {
-      const agents = {};
-      IDS.forEach(function(id) { agents[id] = getCfg(id); });
-      localStorage.setItem("studio_v7_smart", JSON.stringify({
-        agents: agents, unused: unusedList, finalOutput: finalOutput, chatHistory: chatHistory,
-        lastPrompt: lastPrompt, workflowSteps: workflowSteps, teamLogs: teamLogs,
-        projectMemory: document.getElementById("projectMemory")?.value || "",
-        keyStatus: keyStatus, keyErrors: keyErrors, keyAutoModels: keyAutoModels,
-        keyModelLists: keyModelLists, lastReportedTeamSig: lastReportedTeamSig
-      }));
-    }
+/* ---------- EXPORT & SAVE ---------- */
+function downloadCurrentOutput() {
+  if (!state.output) { alert("এখনো কোনো আউটপুট তৈরি হয়নি।"); return; }
+  pushChat("sys", "এক্সপোর্ট করা হচ্ছে...");
+  const content = `=== AI VIDEO STUDIO (${state.output.kind.toUpperCase()}) ===\nPrompt: ${state.output.prompt || ""}\n\n${state.output.text || ""}`;
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `AI-Studio-${state.output.kind}-${Date.now()}.txt`;
+  a.click();
+  setTimeout(() => pushChat("sys", "এক্সপোর্ট কমপ্লিট হয়েছে!"), 500);
+}
 
-    function loadAll() {
-      buildAgentsUI();
-      try {
-        const data = JSON.parse(localStorage.getItem("studio_v7_smart") || localStorage.getItem("studio_v6_smart") || "{}");
-        if (data.agents) {
-          IDS.forEach(function(id) {
-            const c = data.agents[id]; if (!c) return;
-            document.getElementById("url-" + id).value = c.customUrl || "";
-            if (c.skills) document.getElementById("sk-" + id).value = c.skills;
-            document.getElementById("cw-" + id).checked = !!c.cowork;
-            if (Array.isArray(c.keys)) {
-              c.keys.forEach(function(item) {
-                const n = item.idx;
-                if (document.getElementById("prov-" + id + "-" + n)) {
-                  document.getElementById("prov-" + id + "-" + n).value = item.provider || "google";
-                  document.getElementById("mod-" + id + "-" + n).value = item.model || "";
-                  document.getElementById("k-" + id + "-" + n).value = item.apiKey || "";
-                  document.getElementById("subk-" + id + "-" + n).value = item.subKey || "";
-                }
-              });
-            }
-          });
-        }
-        unusedList = data.unused || []; finalOutput = data.finalOutput || "";
-        chatHistory = data.chatHistory || []; lastPrompt = data.lastPrompt || "";
-        workflowSteps = data.workflowSteps || [{ l: "Waiting for task...", s: "Idle" }];
-        teamLogs = data.teamLogs || [];
-        document.getElementById("projectMemory").value = data.projectMemory || "";
-        keyStatus = data.keyStatus || {}; keyErrors = data.keyErrors || {};
-        keyAutoModels = data.keyAutoModels || {}; keyModelLists = data.keyModelLists || {};
-        lastReportedTeamSig = data.lastReportedTeamSig || "";
-      } catch (e) {}
-      renderChat(); renderOutput(); renderUnused(); setWf(workflowSteps); renderTeamLogs(); applyKeyVisuals();
-    }
+function saveCurrentProject() {
+  const title = (state.pendingProject?.prompt || state.output?.prompt || "Project " + nowTime()).slice(0, 36);
+  state.savedProjects.unshift({
+    id: "p_" + Date.now(),
+    title,
+    time: nowTime(),
+    chat: state.chat.slice(-20),
+    output: state.output,
+    memory: state.memory
+  });
+  if (state.savedProjects.length > 15) state.savedProjects.pop();
+  saveState();
+  pushChat("sys", `প্রজেক্ট সেভ হয়েছে: "${title}" (Files-এ পাওয়া যাবে)`);
+}
 
-    loadAll();
-  </script>
+function clearChat() {
+  if (!confirm("চ্যাট পরিষ্কার করবে?")) return;
+  state.chat = [{ id: "c0", role: "ai", text: "নতুন সেশন শুরু হলো। কী বানাতে চাও বলো।" }];
+  saveState();
+  renderChat();
+}
+
+function clearWorkflow() {
+  state.workflow = [];
+  state.disturbs = [];
+  saveState();
+  renderWorkflow();
+  renderDisturbBar();
+}
+
+function getElevenLabsKey() {
+  const keys = state.agents.audio?.keys || [];
+  for (const k of keys) {
+    if ((k.apiKey || "").trim() && (k.provider === "elevenlabs" || k.apiKey.startsWith("sk_"))) return k.apiKey.trim();
+  }
+  return "";
+}
+
+/* ---------- COMPACT POPOVER SYSTEM ---------- */
+function openPopover(title, html, wide = false) {
+  document.getElementById("popTitle").textContent = title;
+  document.getElementById("popContent").innerHTML = html;
+  document.getElementById("popCard").classList.toggle("wide", wide);
+  document.getElementById("popBackdrop").classList.add("open");
+}
+function closePopover() {
+  document.getElementById("popBackdrop").classList.remove("open");
+}
+
+function openChatFull() {
+  const lines = state.chat.map(m => `<div class="key-card"><b>${m.role === "user" ? "You" : "Director AI"}:</b><div style="margin-top:4px;white-space:pre-wrap;">${esc(m.text)}</div></div>`).join("");
+  openPopover("Director AI Chat", lines || "Empty", true);
+}
+
+function openOutputPopover() {
+  if (!state.output) { openPopover("Output", "<div class='output-empty'>কোনো আউটপুট নেই।</div>"); return; }
+  const o = state.output;
+  let html = "";
+  if (o.imageUrl) html += `<img src="${esc(o.imageUrl)}" style="width:100%;border-radius:10px;margin-bottom:8px;" />`;
+  if (o.audioData) html += `<audio controls src="${o.audioData}"></audio>`;
+  html += `<div style="white-space:pre-wrap;font-size:12px;line-height:1.5;margin-top:8px;">${esc(o.text)}</div>`;
+  html += `<div class="row-gap">
+    <button class="btn-chip active" onclick="downloadCurrentOutput()">Download Text</button>
+    ${o.imageUrl ? `<a class="btn-chip" href="${esc(o.imageUrl)}" target="_blank">Open Image</a>` : ""}
+  </div>`;
+  openPopover(o.kind === "final" ? "Final Output" : "Sample Output", html, true);
+}
+
+function openVaultPopover() {
+  if (!state.vault.length) { openPopover("Vault", "<div class='output-empty'>ভল্ট ফাঁকা আছে।</div>"); return; }
+  const html = state.vault.slice().reverse().map((v, rIdx) => {
+    const idx = state.vault.length - 1 - rIdx;
+    return `<div class="key-card" style="display:flex;justify-content:space-between;align-items:center;">
+      <div onclick="openVaultItemPopover(${idx})" style="cursor:pointer;flex:1;"><b>${esc(v.title)}</b><div style="font-size:10px;color:var(--muted);">${esc(v.time)}</div></div>
+      <button class="btn-chip danger" onclick="deleteVaultItem(${idx})">Del</button>
+    </div>`;
+  }).join("");
+  openPopover("Extra / Vault", html, true);
+}
+
+function openVaultItemPopover(idx) {
+  const v = state.vault[idx];
+  if (!v) return;
+  let html = "";
+  if (v.imageUrl) html += `<img src="${esc(v.imageUrl)}" style="width:100%;border-radius:8px;margin-bottom:8px;" />`;
+  if (v.audioData) html += `<audio controls src="${v.audioData}"></audio>`;
+  html += `<div style="white-space:pre-wrap;font-size:12px;max-height:200px;overflow-y:auto;">${esc(v.text)}</div>`;
+  html += `<div class="row-gap">
+    <button class="btn-chip active" onclick="downloadVaultItem(${idx})">Download</button>
+    <button class="btn-chip danger" onclick="deleteVaultItem(${idx});closePopover();">Delete</button>
+  </div>`;
+  openPopover(v.title, html, true);
+}
+
+function downloadVaultItem(idx) {
+  const v = state.vault[idx];
+  if (!v) return;
+  const blob = new Blob([v.text || ""], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `Vault-${idx + 1}.txt`;
+  a.click();
+}
+
+function deleteVaultItem(idx) {
+  state.vault.splice(idx, 1);
+  saveState();
+  renderVault();
+  if (document.getElementById("popBackdrop").classList.contains("open")) openVaultPopover();
+}
+
+function openAlertPopover(cat) {
+  const list = state.alerts[cat] || [];
+  list.forEach(x => x.read = true);
+  saveState();
+  renderAlerts();
+  const html = list.length
+    ? list.map(x => `<div class="key-card"><div style="font-size:10px;color:var(--muted);">${esc(x.time)}</div><div>${esc(x.msg)}</div></div>`).join("")
+    : `<div class="output-empty">কোনো নতুন মেসেজ বা সতর্কতা নেই।</div>`;
+  openPopover(cat.toUpperCase() + " Alerts (Read-Only)", html);
+}
+
+function openDisturbPopover() {
+  const html = state.disturbs.length
+    ? state.disturbs.map(d => `<div class="key-card" style="border-color:var(--red);"><b>${esc(d.agent)}</b> <span style="font-size:10px;color:var(--muted);">${esc(d.time)}</span><div style="margin-top:4px;color:#fecaca;">${esc(d.msg)}</div></div>`).join("") +
+      `<button class="btn-chip" onclick="state.disturbs=[];saveState();renderDisturbBar();closePopover();">Clear Errors</button>`
+    : `<div class="output-empty">সব সিস্টেম একদম ঠিকঠাক চলছে।</div>`;
+  openPopover("System Disturbances", html);
+}
+
+function openToolboxPopover() {
+  const t = state.suggestedTool;
+  if (!t) {
+    openPopover("Toolbox (Standby)", `<div class="output-empty" style="padding:14px 0;">এখন কোনো এক্সটার্নাল টুলের প্রয়োজন নেই। কাজের সময় প্রয়োজন হলে AI এখানে কানেক্ট করার অপশন দেখাবে।</div>`);
+    return;
+  }
+  const html = `
+    <div class="key-card" style="text-align:center;">
+      <div style="font-size:28px;">${esc(t.icon)}</div>
+      <div style="font-weight:700;margin-top:4px;">${esc(t.name)} <span style="font-size:10px;color:var(--accent);">(${esc(t.mode)})</span></div>
+      <div style="font-size:11.5px;color:var(--muted);margin:6px 0 10px;">${esc(t.note)}</div>
+      <button class="btn-chip active" onclick="alert('${esc(t.name)} কানেক্টর পরবর্তী আপডেটে যুক্ত হবে।')">Connect ${esc(t.name)}</button>
+    </div>`;
+  openPopover("Toolbox Connector", html);
+}
+
+function openFilesPopover() {
+  if (!state.savedProjects.length) { openPopover("Saved Files", "<div class='output-empty'>কোনো সেভ করা প্রজেক্ট নেই।</div>"); return; }
+  const html = state.savedProjects.map((p, idx) => `
+    <div class="key-card" style="display:flex;justify-content:space-between;align-items:center;">
+      <div><b>${esc(p.title)}</b><div style="font-size:10px;color:var(--muted);">${esc(p.time)}</div></div>
+      <div class="row-gap" style="margin:0;">
+        <button class="btn-chip active" onclick="loadSavedProject(${idx})">Open</button>
+        <button class="btn-chip danger" onclick="state.savedProjects.splice(${idx},1);saveState();openFilesPopover();">Del</button>
+      </div>
+    </div>`).join("");
+  openPopover("Saved Projects", html, true);
+}
+
+function loadSavedProject(idx) {
+  const p = state.savedProjects[idx];
+  if (!p) return;
+  state.chat = p.chat || [];
+  state.output = p.output || null;
+  state.memory = p.memory || "";
+  saveState();
+  renderAll();
+  closePopover();
+}
+
+function openLockPopover() {
+  const html = `
+    <label class="field-label">Character Bible & Continuity (Part 2+)</label>
+    <textarea class="field-textarea" id="memInput" placeholder="চরিত্রের চেহারা, পোশাক ও গল্পের ধারাবাহিকতা...">${esc(state.memory)}</textarea>
+    <div class="row-gap">
+      <button class="btn-chip active" onclick="saveMemoryManual()">Save Lock</button>
+      <button class="btn-chip" onclick="autoExtractMemory()">Auto-Extract</button>
+      <button class="btn-chip danger" onclick="state.memory='';saveState();renderAll();closePopover();">Clear</button>
+    </div>`;
+  openPopover("Continuity Lock", html, true);
+}
+
+function saveMemoryManual() {
+  state.memory = document.getElementById("memInput").value.trim();
+  saveState();
+  renderAll();
+  closePopover();
+}
+
+async function autoExtractMemory() {
+  const ctx = state.output?.text || state.chat.slice(-4).map(m => m.text).join("\n");
+  if (!ctx) { alert("লক করার মতো কোনো কন্টেন্ট নেই।"); return; }
+  const r = await fetch("/api/extract-continuity", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ config: getDirectorConfig(), existing_memory: state.memory, latest_context: ctx })
+  });
+  const d = await r.json();
+  if (d.ok && d.memory) {
+    state.memory = d.memory;
+    saveState();
+    renderAll();
+    document.getElementById("memInput").value = d.memory;
+  } else {
+    alert(d.error || "Continuity তৈরি করা যায়নি।");
+  }
+}
+
+/* ---------- API SETTINGS POPOVER (ALL AGENTS + AUTO-DETECT + SUB-KEYS) ---------- */
+function openApiPopover(agentId) {
+  const cfg = state.agents[agentId] || defaultAgentCfg();
+  state.agents[agentId] = cfg;
+
+  const tabs = AGENTS.map(a => `<button class="btn-chip ${a.id === agentId ? "active" : ""}" onclick="openApiPopover('${a.id}')">${a.name.split(" ")[0]}</button>`).join("");
+
+  const slotsHtml = cfg.keys.map((k, idx) => {
+    const provOpts = PROVIDERS.map(p => `<option value="${p}" ${k.provider === p ? "selected" : ""}>${p.toUpperCase()}</option>`).join("");
+    const modList = (k.models && k.models.length)
+      ? `<select class="field-select" onchange="updateSlot('${agentId}',${idx},'model',this.value)">
+          ${k.models.map(m => `<option value="${esc(m)}" ${k.model === m ? "selected" : ""}>${esc(m)}</option>`).join("")}
+         </select>`
+      : `<input class="field-input" value="${esc(k.model)}" placeholder="Model (Auto)" onchange="updateSlot('${agentId}',${idx},'model',this.value)" />`;
+    const dotCls = k.status === "ok" ? "green" : k.status === "error" ? "red" : k.status === "warn" ? "yellow" : "";
+
+    return `<div class="key-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-weight:600;font-size:11.5px;"><span class="dot ${dotCls}" style="margin-right:5px;"></span>Key #${idx + 1}</span>
+        <div style="display:flex;gap:4px;">
+          <button class="btn-chip active" onclick="autoDetectSlot('${agentId}',${idx})">Auto-Detect</button>
+          ${cfg.keys.length > 1 ? `<button class="btn-chip danger" onclick="removeSlot('${agentId}',${idx})">✕</button>` : ""}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:5px;">
+        <select class="field-select" onchange="updateSlot('${agentId}',${idx},'provider',this.value)">${provOpts}</select>
+        ${modList}
+      </div>
+      <input class="field-input" style="margin-top:5px;" type="password" value="${esc(k.apiKey)}" placeholder="Main API Key..." onchange="updateSlot('${agentId}',${idx},'apiKey',this.value)" />
+      <input class="field-input" style="margin-top:5px;" type="password" value="${esc(k.subKey || "")}" placeholder="Backup Sub-Key (Optional)..." onchange="updateSlot('${agentId}',${idx},'subKey',this.value)" />
+      ${k.lastMsg ? `<div style="font-size:10px;color:${k.status === "error" ? "#fca5a5" : "#86efac"};margin-top:4px;">${esc(k.lastMsg)}</div>` : ""}
+    </div>`;
+  }).join("");
+
+  let extraAudio = "";
+  if (agentId === "audio") {
+    extraAudio = `<div class="key-card">
+      <div style="font-weight:600;margin-bottom:5px;">ElevenLabs Quick SFX / Voice Test</div>
+      <input class="field-input" id="elQuickText" placeholder="ভয়েস বা সাউন্ড ইফেক্ট লেখো..." />
+      <div class="row-gap">
+        <button class="btn-chip active" onclick="quickEleven('tts')">Test Voice</button>
+        <button class="btn-chip" onclick="quickEleven('sfx')">Test SFX</button>
+      </div>
+      <div id="elQuickOut"></div>
+    </div>`;
+  }
+
+  const html = `
+    <div class="row-gap" style="margin-top:0;margin-bottom:10px;">${tabs}</div>
+    ${slotsHtml}
+    <div class="row-gap">
+      <button class="btn-chip" onclick="addSlot('${agentId}')">+ Add Key Slot</button>
+      <button class="btn-chip active" onclick="closePopover()">Done</button>
+    </div>
+    ${extraAudio}
+  `;
+  openPopover("API Control · " + agentId.toUpperCase(), html, true);
+}
+
+function updateSlot(agentId, idx, field, val) {
+  state.agents[agentId].keys[idx][field] = val.trim();
+  saveState();
+  renderApiList();
+}
+
+function addSlot(agentId) {
+  state.agents[agentId].keys.push({ provider: "openrouter", model: "", apiKey: "", subKey: "", models: [], status: "idle", lastMsg: "" });
+  saveState();
+  openApiPopover(agentId);
+}
+
+function removeSlot(agentId, idx) {
+  state.agents[agentId].keys.splice(idx, 1);
+  saveState();
+  renderApiList();
+  openApiPopover(agentId);
+}
+
+async function autoDetectSlot(agentId, idx) {
+  const slot = state.agents[agentId].keys[idx];
+  if (!slot.apiKey) { alert("আগে API Key পেস্ট করো।"); return; }
+  slot.status = "warn";
+  slot.lastMsg = "Checking...";
+  openApiPopover(agentId);
+
+  try {
+    const r = await fetch("/api/auto-detect-key", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        apiKey: slot.apiKey,
+        provider: slot.provider,
+        model: slot.model,
+        agentId
+      })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      slot.provider = d.provider || slot.provider;
+      slot.model = d.model || d.auto_model || slot.model;
+      slot.models = d.models || [];
+      slot.status = "ok";
+      slot.lastMsg = `Connected · ${slot.provider.toUpperCase()} (${slot.models.length} models)`;
+    } else {
+      slot.status = "error";
+      slot.lastMsg = d.error || "Key কাজ করেনি";
+      addDisturb(agentId.toUpperCase(), slot.lastMsg);
+      if (agentId !== "director") addAlert(agentId, slot.lastMsg);
+    }
+  } catch (e) {
+    slot.status = "error";
+    slot.lastMsg = String(e);
+  }
+  saveState();
+  renderApiList();
+  openApiPopover(agentId);
+}
+
+async function quickEleven(mode) {
+  const key = getElevenLabsKey();
+  const txt = document.getElementById("elQuickText")?.value.trim();
+  if (!key || !txt) { alert("ElevenLabs Key এবং লেখা দুটোই দাও।"); return; }
+  const out = document.getElementById("elQuickOut");
+  out.innerHTML = "<div style='font-size:11px;margin-top:5px;'>Generating...</div>";
+  const r = await fetch(mode === "sfx" ? "/api/elevenlabs/sfx" : "/api/elevenlabs/tts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ apiKey: key, text: txt })
+  });
+  const d = await r.json();
+  if (d.ok && d.audio_base64) {
+    out.innerHTML = `<audio controls autoplay src="${d.audio_base64}"></audio>`;
+  } else {
+    out.innerHTML = `<div style='color:#fca5a5;font-size:11px;margin-top:5px;'>${esc(d.error || "Error")}</div>`;
+  }
+}
+
+renderAll();
+</script>
 </body>
 </html>
+ 
