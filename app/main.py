@@ -518,11 +518,12 @@ async def api_extract_continuity(request: Request):
             "Write the updated Character Bible & Continuity Lock Sheet now:"
         )
 
-        async with httpx.AsyncClient() as client:
-                    res = await call_agent_with_fallbacks(client, config, prompt, sys_prompt, [], False)
+                async with httpx.AsyncClient() as client:
+            res = await call_agent_with_fallbacks(client, config, prompt, sys_prompt, [], False)
             if not res.get("ok"):
-                return JSONResponse({"ok": False, "error": res.get("error", "Continuity তৈরি ব্যর্থ হয়েছে।")})
+                return JSONResponse({"ok": False, "error": res.get("error", "Continuity তৈরি করা যায়নি")})
             return JSONResponse({"ok": True, "memory": res["text"]})
+                    
     except Exception as e:
         return JSONResponse({"ok": False, "error": str(e)})
 
