@@ -609,18 +609,26 @@ function buildBackendConfig(agentId) {
   const valid = slots.filter(s => s.key && s.key.trim());
   if (!valid.length) return null;
   const primary = valid.find(s => s.status !== 'error') || valid[0];
-  const backups = valid.filter(s => s !== primary).map(s => ({
-    provider: s.provider, apiKey: s.key.trim(), model: s.model, customUrl: s.customUrl || ''
+  const ordered = [primary, ...valid.filter(s => s !== primary)];
+  const keys = ordered.map((s, i) => ({
+    idx: i + 1,
+    provider: s.provider || 'openrouter',
+    model: s.model || '',
+    customUrl: s.customUrl || '',
+    apiKey: s.key.trim()
   }));
   return {
-    provider: primary.provider,
+    provider: primary.provider || 'openrouter',
     apiKey: primary.key.trim(),
-    model: primary.model,
+    model: primary.model || '',
     customUrl: primary.customUrl || '',
-    backups
+    key1: keys[0]?.apiKey || '',
+    key2: keys[1]?.apiKey || '',
+    key3: keys[2]?.apiKey || '',
+    keys
   };
 }
-
+  
 function getTeamSummary() {
   const lines = [];
   let advancedCount = 0;
