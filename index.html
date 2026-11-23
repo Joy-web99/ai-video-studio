@@ -1,1868 +1,1747 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>AI Video Studio</title>
-<style>
-  :root {
-    --bg: #0a0e17;
-    --panel: #111827;
-    --panel-2: #172135;
-    --border: #233049;
-    --text: #e8eef8;
-    --muted: #8b9bb5;
-    --accent: #38bdf8;
-    --accent-soft: rgba(56, 189, 248, 0.14);
-    --green: #22c55e;
-    --blue: #3b82f6;
-    --yellow: #f59e0b;
-    --red: #ef4444;
-    --radius: 12px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-  html, body {
-    height: 100%; width: 100%; background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 13px; overflow: hidden;
-  }
-  .app-shell {
-    display: flex; flex-direction: column; height: 100dvh; width: 100%;
-    padding: 6px; gap: 6px;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AI Production Studio V3</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --panel: #0d1424;
+      --panel-2: #121c32;
+      --border: #1e2d4a;
+      --text: #e8eefc;
+      --muted: #8fa3c8;
+      --blue: #38bdf8;
+      --indigo: #6366f1;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --white: #ffffff;
+      --radius: 14px;
+    }
 
-  /* Top Bar */
-  .topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; padding: 6px 10px; flex-shrink: 0;
-  }
-  .brand { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13.5px; letter-spacing: 0.2px; }
-  .brand-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-  .top-actions { display: flex; gap: 5px; align-items: center; }
-  .btn-chip {
-    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
-    border-radius: 8px; padding: 4px 8px; font-size: 11px; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 4px; transition: 0.15s;
-  }
-  .btn-chip:active { transform: scale(0.96); }
-  .btn-chip.active { border-color: var(--accent); background: var(--accent-soft); color: #fff; }
-  .btn-chip.locked { border-color: var(--green); color: var(--green); }
-  .btn-chip.danger { border-color: rgba(239,68,68,0.45); color: #fca5a5; }
-  .btn-chip.recover { border-color: var(--green); background: rgba(34,197,94,0.14); color: #bbf7d0; font-weight: 600; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif;
+      background: radial-gradient(circle at top, #101a33 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-size: 14px;
+      line-height: 1.45;
+    }
 
-  /* 6-Box Clean Workspace (Tools Hidden by Default -> Bigger Workflow) */
-  .workspace { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
-  .upper-row { flex: 1.28; min-height: 0; display: grid; grid-template-columns: 1.65fr 1fr; gap: 6px; }
-  .lower-row { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.65fr; gap: 6px; transition: 0.2s; }
-  .lower-row.tools-open { grid-template-columns: 0.95fr 1.2fr 0.62fr; }
+    /* টপ বার ও ক্যাটাগরি ম্যাট্রিক্স */
+    .topbar {
+      position: sticky; top: 0; z-index: 40;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 14px;
+      background: rgba(7, 11, 20, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; letter-spacing: 0.2px; }
+    .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .top-actions { display: flex; align-items: center; gap: 6px; }
 
-  /* Box Card */
-  .box {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: var(--radius); display: flex; flex-direction: column;
-    min-height: 0; min-width: 0; overflow: hidden; position: relative;
-  }
-  .box-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 5px 8px; border-bottom: 1px solid var(--border);
-    background: rgba(255,255,255,0.018); flex-shrink: 0;
-  }
-  .box-title {
-    font-size: 10.5px; font-weight: 600; color: var(--muted);
-    display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.4px;
-  }
+    .icon-btn {
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; padding: 7px 10px; cursor: pointer; font-size: 13px;
+      display: inline-flex; align-items: center; gap: 5px; transition: 0.2s;
+    }
+    .icon-btn:hover, .icon-btn:active { border-color: var(--blue); background: #182642; }
+    .icon-btn.active { border-color: var(--blue); box-shadow: 0 0 12px rgba(56, 189, 248, 0.28); color: var(--blue); }
+    .icon-btn.primary { background: linear-gradient(135deg, #2563eb, #6366f1); border-color: transparent; color: #fff; font-weight: 600; }
+    .icon-btn.success { background: rgba(34, 197, 94, 0.16); border-color: var(--green); color: #86efac; }
+    .icon-btn.danger { background: rgba(239, 68, 68, 0.14); border-color: var(--red); color: #fca5a5; }
+    .icon-btn.warn { background: rgba(245, 158, 11, 0.16); border-color: var(--gold); color: #fcd34d; }
 
-  /* 4-Color Live LED Dots */
-  .dot {
-    width: 8px; height: 8px; border-radius: 50%; background: #3f4f6b;
-    display: inline-block; flex-shrink: 0; transition: 0.2s;
-  }
-  .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .dot.blue { background: var(--blue); box-shadow: 0 0 9px var(--accent); animation: ledPulse 0.8s infinite; }
-  .dot.yellow { background: var(--yellow); box-shadow: 0 0 7px var(--yellow); animation: ledPulse 1.2s infinite; }
-  .dot.red { background: var(--red); box-shadow: 0 0 7px var(--red); animation: ledPulse 1.1s infinite; }
-  .dot-btn { cursor: pointer; padding: 2px; border-radius: 50%; display: inline-flex; align-items: center; }
-  @keyframes ledPulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.35; transform: scale(0.86); }
-  }
+    /* ওপরের ৪টি ক্যাটাগরি বক্স (Image, Video, Audio, Edit) */
+    .matrix-bar {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+      padding: 10px 14px 4px; max-width: 1440px; margin: 0 auto;
+    }
+    .matrix-box {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 8px 10px; display: flex; align-items: center; justify-content: space-between;
+      transition: 0.25s;
+    }
+    .matrix-name { font-size: 12px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .led-row { display: flex; align-items: center; gap: 4px; }
 
-  /* Capability Badges + Active Blue Blinking Animation */
-  .cap-row { display: flex; gap: 3px; flex-wrap: wrap; align-items: center; }
-  .cap-badge {
-    font-size: 8.5px; font-weight: 700; padding: 1px 4px; border-radius: 4px;
-    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-    color: var(--muted); letter-spacing: 0.2px; transition: 0.2s;
-  }
-  .cap-badge.ready { color: #cbd5e1; border-color: rgba(34,197,94,0.35); }
-  .cap-badge.working {
-    background: rgba(59,130,246,0.28); border-color: var(--accent);
-    color: #e0f2fe; box-shadow: 0 0 8px rgba(56,189,248,0.65);
-    animation: ledPulse 0.8s infinite;
-  }
-  .tier-tag {
-    font-size: 8.5px; font-weight: 700; padding: 1px 4px; border-radius: 4px;
-    background: rgba(56,189,248,0.12); color: var(--accent); border: 1px solid rgba(56,189,248,0.3);
-  }
-  .tier-tag.max { background: rgba(168,85,247,0.18); color: #d8b4fe; border-color: rgba(168,85,247,0.4); }
-  .tier-tag.high { background: rgba(56,189,248,0.16); color: #7dd3fc; border-color: rgba(56,189,248,0.38); }
-  .tier-tag.med { background: rgba(34,197,94,0.14); color: #86efac; border-color: rgba(34,197,94,0.35); }
+    /* LED সিস্টেম: সবুজ, নীল (Co-Work একাধিক), হলুদ, লাল এবং সাদা (Transfer/Self-Switch) */
+    .led {
+      width: 8px; height: 8px; border-radius: 50%; background: #334155; display: inline-block; transition: 0.2s;
+    }
+    .led.green { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .led.blue { background: var(--blue); box-shadow: 0 0 10px var(--blue); animation: bluePulse 0.85s infinite alternate; }
+    .led.yellow { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+    .led.red { background: var(--red); box-shadow: 0 0 8px var(--red); animation: redPulse 0.9s infinite alternate; }
+    .led.white { background: #ffffff; box-shadow: 0 0 14px #ffffff, 0 0 24px #e0f2fe; animation: whiteBlink 0.32s infinite alternate; }
 
-  .icon-btn {
-    background: transparent; border: none; color: var(--muted);
-    cursor: pointer; font-size: 13px; padding: 2px 5px; border-radius: 6px;
-  }
-  .icon-btn:active { background: var(--panel-2); color: var(--text); }
-  .icon-btn.glow { color: var(--accent); animation: ledPulse 1s infinite; }
+    @keyframes bluePulse { from { opacity: 0.35; transform: scale(0.85); } to { opacity: 1; transform: scale(1.25); } }
+    @keyframes redPulse { from { opacity: 0.4; } to { opacity: 1; } }
+    @keyframes whiteBlink { from { opacity: 0.2; transform: scale(0.85); } to { opacity: 1; transform: scale(1.35); } }
 
-  /* Box 1: Director AI Chat */
-  .chat-feed {
-    flex: 1; min-height: 0; overflow-y: auto; padding: 8px;
-    display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth;
-  }
-  .msg {
-    max-width: 93%; padding: 8px 10px; border-radius: 10px;
-    line-height: 1.45; word-wrap: break-word; font-size: 12.5px; white-space: pre-wrap;
-  }
-  .msg.user { align-self: flex-end; background: #1d4ed8; color: #fff; border-bottom-right-radius: 3px; }
-  .msg.ai { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--border); border-bottom-left-radius: 3px; }
-  .msg.sys {
-    align-self: center; background: rgba(56,189,248,0.08);
-    border: 1px dashed rgba(56,189,248,0.32); color: #bae6fd;
-    font-size: 11px; padding: 5px 9px; text-align: center;
-  }
-  .msg-tools { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
-  .mini-act {
-    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
-    color: var(--text); border-radius: 6px; padding: 3px 7px; font-size: 11px; cursor: pointer;
-  }
-  .mini-act.primary { background: var(--accent); color: #06101c; border-color: var(--accent); font-weight: 600; }
-  .mini-act.speaking { background: var(--red); border-color: var(--red); color: #fff; }
+    /* সাদা আলোর কার্ড ফ্ল্যাশ (Key Switch / Share / Self-Secondary) */
+    .white-transfer-flash {
+      border-color: #ffffff !important;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.75), inset 0 0 14px rgba(255, 255, 255, 0.25) !important;
+      animation: cardWhitePulse 0.35s ease-in-out 7 alternate;
+    }
+    @keyframes cardWhitePulse {
+      from { box-shadow: 0 0 6px rgba(255, 255, 255, 0.2); }
+      to { box-shadow: 0 0 24px rgba(255, 255, 255, 0.95); }
+    }
 
-  /* Dynamic Choice-Filling Checklist Card inside Chat */
-  .choice-card {
-    margin-top: 7px; padding: 8px; border-radius: 8px;
-    background: rgba(10,14,23,0.72); border: 1px solid rgba(56,189,248,0.32);
-    display: flex; flex-direction: column; gap: 6px;
-  }
-  .choice-group-title { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3px; }
-  .choice-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-  .choice-chip {
-    background: var(--panel-2); border: 1px solid var(--border); color: var(--muted);
-    border-radius: 6px; padding: 4px 7px; font-size: 10.5px; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 4px; transition: 0.15s;
-  }
-  .choice-chip.checked {
-    background: rgba(34,197,94,0.16); border-color: var(--green); color: #dcfce7; font-weight: 600;
-  }
+    /* মূল স্টুডিও গ্রিড */
+    .studio-grid {
+      display: grid; grid-template-columns: 290px 1fr 340px; gap: 12px;
+      padding: 10px 14px 24px; max-width: 1440px; margin: 0 auto; position: relative;
+    }
+    @media (max-width: 1080px) {
+      .studio-grid { grid-template-columns: 1fr; }
+      .matrix-bar { grid-template-columns: repeat(2, 1fr); }
+    }
 
-  /* Draft Edit Bar before Sending */
-  .draft-bar {
-    display: none; align-items: center; justify-content: space-between; gap: 6px;
-    padding: 4px 8px; background: rgba(56,189,248,0.1); border-top: 1px solid var(--border);
-    font-size: 10.5px; color: #bae6fd; flex-shrink: 0;
-  }
-  .draft-bar.show { display: flex; }
+    .panel {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      display: flex; flex-direction: column; overflow: hidden; position: relative;
+    }
+    .panel-head {
+      padding: 10px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      background: rgba(18, 28, 50, 0.65);
+    }
+    .panel-title { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
 
-  .chat-input-wrap {
-    display: flex; gap: 5px; padding: 6px; border-top: 1px solid var(--border);
-    background: var(--panel); align-items: center; flex-shrink: 0;
-  }
-  .chat-input {
-    flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border);
-    border-radius: 8px; padding: 7px 9px; font-size: 12.5px; outline: none; min-width: 0;
-  }
-  .chat-input:focus { border-color: var(--accent); }
-  .send-btn {
-    background: var(--accent); color: #06101c; border: none; border-radius: 8px;
-    padding: 7px 10px; font-weight: 700; font-size: 11.5px; cursor: pointer;
-  }
+    /* এনার্জি-ফ্লো রশ্মি অ্যানিমেশন (কাজ চললে API ও Chat থেকে Output-এ নীল ও সোনালি আলো) */
+    .energy-beam {
+      position: fixed; top: 52px; left: 0; right: 0; height: 3px; z-index: 45;
+      pointer-events: none; opacity: 0; transition: opacity 0.3s;
+      background: linear-gradient(90deg, transparent, var(--blue), var(--gold), var(--blue), transparent);
+      background-size: 200% 100%;
+    }
+    .energy-beam.active { opacity: 1; animation: beamFlow 1.2s linear infinite; }
+    @keyframes beamFlow { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-  /* 4 Category Columns + Per-Key LED Matrix under Chat */
-  .cat-matrix {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
-    padding: 4px 6px 6px; border-top: 1px solid var(--border);
-    background: rgba(0,0,0,0.22); flex-shrink: 0;
-  }
-  .cat-col {
-    background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px;
-    padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; min-width: 0;
-  }
-  .cat-col.has-alert { border-color: var(--yellow); background: rgba(245,158,11,0.12); }
-  .cat-top {
-    display: flex; align-items: center; justify-content: center; gap: 3px;
-    font-size: 9.5px; font-weight: 600; color: var(--text);
-  }
-  .cat-leds { display: flex; align-items: center; justify-content: center; gap: 3px; flex-wrap: wrap; min-height: 9px; }
-  .badge-num {
-    background: var(--yellow); color: #0b0f17; font-weight: 700; font-size: 8.5px;
-    padding: 0 3px; border-radius: 6px;
-  }
+    .panel.energy-active {
+      border-color: var(--blue);
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.22), inset 0 0 12px rgba(245, 158, 11, 0.08);
+    }
 
-  /* Right Upper: Box 2 (Output) + Box 3 (Vault) */
-  .right-upper { display: flex; flex-direction: column; gap: 6px; min-height: 0; min-width: 0; }
-  .box-output { flex: 1.28; }
-  .box-vault { flex: 0.82; }
-  .output-body {
-    flex: 1; min-height: 0; overflow-y: auto; padding: 6px;
-    display: flex; flex-direction: column; gap: 5px; justify-content: center; align-items: center;
-  }
-  .output-body.has-content { justify-content: flex-start; align-items: stretch; }
-  .output-empty { color: var(--muted); font-size: 10.5px; text-align: center; opacity: 0.78; }
-  .output-img { width: 100%; max-height: 102px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; background: #000; }
-  .output-text-snippet { font-size: 10.5px; color: #cbd5e1; line-height: 1.35; max-height: 62px; overflow: hidden; }
-  .output-pulse { width: 100%; height: 3px; background: var(--panel-2); overflow: hidden; display: none; }
-  .output-pulse.active { display: block; }
-  .output-pulse::after { content: ""; display: block; width: 45%; height: 100%; background: var(--accent); animation: slide 1.1s infinite ease-in-out; }
-  @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
-  .output-foot {
-    display: flex; gap: 4px; padding: 4px 6px; border-top: 1px solid var(--border);
-    justify-content: space-between; align-items: center; flex-shrink: 0;
-  }
+    /* এজেন্ট কার্ড (API Keys বক্স) */
+    .agent-list { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .agent-card {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
+      padding: 9px 10px; cursor: pointer; transition: 0.2s; position: relative;
+    }
+    .agent-card:hover { border-color: #3b5998; }
+    .agent-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .agent-title { font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .agent-meta { margin-top: 5px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); gap: 6px; }
+    .badge {
+      font-size: 10px; padding: 2px 6px; border-radius: 999px; font-weight: 600;
+      background: rgba(56, 189, 248, 0.14); color: var(--blue); border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .badge.shared { background: rgba(168, 85, 247, 0.16); color: #d8b4fe; border-color: rgba(168, 85, 247, 0.35); }
+    .badge.free { background: rgba(34, 197, 94, 0.14); color: #86efac; border-color: rgba(34, 197, 94, 0.3); }
 
-  /* Vault */
-  .vault-body { flex: 1; min-height: 0; overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 4px; }
-  .vault-item {
-    display: flex; align-items: center; justify-content: space-between; gap: 4px;
-    background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px;
-    padding: 4px 6px; font-size: 10px; cursor: pointer;
-  }
-  .vault-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    /* নিজের ঘরের ওপরে (Primary) ও নিচে (Secondary) সাদা LED ইন্ডিকেটর */
+    .self-dual-leds {
+      position: absolute; right: 6px; top: 6px; bottom: 6px;
+      display: none; flex-direction: column; justify-content: space-between; align-items: center;
+      pointer-events: none;
+    }
+    .agent-card.self-dual-flash .self-dual-leds { display: flex; }
 
-  /* Box 4: API Keys with Per-Key Dots + Capability Badges */
-  .api-list { flex: 1; min-height: 0; overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 5px; }
-  .api-row {
-    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 5px 7px; cursor: pointer; display: flex; flex-direction: column; gap: 3px;
-  }
-  .api-row-top { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; gap: 4px; }
-  .dots-wrap { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
-  .api-row-sub { font-size: 9.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* চ্যাট বক্স */
+    .chat-box { display: flex; flex-direction: column; height: 520px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .msg {
+      max-width: 90%; padding: 10px 12px; border-radius: 13px; font-size: 13.5px;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .msg.user { align-self: flex-end; background: linear-gradient(135deg, #1d4ed8, #4f46e5); color: #fff; border-bottom-right-radius: 4px; }
+    .msg.ai { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg.error { align-self: flex-start; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.45); color: #fecaca; }
+    .msg-actions { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
 
-  /* Box 5: Live Workflow + Bottom Blinking Notification Bar */
-  .wf-feed {
-    flex: 1; min-height: 0; overflow-y: auto; padding: 6px;
-    display: flex; flex-direction: column; gap: 5px; scroll-behavior: smooth;
-  }
-  .wf-item {
-    background: var(--panel-2); border-left: 2px solid var(--accent);
-    border-radius: 6px; padding: 5px 7px; font-size: 11px; line-height: 1.35;
-  }
-  .wf-item.ok { border-left-color: var(--green); }
-  .wf-item.work { border-left-color: var(--blue); }
-  .wf-item.warn { border-left-color: var(--yellow); }
-  .wf-item.err { border-left-color: var(--red); }
-  .wf-meta { font-size: 9.5px; color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 2px; }
+    .chat-input-area {
+      padding: 10px; border-top: 1px solid var(--border); background: rgba(13, 20, 36, 0.9);
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .input-row { display: flex; gap: 8px; align-items: flex-end; }
+    textarea.chat-input {
+      flex: 1; background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 11px; padding: 9px 11px; font-family: inherit; font-size: 13.5px;
+      resize: none; min-height: 42px; max-height: 110px; outline: none;
+    }
+    textarea.chat-input:focus { border-color: var(--blue); }
 
-  .notif-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 5px 8px; border-top: 1px solid var(--border);
-    background: rgba(255,255,255,0.02); font-size: 10.5px; color: var(--muted);
-    cursor: pointer; flex-shrink: 0;
-  }
-  .notif-bar.has-notif {
-    background: rgba(245,158,11,0.15); color: #fde68a; border-top-color: var(--yellow);
-  }
-  .notif-pill { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
-  .notif-bar.has-notif .notif-pill { animation: ledPulse 1.1s infinite; }
+    /* ওয়ার্কফ্লো ও ধপধপ করা নোটিফিকেশন বার */
+    .workflow-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .progress-wrap { background: #091020; border: 1px solid var(--border); border-radius: 999px; height: 8px; overflow: hidden; }
+    .progress-fill {
+      height: 100%; width: 0%; transition: width 0.35s ease;
+      background: linear-gradient(90deg, var(--blue), var(--gold), var(--green));
+    }
+    .wf-agents { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .wf-mini {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 6px 4px; text-align: center; cursor: pointer; font-size: 11px; transition: 0.2s;
+    }
+    .wf-mini:hover { border-color: var(--blue); }
 
-  /* Box 6: Collapsible Tools */
-  .box-tools { display: none; }
-  .lower-row.tools-open .box-tools { display: flex; }
-  .toolbox-body {
-    flex: 1; min-height: 0; padding: 6px; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 6px; cursor: pointer; text-align: center;
-  }
-  .toolbox-slot {
-    width: 100%; border: 1px dashed var(--border); border-radius: 9px;
-    padding: 10px 4px; color: var(--muted); font-size: 10.5px;
-  }
-  .toolbox-slot.active { border-style: solid; border-color: var(--accent); background: var(--accent-soft); color: #e0f2fe; }
+    .notif-bar {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 8px 12px; border-radius: 11px; cursor: pointer; font-size: 12px; font-weight: 600;
+      border: 1px solid var(--border); background: rgba(34, 197, 94, 0.12); color: #86efac;
+      transition: 0.25s;
+    }
+    .notif-bar.warn { background: rgba(245, 158, 11, 0.15); border-color: var(--gold); color: #fde68a; animation: throb 1.2s infinite alternate; }
+    .notif-bar.error { background: rgba(239, 68, 68, 0.18); border-color: var(--red); color: #fca5a5; animation: throb 0.85s infinite alternate; }
+    @keyframes throb { from { opacity: 0.65; } to { opacity: 1; } }
 
-  /* Compact Floating Popover */
-  .popover-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    display: none; align-items: center; justify-content: center; z-index: 60; padding: 14px;
-  }
-  .popover-backdrop.open { display: flex; }
-  .popover-card {
-    width: 100%; max-width: 360px; max-height: 84dvh; overflow-y: auto;
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 14px; padding: 12px; box-shadow: 0 18px 40px rgba(0,0,0,0.65);
-  }
-  .popover-card.wide { max-width: 470px; }
-  .pop-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--border);
-    font-weight: 700; font-size: 13px;
-  }
-  .field-label { font-size: 11px; color: var(--muted); margin: 7px 0 3px; display: block; }
-  .field-input, .field-select, .field-textarea {
-    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
-    border-radius: 8px; padding: 7px 9px; font-size: 12px; outline: none;
-  }
-  .field-textarea { min-height: 75px; resize: vertical; }
-  .row-gap { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
-  .key-card {
-    background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 9px; margin-bottom: 8px;
-  }
-  .mini-chat-box {
-    margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);
-    display: flex; gap: 5px;
-  }
-  audio { width: 100%; height: 30px; margin-top: 4px; }
-</style>
+    /* আউটপুট বক্স ও সবুজ ব্লিঙ্কিং "Ready!" বার */
+    .ready-bar {
+      display: none; padding: 8px 12px; font-size: 12.5px; font-weight: 700; text-align: center;
+      background: rgba(34, 197, 94, 0.22); color: #bbf7d0; border-bottom: 1px solid var(--green);
+      animation: readyBlink 0.7s infinite alternate;
+    }
+    .ready-bar.show { display: block; }
+    @keyframes readyBlink { from { background: rgba(34, 197, 94, 0.16); } to { background: rgba(34, 197, 94, 0.42); } }
+
+    .output-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; max-height: 600px; overflow-y: auto; }
+    .scene-stage {
+      width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+      background: #030712; position: relative; aspect-ratio: 9 / 14; max-height: 360px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .scene-stage img, .scene-stage video { width: 100%; height: 100%; object-fit: contain; }
+    .scene-thumbs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+    .scene-thumb {
+      width: 54px; height: 72px; border-radius: 8px; overflow: hidden; border: 2px solid transparent;
+      cursor: pointer; flex-shrink: 0; background: #0f172a;
+    }
+    .scene-thumb.active { border-color: var(--blue); }
+    .scene-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* মডাল ও পপ-আপ */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 80; background: rgba(2, 6, 23, 0.78);
+      backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 14px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+    }
+    .modal-head {
+      padding: 12px 14px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--panel); z-index: 2;
+    }
+    .modal-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+    .field input, .field select, .field textarea {
+      background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 10px; font-size: 13px; outline: none; width: 100%;
+    }
+    .field input:focus, .field select:focus { border-color: var(--blue); }
+
+    /* ব্র্যান্ড Top-3 Free vs Paid পাশাপাশি ছক */
+    .brand-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 520px) { .brand-grid { grid-template-columns: 1fr; } }
+    .brand-col {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 10px;
+    }
+    .brand-col h4 { font-size: 12px; margin-bottom: 8px; }
+    .model-pick {
+      width: 100%; text-align: left; background: rgba(15, 23, 42, 0.8); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; margin-bottom: 6px;
+      font-size: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    }
+    .model-pick:hover { border-color: var(--blue); color: var(--blue); }
+
+    .co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    @media (max-width: 600px) { .co-grid { grid-template-columns: 1fr; } }
+    .co-card {
+      background: #0a1224; border: 1px solid var(--border); border-radius: 11px; padding: 10px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+
+    .sample-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .sample-card {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .sample-card img { width: 100%; height: 170px; object-fit: cover; background: #020617; }
+    .sample-card-info { padding: 8px; font-size: 11.5px; }
+  </style>
 </head>
 <body>
-<div class="app-shell">
+  <!-- লাইভ এনার্জি-ফ্লো রশ্মি (কাজ চললে নীল-সোনালি আলো প্রবাহিত হবে) -->
+  <div id="energyBeam" class="energy-beam"></div>
 
-  <!-- Top Header -->
+  <!-- টপ বার (ক্লিন আইকন-ফার্স্ট কন্ট্রোল) -->
   <header class="topbar">
-    <div class="brand"><span class="brand-dot"></span> AI Video Studio</div>
+    <div class="brand">
+      <span id="studioBrandDot" class="brand-dot"></span>
+      <span>AI Studio V3</span>
+    </div>
     <div class="top-actions">
-      <button class="btn-chip" id="btnLock" onclick="openLockPopover()">Lock</button>
-      <button class="btn-chip" id="btnSave" onclick="saveCurrentProject()">Save</button>
-      <button class="btn-chip" id="btnFiles" onclick="openFilesPopover()">Files</button>
-      <button class="btn-chip" id="btnStop" onclick="cancelActiveJob()">Stop</button>
+      <button class="icon-btn" id="btnSmartMoveTop" onclick="runSmartMoveCycle()" title="Smart Move (রোটেশনাল ব্র্যান্ড সিঙ্ক)">🚀</button>
+      <button class="icon-btn" id="btnCoDirector" onclick="toggleCoDirector()" title="Co-Director (Option A/B)">🎭</button>
+      <button class="icon-btn" id="btnCoWork" onclick="toggleCoWork()" title="Co-Work (মাল্টি-AI একসাথে)">⚡</button>
+      <button class="icon-btn" onclick="openDubModal()" title="বাংলা/হিন্দি ভিডিও ডাবিং">🎙️</button>
+      <button class="icon-btn" onclick="checkTeamHealth()" title="টিম হেলথ চেক">🩺</button>
+      <button class="icon-btn warn" onclick="runFullRecovery()" title="Full Studio Self-Recovery">🛠️</button>
     </div>
   </header>
 
-  <!-- 6-Box Clean Workspace -->
-  <main class="workspace">
+  <!-- ওপরের ৪টি ক্যাটাগরি ম্যাট্রিক্স বক্স (Image, Video, Audio, Edit) -->
+  <section class="matrix-bar">
+    <div class="matrix-box" id="matrix-image">
+      <span class="matrix-name">🎨 Image</span>
+      <div class="led-row" id="matrix-leds-image"><span class="led"></span></div>
+    </div>
+    <div class="matrix-box" id="matrix-video">
+      <span class="matrix-name">🎥 Video</span>
+      <div class="led-row" id="matrix-leds-video"><span class="led"></span></div>
+    </div>
+    <div class="matrix-box" id="matrix-audio">
+      <span class="matrix-name">🎵 Audio</span>
+      <div class="led-row" id="matrix-leds-audio"><span class="led"></span></div>
+    </div>
+    <div class="matrix-box" id="matrix-editing">
+      <span class="matrix-name">✂️ Edit</span>
+      <div class="led-row" id="matrix-leds-editing"><span class="led"></span></div>
+    </div>
+  </section>
 
-    <!-- Upper Row: Box 1 (Chat) + Box 2 (Output) & Box 3 (Vault) -->
-    <section class="upper-row">
-
-      <!-- Box 1: Director AI Chat -->
-      <div class="box">
-        <div class="box-head">
-          <div class="box-title"><span class="dot" id="directorDot"></span> Director AI</div>
-          <div>
-            <button class="icon-btn" onclick="openChatFull()" title="Expand">⤢</button>
-            <button class="icon-btn" onclick="clearChat()" title="Clear">🗑</button>
-          </div>
-        </div>
-        <div class="chat-feed" id="chatFeed"></div>
-
-        <!-- Draft Edit / Cancel Bar before Sending -->
-        <div class="draft-bar" id="draftBar">
-          <span>Edit or send</span>
-          <div style="display:flex;gap:4px;">
-            <button class="mini-act" onclick="focusChatInput()">Edit</button>
-            <button class="mini-act" onclick="clearDraft()">Cancel</button>
-          </div>
-        </div>
-
-        <div class="chat-input-wrap">
-          <button class="icon-btn" id="micBtn" onclick="toggleVoiceInput()" title="Voice">🎤</button>
-          <input class="chat-input" id="chatInput" placeholder="কথা বলো, লিংক দাও বা ভিডিও বানাতে বলো..." oninput="onDraftInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();sendChat();}" />
-          <button class="send-btn" onclick="sendChat()">Send</button>
-        </div>
-
-        <!-- 4 Categories + Per-Key LED Matrix -->
-        <div class="cat-matrix">
-          <div class="cat-col" id="col-image" onclick="openAgentAlertPopover('image')">
-            <div class="cat-top">Image <span class="badge-num" id="anum-image" style="display:none;">0</span></div>
-            <div class="cat-leds" id="leds-image"></div>
-          </div>
-          <div class="cat-col" id="col-video" onclick="openAgentAlertPopover('video')">
-            <div class="cat-top">Video <span class="badge-num" id="anum-video" style="display:none;">0</span></div>
-            <div class="cat-leds" id="leds-video"></div>
-          </div>
-          <div class="cat-col" id="col-audio" onclick="openAgentAlertPopover('audio')">
-            <div class="cat-top">Audio <span class="badge-num" id="anum-audio" style="display:none;">0</span></div>
-            <div class="cat-leds" id="leds-audio"></div>
-          </div>
-          <div class="cat-col" id="col-editing" onclick="openAgentAlertPopover('editing')">
-            <div class="cat-top">Edit <span class="badge-num" id="anum-editing" style="display:none;">0</span></div>
-            <div class="cat-leds" id="leds-editing"></div>
-          </div>
+  <!-- মূল ৩-কলাম স্টুডিও ড্যাশবোর্ড -->
+  <main class="studio-grid">
+    <!-- ১. বাম প্যানেল: API Keys ও এজেন্ট বক্স -->
+    <section class="panel" id="panelApi">
+      <div class="panel-head">
+        <div class="panel-title">🔑 API Keys</div>
+        <div style="display:flex;gap:5px;">
+          <button class="icon-btn" onclick="runSmartMoveCycle()" title="Smart Move রোটেশন">🚀</button>
+          <button class="icon-btn" onclick="checkTeamHealth()" title="সব Key পরীক্ষা করো">🩺</button>
         </div>
       </div>
-
-      <!-- Right Upper Stack: Box 2 (Output) + Box 3 (Vault) -->
-      <div class="right-upper">
-        <div class="box box-output">
-          <div class="box-head">
-            <div class="box-title"><span class="dot" id="outDot"></span> Output</div>
-            <div style="display:flex;align-items:center;gap:2px;">
-              <button class="btn-chip" id="ratioBtn" style="padding:2px 5px;font-size:9.5px;" onclick="toggleRatio()">16:9</button>
-              <button class="btn-chip" id="ccBtn" style="padding:2px 5px;font-size:9.5px;" onclick="toggleCC()">CC</button>
-              <button class="icon-btn" onclick="openOutputPopover()" title="Full">⤢</button>
-            </div>
-          </div>
-          <div class="output-pulse" id="outPulse"></div>
-          <div class="output-body" id="outBody">
-            <div class="output-empty">স্যাম্পল বা ফাইনাল আউটপুট এখানে দেখাবে</div>
-          </div>
-          <div class="output-foot">
-            <span id="outTag" style="font-size:9.5px;color:var(--muted);">Standby</span>
-            <div style="display:flex;gap:4px;">
-              <button class="btn-chip" id="swapBtn" style="padding:2px 6px;font-size:10px;display:none;" onclick="swapWithVault()">Swap</button>
-              <button class="btn-chip active" style="padding:2px 7px;font-size:10px;" onclick="exportMP4Video()">MP4</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="box box-vault">
-          <div class="box-head">
-            <div class="box-title">Vault (<span id="vaultCount">0</span>)</div>
-            <div>
-              <button class="icon-btn" id="undoVaultBtn" style="display:none;" onclick="undoVaultDelete()" title="Undo">↩</button>
-              <button class="icon-btn" onclick="openVaultPopover()" title="Open">⤢</button>
-            </div>
-          </div>
-          <div class="vault-body" id="vaultBody">
-            <div class="output-empty">বাড়তি ফাইল এখানে জমবে</div>
-          </div>
-        </div>
-      </div>
-
+      <div class="agent-list" id="agentCardsContainer"></div>
     </section>
 
-    <!-- Lower Row: Box 4 (API) + Box 5 (Big Workflow) + Collapsible Box 6 (Tools) -->
-    <section class="lower-row" id="lowerRow">
-
-      <!-- Box 4: API Keys -->
-      <div class="box">
-        <div class="box-head">
-          <div class="box-title">API Keys</div>
-          <button class="icon-btn" onclick="openApiPopover('director')" title="Settings">⚙</button>
-        </div>
-        <div class="api-list" id="apiList"></div>
-      </div>
-
-      <!-- Box 5: Live Workflow + Bottom Blinking Notification Bar -->
-      <div class="box">
-        <div class="box-head">
-          <div class="box-title"><span class="dot" id="wfDot"></span> Workflow <span id="coworkBadge" style="font-size:9px;color:var(--accent);margin-left:3px;">Solo</span></div>
-          <div style="display:flex;align-items:center;gap:2px;">
-            <button class="icon-btn" onclick="clearWorkflow()" title="Clear">🗑</button>
-            <button class="icon-btn" id="toolsToggleBtn" onclick="toggleToolsDrawer()" title="Tools">◀</button>
+    <!-- ২. মাঝের কলাম: চ্যাট বক্স + ওয়ার্কফ্লো ও নোটিফিকেশন বার -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <!-- চ্যাট প্যানেল -->
+      <section class="panel" id="panelChat">
+        <div class="panel-head">
+          <div class="panel-title">🎬 Director Chat</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <select id="aspectSelect" class="icon-btn" style="padding:5px 7px;font-size:12px;" title="ভিডিও সাইজ">
+              <option value="9:16">9:16 Shorts</option>
+              <option value="16:9">16:9 Wide</option>
+            </select>
+            <button class="icon-btn" id="btnDirectMode" onclick="toggleDirectMode()" title="Direct Mode (স্যাম্পল ছাড়াই সরাসরি)">⏩</button>
+            <button class="icon-btn" onclick="clearChat()" title="চ্যাট পরিষ্কার করো">🗑️</button>
           </div>
         </div>
-        <div class="wf-feed" id="wfFeed"></div>
-        <div class="notif-bar" id="notifBar" onclick="openNotifPopover()">
-          <span class="notif-pill" id="notifText">🔔 0</span>
-          <span style="font-size:10px;">Tap / Recover</span>
-        </div>
-      </div>
 
-      <!-- Box 6: Collapsible Tools -->
-      <div class="box box-tools">
-        <div class="box-head">
-          <div class="box-title">Tools</div>
-          <button class="icon-btn" onclick="toggleToolsDrawer()" title="Hide">▶</button>
-        </div>
-        <div class="toolbox-body" onclick="openToolboxPopover()">
-          <div class="toolbox-slot" id="toolboxSlot">
-            <div id="toolboxIcon" style="font-size:16px;margin-bottom:3px;">+</div>
-            <div id="toolboxText">Standby</div>
+        <div class="chat-box">
+          <div class="chat-messages" id="chatMessages">
+            <div class="msg ai">স্বাগতম! তোমার গল্প, ভিডিওর আইডিয়া বা YouTube লিংক এখানে লেখো। চাইলে আগে চরিত্র ও ব্যাকগ্রাউন্ড স্যাম্পল দেখে লক করে নিতে পারো, অথবা সরাসরি 🎬 বাটনে চাপ দিয়ে পুরো 2D ভিডিও প্রোডাকশন চালু করতে পারো।</div>
+          </div>
+
+          <div class="chat-input-area">
+            <!-- ডাইনামিক স্মার্ট টুলবক্স (প্রয়োজনে 🧰 চাপলে খুলবে, নইলে ক্লিন থাকবে) -->
+            <div id="smartToolbox" style="display:none;flex-wrap:wrap;align-items:center;gap:8px;padding:7px 9px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;font-size:12px;">
+              <label style="display:flex;align-items:center;gap:4px;color:var(--muted);">
+                দৃশ্য:
+                <select id="sceneCountSelect" style="background:#091020;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:3px 5px;font-size:12px;">
+                  <option value="3">3</option>
+                  <option value="4" selected>4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                </select>
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;color:#fcd34d;cursor:pointer;" title="অনুমতি না দিলে Runway ক্রেডিট কাটবে না">
+                <input type="checkbox" id="allowPaidVideoChk" />
+                Runway Paid
+              </label>
+              <button class="icon-btn" style="padding:4px 8px;font-size:11.5px;" onclick="requestSamplesFromInput()">🎨 স্যাম্পল দেখো</button>
+              <button class="icon-btn" style="padding:4px 8px;font-size:11.5px;" onclick="openDubModal()">🎙️ ডাবিং</button>
+            </div>
+
+            <div class="input-row">
+              <button class="icon-btn" id="btnToolbox" onclick="toggleToolbox()" title="স্মার্ট টুলবক্স">🧰</button>
+              <textarea id="chatInput" class="chat-input" rows="1" placeholder="গল্প, নির্দেশনা বা YouTube লিংক লেখো..."></textarea>
+              <button class="icon-btn" onclick="sendChat()" title="Director-এর সাথে কথা বলো">➤</button>
+              <button class="icon-btn primary" onclick="startProduction()" title="ভিডিও প্রোডাকশন শুরু করো">🎬</button>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
+      <!-- ওয়ার্কফ্লো ও ধপধপ করা নোটিফিকেশন বার -->
+      <section class="panel" id="panelWorkflow">
+        <div class="panel-head">
+          <div class="panel-title">⚙️ Workflow</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;">
+            <span id="wfStage" style="color:var(--muted);">প্রস্তুত</span>
+            <span id="wfPct" class="badge">0%</span>
+          </div>
+        </div>
+        <div class="workflow-body">
+          <div class="progress-wrap"><div id="wfProgressBar" class="progress-fill"></div></div>
+
+          <!-- ৫ জন এজেন্টের ছোট ক্লিকেবল বক্স (ট্যাপ করলেই কে কী বুঝেছে ও করছে দেখা যাবে) -->
+          <div class="wf-agents" id="wfAgentsRow">
+            <div class="wf-mini" onclick="openAgentThought('director')">🎯<br/>Dir<div class="led-row" style="justify-content:center;margin-top:3px;" id="wf-leds-director"><span class="led"></span></div></div>
+            <div class="wf-mini" onclick="openAgentThought('image')">🎨<br/>Img<div class="led-row" style="justify-content:center;margin-top:3px;" id="wf-leds-image"><span class="led"></span></div></div>
+            <div class="wf-mini" onclick="openAgentThought('video')">🎥<br/>Vid<div class="led-row" style="justify-content:center;margin-top:3px;" id="wf-leds-video"><span class="led"></span></div></div>
+            <div class="wf-mini" onclick="openAgentThought('audio')">🎵<br/>Aud<div class="led-row" style="justify-content:center;margin-top:3px;" id="wf-leds-audio"><span class="led"></span></div></div>
+            <div class="wf-mini" onclick="openAgentThought('editing')">✂️<br/>Edt<div class="led-row" style="justify-content:center;margin-top:3px;" id="wf-leds-editing"><span class="led"></span></div></div>
+          </div>
+
+          <!-- ধপধপ করা নোটিফিকেশন বার -->
+          <div id="notifBar" class="notif-bar" onclick="openNotifModal()">
+            <span id="notifText">🟢 স্টুডিও সচল ও প্রস্তুত</span>
+            <span id="notifCount" class="badge free">0</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ৩. ডান প্যানেল: Output বক্স (সবুজ Ready বার + Open / Download / Improve) -->
+    <section class="panel" id="panelOutput">
+      <div class="panel-head">
+        <div class="panel-title">📺 Output</div>
+        <div style="display:flex;gap:5px;">
+          <button class="icon-btn" id="btnSoundToggle" onclick="toggleReadySound()" title="Ready সাউন্ড অন/অফ">🔊</button>
+          <button class="icon-btn" onclick="openVaultModal()" title="আগের ভার্সন (Vault)">🗂️</button>
+        </div>
+      </div>
+      <div id="readyBar" class="ready-bar">✅ আউটপুট প্রস্তুত! (Ready!)</div>
+      <div id="outputBody" class="output-body">
+        <div style="text-align:center;padding:34px 12px;color:var(--muted);font-size:13px;">
+          এখনো কোনো ফাইল তৈরি হয়নি।<br/>গল্প লিখে <strong>🎬</strong> বাটনে চাপ দিলে আসল 2D সিন রিল, অডিও ও YouTube প্যাক এখানে আসবে।
+        </div>
+      </div>
     </section>
-
   </main>
-</div>
-
-<!-- Compact Floating Popover -->
-<div class="popover-backdrop" id="popBackdrop" onclick="if(event.target===this)closePopover()">
-  <div class="popover-card" id="popCard">
-    <div class="pop-head">
-      <span id="popTitle">Panel</span>
-      <button class="icon-btn" onclick="closePopover()">✕</button>
+    <!-- ১. API Settings মডাল (Primary/Secondary, Paid⇄Free, Move/Share/Self-Secondary ও ব্র্যান্ড Info) -->
+  <div id="modalApi" class="modal-backdrop" onclick="if(event.target===this) closeModal('modalApi')">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="panel-title" id="apiModalTitle">🔑 API Settings</div>
+        <button class="icon-btn" onclick="closeModal('modalApi')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="apiSlotsContainer" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;">
+          <button class="icon-btn" onclick="addBackupSlot()">➕ Backup Key</button>
+          <div style="display:flex;gap:6px;">
+            <button class="icon-btn" onclick="runSmartMoveCycle()" title="Smart Move রোটেশন">🚀 Smart Move</button>
+            <button class="icon-btn primary" onclick="saveCurrentAgentModal()">💾 Save</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="popContent"></div>
   </div>
-</div>
-<script>
-const STORAGE_KEY = 'ai_video_studio_v13_state';
-const AGENT_META = [
-  { id: 'director', name: 'Director', cap: 'TXT' },
-  { id: 'image', name: 'Image', cap: 'IMG' },
-  { id: 'video', name: 'Video', cap: 'VID' },
-  { id: 'audio', name: 'Audio', cap: 'AUD' },
-  { id: 'editing', name: 'Edit', cap: 'EDT' }
-];
 
-function makeSlot() {
-  return {
-    key: '', provider: 'openrouter', model: '', models: [], customUrl: '',
-    status: 'idle', error: '', tier: 'Medium', caps: [], activeCaps: [],
-    triedModels: [], note: '', usage: 0
-  };
-}
-
-let state = {
-  agents: {
-    director: { slots: [makeSlot()] },
-    image: { slots: [makeSlot()] },
-    video: { slots: [makeSlot()] },
-    audio: { slots: [makeSlot()] },
-    editing: { slots: [makeSlot()] }
-  },
-  chat: [],
-  workflow: [],
-  notifs: [],
-  agentAlerts: { image: [], video: [], audio: [], editing: [] },
-  output: null,
-  vault: [],
-  deletedVault: [],
-  savedProjects: [],
-  characterLock: '',
-  cowork: false,
-  ratio: '16:9',
-  cc: true,
-  toolsOpen: false,
-  activeJobId: null,
-  isBusy: false,
-  pendingChoice: null
-};
-
-let speakingMsgId = null;
-let recognition = null;
-let isListening = false;
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') state = Object.assign(state, parsed);
-    }
-  } catch (e) {}
-  if (!state.agents || typeof state.agents !== 'object') state.agents = {};
-  if (!Array.isArray(state.chat)) state.chat = [];
-  if (!Array.isArray(state.workflow)) state.workflow = [];
-  if (!Array.isArray(state.notifs)) state.notifs = [];
-  if (!Array.isArray(state.vault)) state.vault = [];
-  if (!Array.isArray(state.deletedVault)) state.deletedVault = [];
-  if (!Array.isArray(state.savedProjects)) state.savedProjects = [];
-  state.agentAlerts = Object.assign({ image: [], video: [], audio: [], editing: [] }, state.agentAlerts || {});
-  AGENT_META.forEach(a => {
-    const slots = state.agents[a.id]?.slots;
-    if (!Array.isArray(slots) || !slots.length) {
-      state.agents[a.id] = { slots: [makeSlot()] };
-    } else {
-      state.agents[a.id].slots = slots.map(s => {
-        const clean = Object.assign(makeSlot(), s || {});
-        if (!Array.isArray(clean.models)) clean.models = [];
-        if (!Array.isArray(clean.caps)) clean.caps = [];
-        if (!Array.isArray(clean.activeCaps)) clean.activeCaps = [];
-        if (!Array.isArray(clean.triedModels)) clean.triedModels = [];
-        if (clean.status === 'working') clean.status = clean.key ? 'ready' : 'idle';
-        clean.activeCaps = [];
-        return clean;
-      });
-    }
-  });
-  state.isBusy = false;
-  state.activeJobId = null;
-}
-
-function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-}
-
-function esc(s) {
-  return String(s || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-}
-
-function nowTime() {
-  return new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
-}
-
-function inferTierAndCaps(provider, model, agentId) {
-  const m = (model || '').toLowerCase();
-  const p = (provider || '').toLowerCase();
-  let tier = 'Medium';
-  if (/pro|opus|sonnet|gpt-4o|o1|o3|r1|kling-2|gen-4|veo|sora|flux-pro|eleven_multilingual_v2|4k/.test(m)) tier = 'Max';
-  else if (/flash|70b|turbo|kling|runway|minimax|flux|recraft|eleven|gemini-2/.test(m)) tier = 'High';
-
-  const caps = new Set();
-  if (agentId === 'director') caps.add('TXT');
-  if (agentId === 'image') caps.add('IMG');
-  if (agentId === 'video') caps.add('VID');
-  if (agentId === 'audio') caps.add('AUD');
-  if (agentId === 'editing') caps.add('EDT');
-
-  if (p === 'google' || /gemini/.test(m)) { caps.add('TXT'); caps.add('IMG'); caps.add('VID'); caps.add('AUD'); caps.add('EDT'); }
-  else if (p === 'openrouter' || p === 'openai') { caps.add('TXT'); caps.add('EDT'); if (/gpt-4o|vision|image|flux|omni/.test(m)) caps.add('IMG'); }
-  else if (p === 'elevenlabs' || /eleven/.test(m)) { caps.add('AUD'); }
-  else if (p === 'fal' || p === 'replicate' || /kling|runway|veo|hailuo/.test(m)) { caps.add('VID'); caps.add('IMG'); }
-  else if (p === 'groq' || p === 'deepseek' || p === 'mistral') { caps.add('TXT'); caps.add('EDT'); }
-
-  return { tier, caps: Array.from(caps) };
-}
-
-function getActiveSlot(agentId) {
-  const slots = (state.agents[agentId] && state.agents[agentId].slots) || [];
-  return slots.find(s => s.key && s.status !== 'error') || slots.find(s => s.key) || null;
-}
-
-function buildBackendConfig(agentId) {
-  const slots = (state.agents[agentId] && state.agents[agentId].slots) || [];
-  const valid = slots.filter(s => s.key && s.key.trim());
-  if (!valid.length) return null;
-  const primary = valid.find(s => s.status !== 'error') || valid[0];
-  const ordered = [primary, ...valid.filter(s => s !== primary)];
-  const keys = ordered.map((s, i) => ({
-    idx: i + 1,
-    provider: s.provider || 'openrouter',
-    model: s.model || '',
-    customUrl: s.customUrl || '',
-    apiKey: s.key.trim()
-  }));
-  return {
-    provider: primary.provider || 'openrouter',
-    apiKey: primary.key.trim(),
-    model: primary.model || '',
-    customUrl: primary.customUrl || '',
-    key1: keys[0]?.apiKey || '',
-    key2: keys[1]?.apiKey || '',
-    key3: keys[2]?.apiKey || '',
-    keys
-  };
-}
-  
-function getTeamSummary() {
-  const lines = [];
-  let advancedCount = 0;
-  AGENT_META.forEach(a => {
-    const s = getActiveSlot(a.id);
-    if (!s) {
-      lines.push(`${a.name}: যুক্ত নেই`);
-    } else {
-      if (s.tier === 'Max' || s.tier === 'High' || s.provider === 'elevenlabs') advancedCount++;
-      lines.push(`${a.name}: চালু (${s.provider}/${s.model || 'auto'}, Power:${s.tier}, Caps:${(s.caps||[]).join(',')})`);
-    }
-  });
-  return { text: lines.join('\n'), advancedCount };
-}
-
-function addWorkflow(title, text, type = 'info') {
-  state.workflow.push({ id: Date.now() + Math.random(), title, text, type, time: nowTime() });
-  if (state.workflow.length > 50) state.workflow.shift();
-  renderWorkflow();
-  saveState();
-}
-
-function addNotif(agentId, msg, recoverable = true) {
-  state.notifs.unshift({ id: Date.now() + Math.random(), agentId, msg, recoverable, time: nowTime(), resolved: false });
-  if (state.notifs.length > 30) state.notifs.pop();
-  if (state.agentAlerts[agentId]) {
-    state.agentAlerts[agentId].unshift({ msg, time: nowTime() });
-    if (state.agentAlerts[agentId].length > 10) state.agentAlerts[agentId].pop();
-  }
-  renderNotifs();
-  renderCatMatrix();
-  saveState();
-}
-
-function setAgentWorking(agentId, working, activeCapList = []) {
-  const slots = state.agents[agentId]?.slots || [];
-  const active = getActiveSlot(agentId);
-  slots.forEach(s => {
-    if (!s.key) return;
-    if (working && s === active && s.status !== 'error') {
-      s.status = 'working';
-      s.activeCaps = activeCapList.length ? activeCapList : (s.caps || []);
-    } else if (!working && s.status === 'working') {
-      s.status = 'ready';
-      s.activeCaps = [];
-    }
-  });
-  renderApiList();
-  renderCatMatrix();
-  updateTopDots();
-}
-
-function updateTopDots() {
-  const dSlot = getActiveSlot('director');
-  const dDot = document.getElementById('directorDot');
-  dDot.className = 'dot ' + (!dSlot ? '' : dSlot.status === 'working' ? 'blue' : dSlot.status === 'error' ? 'red' : 'green');
-  const wfDot = document.getElementById('wfDot');
-  wfDot.className = 'dot ' + (state.isBusy ? 'blue' : 'green');
-  const outDot = document.getElementById('outDot');
-  outDot.className = 'dot ' + (state.isBusy ? 'blue' : state.output ? 'green' : '');
-  document.getElementById('outPulse').className = 'output-pulse' + (state.isBusy ? ' active' : '');
-  document.getElementById('coworkBadge').textContent = state.cowork ? 'Co-Work' : 'Solo';
-  document.getElementById('btnLock').className = 'btn-chip' + (state.characterLock ? ' locked' : '');
-  document.getElementById('ratioBtn').textContent = state.ratio;
-  document.getElementById('ccBtn').className = 'btn-chip' + (state.cc ? ' active' : '');
-}
-
-function renderApiList() {
-  const el = document.getElementById('apiList');
-  el.innerHTML = AGENT_META.map(a => {
-    const slots = state.agents[a.id].slots;
-    const active = getActiveSlot(a.id);
-    const dotsHtml = slots.map((s, idx) => {
-      const cls = !s.key ? '' : s.status === 'working' ? 'blue' : s.status === 'error' ? 'red' : s.status === 'warn' ? 'yellow' : 'green';
-      return `<span class="dot-btn" onclick="event.stopPropagation();onDotClick('${a.id}',${idx})"><span class="dot ${cls}"></span></span>`;
-    }).join('');
-    const tierCls = active ? (active.tier === 'Max' ? 'max' : active.tier === 'High' ? 'high' : 'med') : '';
-    const tierHtml = active ? `<span class="tier-tag ${tierCls}">${active.tier}</span>` : '';
-    const capsHtml = active && active.caps.length ? `<div class="cap-row">${active.caps.map(c => {
-      const isWork = active.status === 'working' && (active.activeCaps || []).includes(c);
-      return `<span class="cap-badge ${isWork ? 'working' : 'ready'}">${c}</span>`;
-    }).join('')}</div>` : '';
-    const sub = active ? `${active.provider} · ${active.model || 'auto'}` : 'Key বসানো নেই';
-    return `<div class="api-row" onclick="openApiPopover('${a.id}')">
-      <div class="api-row-top">
-        <span>${a.name} ${tierHtml}</span>
-        <span class="dots-wrap">${dotsHtml}</span>
+  <!-- ২. ব্র্যান্ড Top-3 Free vs Top-3 Paid ইনফো ছক মডাল -->
+  <div id="modalBrandInfo" class="modal-backdrop" onclick="if(event.target===this) closeModal('modalBrandInfo')">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="panel-title" id="brandInfoTitle">ℹ️ Brand Top Models</div>
+        <button class="icon-btn" onclick="closeModal('modalBrandInfo')">✕</button>
       </div>
-      ${capsHtml}
-      <div class="api-row-sub">${esc(sub)}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderCatMatrix() {
-  const cats = [
-    { id: 'image', cap: 'IMG' },
-    { id: 'video', cap: 'VID' },
-    { id: 'audio', cap: 'AUD' },
-    { id: 'editing', cap: 'EDT' }
-  ];
-  cats.forEach(c => {
-    const ledsEl = document.getElementById('leds-' + c.id);
-    const colEl = document.getElementById('col-' + c.id);
-    const numEl = document.getElementById('anum-' + c.id);
-    const alerts = state.agentAlerts[c.id] || [];
-    colEl.className = 'cat-col' + (alerts.length ? ' has-alert' : '');
-    numEl.style.display = alerts.length ? 'inline' : 'none';
-    numEl.textContent = alerts.length;
-
-    const dots = [];
-    AGENT_META.forEach(a => {
-      state.agents[a.id].slots.forEach(s => {
-        if (!s.key) return;
-        if (a.id === c.id || (s.caps || []).includes(c.cap)) {
-          const isWork = s.status === 'working' && ((s.activeCaps || []).includes(c.cap) || a.id === c.id);
-          const cls = isWork ? 'blue' : s.status === 'error' ? 'red' : s.status === 'warn' ? 'yellow' : 'green';
-          dots.push(`<span class="dot ${cls}" title="${a.name} (${s.model || s.provider})"></span>`);
-        }
-      });
-    });
-    ledsEl.innerHTML = dots.length ? dots.join('') : '<span class="dot"></span>';
-  });
-}
-
-function renderWorkflow() {
-  const el = document.getElementById('wfFeed');
-  if (!state.workflow.length) {
-    el.innerHTML = '<div class="output-empty" style="margin-top:20px;">টিমের লাইভ কাজের ধাপ ও কথোপকথন এখানে দেখাবে</div>';
-    return;
-  }
-  el.innerHTML = state.workflow.map(w => `
-    <div class="wf-item ${w.type}">
-      <div class="wf-meta"><b>${esc(w.title)}</b><span>${w.time}</span></div>
-      <div>${esc(w.text)}</div>
-    </div>`).join('');
-  el.scrollTop = el.scrollHeight;
-}
-
-function renderNotifs() {
-  const active = state.notifs.filter(n => !n.resolved);
-  const bar = document.getElementById('notifBar');
-  bar.className = 'notif-bar' + (active.length ? ' has-notif' : '');
-  document.getElementById('notifText').textContent = `🔔 ${active.length}`;
-}
-
-function renderOutput() {
-  const body = document.getElementById('outBody');
-  const tag = document.getElementById('outTag');
-  const swapBtn = document.getElementById('swapBtn');
-  swapBtn.style.display = (state.output && state.vault.length) ? 'inline-flex' : 'none';
-  if (!state.output) {
-    body.className = 'output-body';
-    body.innerHTML = '<div class="output-empty">স্যাম্পল বা ফাইনাল আউটপুট এখানে দেখাবে</div>';
-    tag.textContent = 'Standby';
-    return;
-  }
-  body.className = 'output-body has-content';
-  tag.textContent = `${state.output.stage || 'Sample'} · ${state.ratio}`;
-  let html = '';
-  if (state.output.videoUrl) {
-    html += `<video class="output-img" controls playsinline src="${esc(state.output.videoUrl)}"></video>`;
-  } else if (state.output.imgUrl) {
-    html += `<img class="output-img" src="${esc(state.output.imgUrl)}" onclick="openOutputPopover()" />`;
-  }
-  if (state.output.audioUrl) {
-    html += `<audio controls src="${esc(state.output.audioUrl)}"></audio>`;
-  }
-  html += `<div class="output-text-snippet">${esc(state.output.title || 'Project')}: ${esc((state.output.text || '').slice(0, 140))}</div>`;
-  body.innerHTML = html;
-}
-
-function renderVault() {
-  const body = document.getElementById('vaultBody');
-  document.getElementById('vaultCount').textContent = state.vault.length;
-  document.getElementById('undoVaultBtn').style.display = state.deletedVault.length ? 'inline-block' : 'none';
-  if (!state.vault.length) {
-    body.innerHTML = '<div class="output-empty">বাড়তি ফাইল এখানে জমবে</div>';
-    return;
-  }
-  body.innerHTML = state.vault.map((v, i) => `
-    <div class="vault-item" onclick="restoreFromVault(${i})">
-      <span class="vault-name">${esc(v.title || 'Sample #' + (i + 1))}</span>
-      <button class="icon-btn" style="font-size:11px;" onclick="event.stopPropagation();deleteVaultItem(${i})">✕</button>
-    </div>`).join('');
-}
-
-function openPopover(title, html, wide = false) {
-  document.getElementById('popTitle').textContent = title;
-  document.getElementById('popContent').innerHTML = html;
-  document.getElementById('popCard').className = 'popover-card' + (wide ? ' wide' : '');
-  document.getElementById('popBackdrop').classList.add('open');
-}
-
-function closePopover() {
-  document.getElementById('popBackdrop').classList.remove('open');
-}
-
-function onDotClick(agentId, idx) {
-  const s = state.agents[agentId].slots[idx];
-  if (s && s.status === 'error') {
-    openPopover(`${agentId.toUpperCase()} Key #${idx + 1} সমস্যা`, `
-      <div class="wf-item err" style="margin-bottom:10px;">${esc(s.error || 'API Key কাজ করছে না বা লিমিট শেষ হয়েছে।')}</div>
-      <div class="row-gap">
-        <button class="btn-chip recover" onclick="runSelfRecovery('${agentId}')">⚡ Self-Recovery চালাও</button>
-        <button class="btn-chip" onclick="openApiPopover('${agentId}')">Settings খোলো</button>
-      </div>`);
-  } else {
-    openApiPopover(agentId);
-  }
-}
-
-function openApiPopover(agentId) {
-  const slots = state.agents[agentId].slots;
-  const tabs = AGENT_META.map(a =>
-    `<button class="btn-chip ${a.id === agentId ? 'active' : ''}" onclick="openApiPopover('${a.id}')">${a.name}</button>`
-  ).join('');
-  const cards = slots.map((s, i) => `
-    <div class="key-card">
-      <div class="api-row-top" style="margin-bottom:6px;">
-        <span>Key #${i + 1} ${i === 0 ? '(Primary)' : '(Backup)'} <span class="tier-tag ${s.tier==='Max'?'max':s.tier==='High'?'high':'med'}">${s.tier}</span></span>
-        <span class="dot ${!s.key?'':s.status==='working'?'blue':s.status==='error'?'red':'green'}"></span>
-      </div>
-      <input class="field-input" type="password" placeholder="API Key পেস্ট করো..." value="${esc(s.key)}" oninput="updateSlot('${agentId}',${i},'key',this.value)" />
-      <div class="row-gap">
-        <select class="field-select" style="flex:1;" onchange="updateSlot('${agentId}',${i},'provider',this.value)">
-          ${['openrouter','google','openai','groq','deepseek','mistral','elevenlabs','fal','replicate','custom'].map(p =>
-            `<option value="${p}" ${s.provider===p?'selected':''}>${p}</option>`).join('')}
-        </select>
-        <button class="btn-chip active" onclick="autoDetectSlot('${agentId}',${i})">Auto-Detect</button>
-      </div>
-      ${s.provider === 'custom' ? `<input class="field-input" style="margin-top:6px;" placeholder="Custom Base URL (https://...)" value="${esc(s.customUrl)}" oninput="updateSlot('${agentId}',${i},'customUrl',this.value)" />` : ''}
-      <label class="field-label">Model (${s.models.length || 0}টি পাওয়া গেছে)</label>
-      <input class="field-input" list="mlist-${agentId}-${i}" value="${esc(s.model)}" placeholder="Model name..." oninput="updateSlot('${agentId}',${i},'model',this.value)" />
-      <datalist id="mlist-${agentId}-${i}">${(s.models||[]).slice(0,120).map(m=>`<option value="${esc(m)}">`).join('')}</datalist>
-      ${s.error ? `<div style="color:#fca5a5;font-size:10.5px;margin-top:4px;">⚠️ ${esc(s.error)}</div>` : ''}
-      <div class="row-gap">
-        ${i > 0 ? `<button class="btn-chip danger" onclick="removeSlot('${agentId}',${i})">Remove</button>` : ''}
-      </div>
-    </div>`).join('');
-
-  openPopover(`API Settings · ${agentId.toUpperCase()}`, `
-    <div class="row-gap" style="margin-top:0;margin-bottom:8px;">${tabs}</div>
-    ${cards}
-    <div class="row-gap">
-      ${slots.length < 3 ? `<button class="btn-chip" onclick="addSlot('${agentId}')">+ Backup Key</button>` : ''}
-      <button class="btn-chip" onclick="exportStudioBackup()">Backup JSON</button>
-      <button class="btn-chip" onclick="importStudioBackup()">Restore</button>
-    </div>
-    <div class="mini-chat-box">
-      <input class="field-input" id="miniChatIn" placeholder="${agentId} AI-কে সরাসরি প্রশ্ন করো..." />
-      <button class="send-btn" onclick="sendMiniChat('${agentId}')">Ask</button>
-    </div>
-    <div id="miniChatOut" style="font-size:11px;color:#cbd5e1;margin-top:6px;white-space:pre-wrap;"></div>
-  `, true);
-}
-
-function updateSlot(agentId, idx, field, val) {
-  const s = state.agents[agentId].slots[idx];
-  s[field] = val.trim();
-  if (field === 'key') {
-    s.status = s.key ? 'ready' : 'idle';
-    s.error = '';
-    const info = inferTierAndCaps(s.provider, s.model, agentId);
-    s.tier = info.tier; s.caps = info.caps;
-  } else if (field === 'model' || field === 'provider') {
-    const info = inferTierAndCaps(s.provider, s.model, agentId);
-    s.tier = info.tier; s.caps = info.caps;
-  }
-  saveState(); renderApiList(); renderCatMatrix(); updateTopDots();
-  if (field === 'provider') openApiPopover(agentId);
-}
-
-function addSlot(agentId) {
-  if (state.agents[agentId].slots.length < 3) {
-    state.agents[agentId].slots.push(makeSlot());
-    saveState(); openApiPopover(agentId);
-  }
-}
-
-function removeSlot(agentId, idx) {
-  state.agents[agentId].slots.splice(idx, 1);
-  saveState(); renderApiList(); renderCatMatrix(); openApiPopover(agentId);
-}
-
-async function autoDetectSlot(agentId, idx) {
-  const s = state.agents[agentId].slots[idx];
-  if (!s.key) { alert('আগে API Key বসাও।'); return; }
-  s.status = 'working'; renderApiList();
-  try {
-    const res = await fetch('/api/auto-detect-key', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey: s.key, provider: s.provider, customUrl: s.customUrl, agentId })
-    }).then(r => r.json());
-    if (!res.ok) {
-      s.status = 'error'; s.error = res.error || 'Key ডিটেক্ট ব্যর্থ হয়েছে।';
-      addNotif(agentId, `${agentId} Key #${idx+1}: ${s.error}`);
-    } else {
-      s.provider = res.provider || s.provider;
-      s.models = res.models || [];
-      let picked = res.auto_model || res.model || '';
-      if (s.model && s.models.length > 1) {
-        if (!s.triedModels.includes(s.model)) s.triedModels.push(s.model);
-        const nextBest = s.models.find(m => !s.triedModels.includes(m));
-        if (nextBest) picked = nextBest;
-        else { s.triedModels = []; picked = res.auto_model || s.models[0]; }
-      }
-      s.model = picked;
-      const info = inferTierAndCaps(s.provider, s.model, agentId);
-      s.tier = info.tier; s.caps = info.caps;
-      s.status = 'ready'; s.error = '';
-      addWorkflow('Auto-Detect', `${agentId} Key #${idx+1} -> ${s.provider} / ${s.model} (${s.tier})`, 'ok');
-    }
-  } catch (e) {
-    s.status = 'error'; s.error = 'সার্ভারের সাথে সংযোগ ব্যর্থ।';
-    addNotif(agentId, `${agentId} Key #${idx+1} সংযোগ সমস্যা।`);
-  }
-  saveState(); renderApiList(); renderCatMatrix(); updateTopDots();
-  if (document.getElementById('popBackdrop').classList.contains('open')) openApiPopover(agentId);
-}
-  function onDraftInput() {
-  const val = document.getElementById('chatInput').value.trim();
-  document.getElementById('draftBar').className = 'draft-bar' + (val ? ' show' : '');
-}
-
-function focusChatInput() {
-  document.getElementById('chatInput').focus();
-}
-
-function clearDraft() {
-  document.getElementById('chatInput').value = '';
-  onDraftInput();
-}
-
-function addChatMsg(role, text, extra = {}) {
-  const last = state.chat[state.chat.length - 1];
-  if (last && last.role === role && last.text === text && !extra.choiceAsk && !extra.choiceCard) return;
-  state.chat.push(Object.assign({ id: 'm' + Date.now() + Math.floor(Math.random()*999), role, text, time: nowTime() }, extra));
-  if (state.chat.length > 60) state.chat.shift();
-  renderChat();
-  saveState();
-}
-
-function renderChat() {
-  const feed = document.getElementById('chatFeed');
-  if (!state.chat.length) {
-    feed.innerHTML = `<div class="msg sys">Director AI প্রস্তুত। প্রশ্ন করো, YouTube/থাম্বনেল লিংক দাও বা ভিডিও বানাতে বলো।</div>`;
-    return;
-  }
-  feed.innerHTML = state.chat.map(m => {
-    let extraHtml = '';
-    if (m.choiceAsk && state.pendingChoice && state.pendingChoice.msgId === m.id) {
-      extraHtml += `<div class="msg-tools">
-        <button class="mini-act primary" onclick="openChoiceCard('${m.id}')">✅ হ্যাঁ, চয়েস লিস্ট দেখাও</button>
-        <button class="mini-act" onclick="skipChoiceAndRun('${m.id}')">না, সরাসরি স্যাম্পল বানাও</button>
-      </div>`;
-    }
-    if (m.choiceCard && state.pendingChoice && state.pendingChoice.msgId === m.id) {
-      const groups = state.pendingChoice.groups || [];
-      extraHtml += `<div class="choice-card">
-        ${groups.map((g, gi) => `
-          <div>
-            <div class="choice-group-title">${esc(g.title)}</div>
-            <div class="choice-chips">
-              ${g.options.map((opt, oi) => `
-                <button class="choice-chip ${opt.checked ? 'checked' : ''}" onclick="toggleChoiceOpt(${gi},${oi})">
-                  ${opt.checked ? '✅' : '☐'} ${esc(opt.label)}
-                </button>`).join('')}
-            </div>
-          </div>`).join('')}
-        <div class="msg-tools">
-          <button class="mini-act primary" onclick="confirmChoiceAndRun()">🎬 কনফার্ম করে স্যাম্পল বানাও</button>
-          <button class="mini-act" onclick="cancelPendingChoice()">বাতিল</button>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--muted);">যেকোনো মডেলের ওপর একবার ট্যাপ করলেই সেটি সরাসরি ওই এজেন্টে সেট হয়ে যাবে।</div>
+        <div class="brand-grid">
+          <div class="brand-col">
+            <h4 style="color:#86efac;">🟢 Top 3 Best FREE</h4>
+            <div id="brandFreeList"></div>
+          </div>
+          <div class="brand-col">
+            <h4 style="color:#fcd34d;">💎 Top 3 Powerful PAID</h4>
+            <div id="brandPaidList"></div>
+          </div>
         </div>
-      </div>`;
-    }
-    if (m.sampleReady) {
-      extraHtml += `<div class="msg-tools">
-        <button class="mini-act primary" onclick="approveFullVideo()">✅ Approve Full Video</button>
-        <button class="mini-act" onclick="requestSampleRevision()">🔄 আরেকটা স্যাম্পল বানাও</button>
-      </div>`;
-    }
-    const tools = m.role === 'ai' ? `<div class="msg-tools">
-      <button class="mini-act ${speakingMsgId === m.id ? 'speaking' : ''}" onclick="toggleSpeak('${m.id}')">${speakingMsgId === m.id ? '⏹ থামাও' : '🔊 শুনুন'}</button>
-      <button class="mini-act" onclick="copyMsgText('${m.id}')">📋 কপি</button>
-    </div>` : '';
-    return `<div class="msg ${m.role}"><div>${esc(m.text)}</div>${extraHtml}${tools}</div>`;
-  }).join('');
-  feed.scrollTop = feed.scrollHeight;
-}
-
-function isProductionIntent(text) {
-  const t = text.toLowerCase();
-  const isQuestion = /(\?|পারবে|ক্ষমতা|কয়টা|কজন|কীভাবে|কিভাবে|কে কে|চালু আছে|বলো তো|জানাও)/.test(t)
-    && !/(বানাও|তৈরি কর|শুরু কর|স্যাম্পল দাও|create|generate|make a video|youtube\.com|youtu\.be)/.test(t);
-  if (isQuestion) return false;
-  return /(ভিডিও|বানাও|তৈরি|গল্প|স্ক্রিপ্ট|স্যাম্পল|অ্যানিমেশন|রিলস|শর্টস|থাম্বনেল|youtube\.com|youtu\.be|http|video|create|generate|make|scene|story)/.test(t);
-}
-
-function buildDynamicChoiceGroups() {
-  const groups = [];
-  const vSlot = getActiveSlot('video');
-  const iSlot = getActiveSlot('image');
-  const aSlot = getActiveSlot('audio');
-  const eSlot = getActiveSlot('editing');
-
-  if (vSlot && (vSlot.tier === 'Max' || vSlot.tier === 'High')) {
-    groups.push({
-      title: `Video (${vSlot.model || vSlot.provider})`,
-      options: [
-        { label: '1080p Full HD', checked: true },
-        { label: '4K Ultra HD', checked: vSlot.tier === 'Max' },
-        { label: '30 FPS', checked: false },
-        { label: '60 FPS Smooth', checked: true },
-        { label: 'Cinematic Motion', checked: true }
-      ]
-    });
-  }
-  if (iSlot && (iSlot.tier === 'Max' || iSlot.tier === 'High')) {
-    groups.push({
-      title: `Image / Visual (${iSlot.model || iSlot.provider})`,
-      options: [
-        { label: '3D Animation Style', checked: true },
-        { label: '2D Anime / Cartoon', checked: false },
-        { label: 'Ultra Detail Lighting', checked: true }
-      ]
-    });
-  }
-  if (aSlot && (aSlot.tier === 'Max' || aSlot.tier === 'High' || aSlot.provider === 'elevenlabs')) {
-    groups.push({
-      title: `Audio / Voice (${aSlot.provider})`,
-      options: [
-        { label: 'Bangla Natural Voice', checked: true },
-        { label: 'Emotional Tone', checked: true },
-        { label: 'Background Music + SFX', checked: true }
-      ]
-    });
-  }
-  if (eSlot && (eSlot.tier === 'Max' || eSlot.tier === 'High')) {
-    groups.push({
-      title: `Editing & Subtitles`,
-      options: [
-        { label: 'Auto Bangla Subtitles (CC)', checked: true },
-        { label: 'Fast Reels Cut', checked: state.ratio === '9:16' }
-      ]
-    });
-  }
-  return groups;
-}
-
-async function sendChat() {
-  const inp = document.getElementById('chatInput');
-  const text = inp.value.trim();
-  if (!text || state.isBusy) return;
-  clearDraft();
-  addChatMsg('user', text);
-
-  const dConfig = buildBackendConfig('director');
-  if (!dConfig) {
-    addChatMsg('ai', 'Director AI-এর কোনো API Key বসানো নেই। নিচের API Keys বক্সে ট্যাপ করে আগে Director-এর Key বসাও।');
-    addNotif('director', 'Director AI-এর API Key পাওয়া যায়নি।', false);
-    return;
-  }
-
-  const team = getTeamSummary();
-  const hasLink = /(youtube\.com|youtu\.be|https?:\/\/)/i.test(text);
-
-  if (isProductionIntent(text)) {
-    addWorkflow('Team Analysis', 'Director AI ও সক্রিয় টিম প্রম্পট ও API ক্ষমতা বিশ্লেষণ করছে...', 'work');
-    if (hasLink) {
-      addWorkflow('Reference Scan', 'রেফারেন্স লিংক/থাম্বনেল স্টাইল বিশ্লেষণ যুক্ত করা হয়েছে।', 'info');
-    }
-    const groups = buildDynamicChoiceGroups();
-    if (groups.length > 0) {
-      const msgId = 'm' + Date.now();
-      state.pendingChoice = { msgId, prompt: text, groups, hasLink };
-      addChatMsg('ai', `টিমের সাথে আলোচনা করে দেখলাম আমাদের কাছে উন্নত ক্ষমতার API (${team.advancedCount}টি) চালু আছে।\n\nস্যাম্পল বানানোর আগে কি তুমি অ্যাডভান্স চয়েস-ফিলিং লিস্টটা (রেজোলিউশন, FPS, ভয়েস/স্টাইল) খুলতে চাও, নাকি সরাসরি তোমার প্রম্পট অনুযায়ী স্যাম্পল বানাবো?`, { id: msgId, choiceAsk: true });
-      return;
-    }
-    await runProductionFlow(text, '', 'Sample');
-  } else {
-    await runDirectorQuestion(text, team.text);
-  }
-}
-
-function openChoiceCard(msgId) {
-  const m = state.chat.find(x => x.id === msgId);
-  if (!m || !state.pendingChoice) return;
-  m.choiceAsk = false;
-  m.choiceCard = true;
-  m.text = 'নিচে তোমার পছন্দমতো অপশনগুলোতে টিক চিহ্ন (✅) দাও—এরপর প্রথমে একটি স্যাম্পল তৈরি হবে:';
-  renderChat(); saveState();
-}
-
-function toggleChoiceOpt(gi, oi) {
-  if (!state.pendingChoice) return;
-  const opt = state.pendingChoice.groups[gi].options[oi];
-  opt.checked = !opt.checked;
-  renderChat(); saveState();
-}
-
-function cancelPendingChoice() {
-  if (!state.pendingChoice) return;
-  const m = state.chat.find(x => x.id === state.pendingChoice.msgId);
-  if (m) { m.choiceAsk = false; m.choiceCard = false; }
-  state.pendingChoice = null;
-  renderChat(); saveState();
-}
-
-async function skipChoiceAndRun(msgId) {
-  if (!state.pendingChoice) return;
-  const p = state.pendingChoice.prompt;
-  cancelPendingChoice();
-  await runProductionFlow(p, '', 'Sample');
-}
-
-async function confirmChoiceAndRun() {
-  if (!state.pendingChoice) return;
-  const chosen = [];
-  state.pendingChoice.groups.forEach(g => {
-    const picks = g.options.filter(o => o.checked).map(o => o.label);
-    if (picks.length) chosen.push(`${g.title}: ${picks.join(', ')}`);
-  });
-  const p = state.pendingChoice.prompt;
-  cancelPendingChoice();
-  addWorkflow('Choices Locked', chosen.join(' | ') || 'Default Settings', 'ok');
-  await runProductionFlow(p, chosen.join('\n'), 'Sample');
-}
-
-async function runBackendJob(payload) {
-  state.isBusy = true;
-  updateTopDots();
-  try {
-    const start = await fetch('/api/start-job', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(r => r.json());
-    if (!start.ok) throw new Error(start.error || 'জব শুরু করা যায়নি');
-    state.activeJobId = start.job_id;
-    while (state.activeJobId) {
-      await new Promise(r => setTimeout(r, 900));
-      if (!state.activeJobId) return { ok: false, cancelled: true };
-      const poll = await fetch(`/api/job/${state.activeJobId}`).then(r => r.json());
-      if (poll.status === 'done' || poll.status === 'error') {
-        state.activeJobId = null;
-        return poll.result || { ok: false, error: 'ফাঁকা রেসপন্স' };
-      }
-      if (poll.status === 'cancelled' || poll.status === 'not_found') {
-        state.activeJobId = null;
-        return { ok: false, cancelled: true };
-      }
-    }
-    return { ok: false, cancelled: true };
-  } catch (e) {
-    return { ok: false, error: e.message || 'সার্ভার এরর' };
-  } finally {
-    state.isBusy = false;
-    state.activeJobId = null;
-    AGENT_META.forEach(a => setAgentWorking(a.id, false));
-    updateTopDots();
-  }
-}
-
-async function runDirectorQuestion(prompt, teamText) {
-  setAgentWorking('director', true, ['TXT']);
-  addWorkflow('Director AI', 'তোমার প্রশ্নের উত্তর ও টিমের বর্তমান অবস্থা যাচাই করছে...', 'work');
-  const sys = `তুমি একটি প্রফেশনাল AI Video Studio-এর Director AI। সহজ বাংলায় সংক্ষেপে উত্তর দাও।
-বর্তমান টিমের লাইভ অবস্থা:\n${teamText}\n
-গুরুত্বপূর্ণ নিয়ম: ব্যবহারকারী শুধু প্রশ্ন করলে সরাসরি ভিডিও/স্যাম্পল বানাবে না—আগে সত্যি ও স্পষ্ট উত্তর দাও, তারপর জিজ্ঞেস করো কাজ শুরু করবে কি না।`;
-  const history = state.chat.slice(-8).filter(m => m.role === 'user' || m.role === 'ai').map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }));
-  const res = await runBackendJob({
-    type: 'single', config: buildBackendConfig('director'),
-    prompt, system_prompt: sys, history, co_work: state.cowork, project_memory: state.characterLock
-  });
-  if (res.cancelled) { addWorkflow('Stopped', 'কাজটি থামানো হয়েছে।', 'warn'); return; }
-  if (!res.ok) {
-    markAgentError('director', res.error || 'Director AI উত্তর দিতে পারেনি');
-    addChatMsg('ai', `⚠️ সমস্যা হয়েছে: ${res.error || 'অজানা এরর'}। নিচের নোটিফিকেশন বারে ট্যাপ করে Self-Recovery চালাতে পারো।`);
-    return;
-  }
-  addWorkflow('Director AI', 'সঠিক উত্তর তৈরি সম্পন্ন।', 'ok');
-  addChatMsg('ai', res.text || 'উত্তর পাওয়া গেছে।');
-}
-
-async function runProductionFlow(prompt, choiceText, stage) {
-  const team = getTeamSummary();
-  const tasks = [];
-  const dConf = buildBackendConfig('director');
-
-  setAgentWorking('director', true, ['TXT']);
-  addWorkflow('Peer Handshake', `Director AI (${stage}) টিমের সাথে পরিকল্পনা ভাগ করছে...`, 'work');
-
-  const specs = `Stage: ${stage}\nAspect Ratio: ${state.ratio}\nSubtitles: ${state.cc ? 'ON' : 'OFF'}\n${choiceText ? 'Selected Options:\n' + choiceText : ''}`;
-  tasks.push({
-    agent_id: 'director', agent_name: 'Director AI', config: dConf, co_work: state.cowork,
-    system_prompt: `তুমি AI Video Studio-এর Director AI। প্রথমে ${stage} তৈরি করো। বাংলায় সুন্দর স্ক্রিপ্ট, সিন-বাই-সিন প্ল্যান ও থাম্বনেল আইডিয়া দাও।\nটিম:\n${team.text}`,
-    prompt: `${prompt}\n\n${specs}`
-  });
-
-  ['image', 'video', 'audio', 'editing'].forEach(id => {
-    const conf = buildBackendConfig(id);
-    if (conf) {
-      const capMap = { image: ['IMG'], video: ['VID'], audio: ['AUD'], editing: ['EDT'] };
-      setAgentWorking(id, true, capMap[id]);
-      tasks.push({
-        agent_id: id, agent_name: id.toUpperCase() + ' AI', config: conf, co_work: state.cowork,
-        system_prompt: `তুমি স্টুডিওর ${id.toUpperCase()} AI। Director AI-এর সাথে মিল রেখে এই ${stage}-এর জন্য তোমার অংশের নিখুঁত প্রম্পট/প্ল্যান সংক্ষেপে দাও।`,
-        prompt: `${prompt}\n\n${specs}`
-      });
-    }
-  });
-
-  const res = await runBackendJob({ type: 'multi', tasks, project_memory: state.characterLock });
-  if (res.cancelled) { addWorkflow('Stopped', 'প্রোডাকশন থামানো হয়েছে।', 'warn'); return; }
-  if (!res.ok || !res.results) {
-    markAgentError('director', res.error || 'প্রোডাকশন জব ব্যর্থ হয়েছে');
-    addChatMsg('ai', '⚠️ প্রোডাকশন চালাতে সমস্যা হয়েছে। নোটিফিকেশন বার থেকে Self-Recovery চাপো।');
-    return;
-  }
-
-  let combinedText = '';
-  let directorText = '';
-  res.results.forEach(r => {
-    if (!r.ok) {
-      markAgentError(r.agent_id || 'director', r.error || 'মডেল এরর');
-    } else {
-      addWorkflow(r.agent_name || r.agent_id, (r.text || '').slice(0, 110) + '...', 'ok');
-      if (r.agent_id === 'director') directorText = r.text || '';
-      combinedText += `\n[${r.agent_name}]\n${r.text || ''}\n`;
-    }
-  });
-
-  if (state.output) {
-    state.vault.unshift(state.output);
-    if (state.vault.length > 25) state.vault.pop();
-  }
-
-  const cleanTitle = prompt.slice(0, 32) + (prompt.length > 32 ? '...' : '');
-  const newOut = {
-    id: 'out_' + Date.now(),
-    title: cleanTitle,
-    prompt,
-    choiceText,
-    stage,
-    ratio: state.ratio,
-    text: directorText || combinedText.trim() || 'আউটপুট তৈরি হয়েছে।',
-    fullLog: combinedText.trim(),
-    imgUrl: '',
-    audioUrl: '',
-    videoUrl: '',
-    time: nowTime()
-  };
-
-  // Optional ElevenLabs real sample audio if Audio agent uses elevenlabs
-  const aSlot = getActiveSlot('audio');
-  if (aSlot && aSlot.provider === 'elevenlabs' && aSlot.key && directorText) {
-    try {
-      setAgentWorking('audio', true, ['AUD']);
-      const tts = await fetch('/api/elevenlabs/tts', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: aSlot.key, text: directorText.slice(0, 220), model: aSlot.model || 'eleven_multilingual_v2' })
-      }).then(r => r.json());
-      if (tts.ok && tts.audio_base64) {
-        newOut.audioUrl = tts.audio_base64;
-        addWorkflow('Audio AI', 'ElevenLabs ভয়েস স্যাম্পল যুক্ত হয়েছে।', 'ok');
-      }
-    } catch (e) {}
-    setAgentWorking('audio', false);
-  }
-
-  state.output = newOut;
-  renderOutput(); renderVault(); updateTopDots(); saveState();
-
-  const note = stage === 'Sample'
-    ? `\n\n✅ স্যাম্পল তৈরি হয়ে ওপরের Output বক্সে এসেছে। পছন্দ হলে নিচের Approve বাটনে চাপো, আর বদলাতে চাইলে আগেরটা Vault-এ সেভ হয়ে নতুন স্যাম্পল তৈরি হবে।`
-    : `\n\n🎬 ফাইনাল প্রোডাকশন প্রস্তুত! Output বক্সের MP4 বাটনে চাপ দিয়ে সরাসরি ভিডিও এক্সপোর্ট করো।`;
-  addChatMsg('ai', (directorText || 'কাজ সম্পন্ন হয়েছে।') + note, { sampleReady: stage === 'Sample' });
-}
-
-async function approveFullVideo() {
-  if (!state.output || state.isBusy) return;
-  await runProductionFlow(state.output.prompt || state.output.title, state.output.choiceText || '', 'Final');
-}
-
-async function requestSampleRevision() {
-  if (!state.output || state.isBusy) return;
-  const note = prompt('স্যাম্পলে কী বদলাতে চাও? (ফাঁকা রাখলে নতুন ভার্সন বানাবে):') || 'আরও উন্নত ও আকর্ষণীয় ভার্সন বানাও';
-  await runProductionFlow(`${state.output.prompt}\nপরিবর্তন: ${note}`, state.output.choiceText || '', 'Sample');
-}
-
-function markAgentError(agentId, errMsg) {
-  const s = getActiveSlot(agentId);
-  if (s) { s.status = 'error'; s.error = errMsg; }
-  addWorkflow(agentId.toUpperCase() + ' Error', errMsg, 'err');
-  addNotif(agentId, `${agentId.toUpperCase()}: ${errMsg}`, true);
-  renderApiList(); renderCatMatrix(); updateTopDots(); saveState();
-}
-
-async function cancelActiveJob() {
-  if (state.activeJobId) {
-    const jid = state.activeJobId;
-    state.activeJobId = null;
-    try { await fetch(`/api/cancel-job/${jid}`, { method: 'POST' }); } catch (e) {}
-  }
-  state.isBusy = false;
-  AGENT_META.forEach(a => setAgentWorking(a.id, false));
-  addWorkflow('Stop', 'চলমান সব কাজ থামানো হয়েছে।', 'warn');
-  updateTopDots();
-}
-
-async function runSelfRecovery(targetAgentId = null) {
-  const targets = targetAgentId ? [targetAgentId] : AGENT_META.map(a => a.id);
-  let recoveredAny = false;
-  addWorkflow('Self-Recovery', 'সিস্টেম নিজে থেকে সমস্যা শনাক্ত ও সমাধানের চেষ্টা করছে...', 'work');
-
-  if (state.isBusy) await cancelActiveJob();
-
-  for (const id of targets) {
-    const slots = state.agents[id].slots;
-    for (let i = 0; i < slots.length; i++) {
-      const s = slots[i];
-      if (!s.key || s.status !== 'error') continue;
-
-      // 1. Try next model in same key
-      if (s.models && s.models.length > 1) {
-        if (!s.triedModels.includes(s.model)) s.triedModels.push(s.model);
-        const nextM = s.models.find(m => !s.triedModels.includes(m));
-        if (nextM) {
-          s.model = nextM;
-          s.status = 'ready';
-          s.error = '';
-          const info = inferTierAndCaps(s.provider, s.model, id);
-          s.tier = info.tier; s.caps = info.caps;
-          addWorkflow('Self-Recovery', `${id.toUpperCase()} Key #${i+1}-এ নতুন মডেল (${nextM}) সেট করা হয়েছে।`, 'ok');
-          recoveredAny = true;
-          continue;
-        }
-      }
-
-      // 2. Try switching to another backup slot in same agent
-      const backup = slots.find((b, bi) => bi !== i && b.key && b.status !== 'error');
-      if (backup) {
-        s.status = 'warn';
-        addWorkflow('Self-Recovery', `${id.toUpperCase()}-এর ব্যাকআপ Key চালু করা হয়েছে।`, 'ok');
-        recoveredAny = true;
-        continue;
-      }
-
-      // 3. Fallback to Director or another active agent
-      const fallbackAgent = AGENT_META.find(a => a.id !== id && getActiveSlot(a.id) && getActiveSlot(a.id).status !== 'error');
-      if (fallbackAgent) {
-        s.status = 'warn';
-        addWorkflow('Self-Recovery', `${id.toUpperCase()}-এর কাজ সামলাতে ${fallbackAgent.name} AI-কে ফলব্যাক করা হয়েছে।`, 'ok');
-        recoveredAny = true;
-      }
-    }
-  }
-
-  state.notifs.forEach(n => {
-    if (!targetAgentId || n.agentId === targetAgentId) n.resolved = recoveredAny;
-  });
-  if (recoveredAny) {
-    addChatMsg('sys', '⚡ Self-Recovery সম্পন্ন: সমস্যাযুক্ত মডেল/Key অটো-সুইচ করে স্টুডিও আবার প্রস্তুত করা হয়েছে।');
-  } else {
-    addChatMsg('sys', '⚠️ Self-Recovery চালানো হয়েছে, তবে সচল ব্যাকআপ Key বা মডেল পাওয়া যায়নি। দয়া করে নতুন API Key দাও।');
-  }
-  saveState(); renderApiList(); renderCatMatrix(); renderNotifs(); updateTopDots();
-  closePopover();
-}
-
-async function sendMiniChat(agentId) {
-  const inp = document.getElementById('miniChatIn');
-  const out = document.getElementById('miniChatOut');
-  const q = (inp?.value || '').trim();
-  if (!q) return;
-  const conf = buildBackendConfig(agentId);
-  if (!conf) { out.textContent = 'এই এজেন্টের কোনো API Key বসানো নেই।'; return; }
-  out.textContent = 'উত্তর আসছে...';
-  setAgentWorking(agentId, true);
-  const res = await runBackendJob({
-    type: 'single', config: conf, prompt: q,
-    system_prompt: `তুমি ${agentId.toUpperCase()} AI। তোমার ক্ষমতা, সীমাবদ্ধতা বা সমস্যা নিয়ে সহজ বাংলায় ছোট উত্তর দাও।`
-  });
-  out.textContent = res.ok ? (res.text || 'উত্তর পাওয়া গেছে।') : `⚠️ এরর: ${res.error || 'কাজ করেনি'}`;
-  }
-  function toggleSpeak(msgId) {
-  if (!('speechSynthesis' in window)) { alert('এই ব্রাউজারে অডিও পড়া সাপোর্ট করে না।'); return; }
-  if (speakingMsgId === msgId) {
-    window.speechSynthesis.cancel();
-    speakingMsgId = null;
-    renderChat();
-    return;
-  }
-  const m = state.chat.find(x => x.id === msgId);
-  if (!m) return;
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(m.text);
-  utter.lang = /[ঀ-৿]/.test(m.text) ? 'bn-BD' : 'en-US';
-  speakingMsgId = msgId;
-  utter.onend = utter.onerror = () => { speakingMsgId = null; renderChat(); };
-  window.speechSynthesis.speak(utter);
-  renderChat();
-}
-
-function copyMsgText(msgId) {
-  const m = state.chat.find(x => x.id === msgId);
-  if (!m) return;
-  navigator.clipboard?.writeText(m.text).then(() => addWorkflow('Copy', 'মেসেজ কপি করা হয়েছে।', 'ok'));
-}
-
-function toggleVoiceInput() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('এই ব্রাউজারে ভয়েস টাইপিং সাপোর্ট করে না।'); return; }
-  const micBtn = document.getElementById('micBtn');
-  if (isListening && recognition) {
-    recognition.stop();
-    return;
-  }
-  recognition = new SR();
-  recognition.lang = 'bn-BD';
-  recognition.interimResults = false;
-  isListening = true;
-  micBtn.classList.add('glow');
-  recognition.onresult = e => {
-    const t = e.results?.[0]?.[0]?.transcript || '';
-    if (t) {
-      const inp = document.getElementById('chatInput');
-      inp.value = (inp.value ? inp.value + ' ' : '') + t;
-      onDraftInput();
-    }
-  };
-  recognition.onend = recognition.onerror = () => {
-    isListening = false;
-    micBtn.classList.remove('glow');
-  };
-  recognition.start();
-}
-
-function toggleRatio() {
-  state.ratio = state.ratio === '16:9' ? '9:16' : '16:9';
-  updateTopDots(); renderOutput(); saveState();
-}
-
-function toggleCC() {
-  state.cc = !state.cc;
-  updateTopDots(); saveState();
-}
-
-function toggleToolsDrawer() {
-  state.toolsOpen = !state.toolsOpen;
-  applyToolsDrawer();
-  saveState();
-}
-
-function applyToolsDrawer() {
-  const row = document.getElementById('lowerRow');
-  const btn = document.getElementById('toolsToggleBtn');
-  row.className = 'lower-row' + (state.toolsOpen ? ' tools-open' : '');
-  btn.textContent = state.toolsOpen ? '▶' : '◀';
-}
-
-function clearChat() {
-  if (!confirm('চ্যাট হিস্ট্রি মুছে ফেলবে?')) return;
-  state.chat = []; state.pendingChoice = null;
-  renderChat(); saveState();
-}
-
-function clearWorkflow() {
-  state.workflow = [];
-  renderWorkflow(); saveState();
-}
-
-function openChatFull() {
-  const html = state.chat.length
-    ? state.chat.map(m => `<div class="wf-item ${m.role==='user'?'work':'ok'}" style="margin-bottom:6px;white-space:pre-wrap;"><b>${m.role==='user'?'You':'Director AI'}:</b>\n${esc(m.text)}</div>`).join('')
-    : '<div class="output-empty">এখনো কোনো চ্যাট নেই।</div>';
-  openPopover('Full Chat View', html, true);
-}
-
-function openOutputPopover() {
-  if (!state.output) { openPopover('Output', '<div class="output-empty">এখনো কোনো আউটপুট তৈরি হয়নি।</div>'); return; }
-  const o = state.output;
-  openPopover(`Output · ${o.stage || 'Sample'} (${state.ratio})`, `
-    ${o.videoUrl ? `<video controls playsinline style="width:100%;border-radius:8px;margin-bottom:8px;" src="${esc(o.videoUrl)}"></video>` : ''}
-    ${o.imgUrl ? `<img style="width:100%;border-radius:8px;margin-bottom:8px;" src="${esc(o.imgUrl)}" />` : ''}
-    ${o.audioUrl ? `<audio controls src="${esc(o.audioUrl)}" style="margin-bottom:8px;"></audio>` : ''}
-    <div style="font-size:11.5px;line-height:1.45;white-space:pre-wrap;background:var(--bg);padding:8px;border-radius:8px;border:1px solid var(--border);max-height:240px;overflow-y:auto;">${esc(o.fullLog || o.text)}</div>
-    <div class="row-gap">
-      <button class="btn-chip active" onclick="exportMP4Video()">🎬 Export MP4</button>
-      ${state.vault.length ? `<button class="btn-chip" onclick="swapWithVault();closePopover()">🔄 Swap Vault</button>` : ''}
-    </div>`, true);
-}
-
-function swapWithVault() {
-  if (!state.output || !state.vault.length) return;
-  const prev = state.vault.shift();
-  state.vault.unshift(state.output);
-  state.output = prev;
-  addWorkflow('Vault Swap', 'আগের স্যাম্পলের সাথে বর্তমান আউটপুট অদলবদল করা হয়েছে।', 'info');
-  renderOutput(); renderVault(); saveState();
-}
-
-function restoreFromVault(idx) {
-  const item = state.vault.splice(idx, 1)[0];
-  if (!item) return;
-  if (state.output) state.vault.unshift(state.output);
-  state.output = item;
-  renderOutput(); renderVault(); saveState();
-}
-
-function deleteVaultItem(idx) {
-  const removed = state.vault.splice(idx, 1)[0];
-  if (removed) {
-    state.deletedVault.push(removed);
-    if (state.deletedVault.length > 15) state.deletedVault.shift();
-  }
-  renderVault(); renderOutput(); saveState();
-}
-
-function undoVaultDelete() {
-  const item = state.deletedVault.pop();
-  if (!item) return;
-  state.vault.unshift(item);
-  renderVault(); renderOutput(); saveState();
-}
-
-function openVaultPopover() {
-  const items = state.vault.length
-    ? state.vault.map((v, i) => `
-      <div class="key-card" style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-        <div style="min-width:0;flex:1;">
-          <div style="font-weight:600;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(v.title || 'Sample')}</div>
-          <div style="font-size:10px;color:var(--muted);">${esc(v.stage || 'Sample')} · ${esc(v.time || '')}</div>
-        </div>
-        <button class="btn-chip active" onclick="restoreFromVault(${i});closePopover()">Use</button>
-        <button class="btn-chip danger" onclick="deleteVaultItem(${i});openVaultPopover()">✕</button>
-      </div>`).join('')
-    : '<div class="output-empty">Vault এখন খালি।</div>';
-  openPopover(`Vault (${state.vault.length})`, `
-    ${items}
-    <div class="row-gap">
-      ${state.deletedVault.length ? `<button class="btn-chip" onclick="undoVaultDelete();openVaultPopover()">↩ Undo Delete</button>` : ''}
-      ${state.vault.length ? `<button class="btn-chip danger" onclick="state.deletedVault.push(...state.vault);state.vault=[];renderVault();renderOutput();saveState();closePopover()">🗑 Empty Vault</button>` : ''}
-    </div>`);
-}
-
-function openNotifPopover() {
-  const list = state.notifs.length
-    ? state.notifs.map(n => `
-      <div class="wf-item ${n.resolved ? 'ok' : 'warn'}" style="margin-bottom:6px;">
-        <div class="wf-meta"><b>${esc((n.agentId||'SYSTEM').toUpperCase())} ${n.resolved ? '(Solved ✅)' : ''}</b><span>${n.time}</span></div>
-        <div>${esc(n.msg)}</div>
-      </div>`).join('')
-    : '<div class="output-empty">কোনো সমস্যা বা নোটিফিকেশন নেই।</div>';
-  const hasUnresolved = state.notifs.some(n => !n.resolved);
-  openPopover('Notifications & Self-Recovery', `
-    ${list}
-    <div class="row-gap">
-      ${hasUnresolved ? `<button class="btn-chip recover" onclick="runSelfRecovery()">⚡ Self-Recovery চালাও</button>` : ''}
-      ${state.notifs.length ? `<button class="btn-chip" onclick="state.notifs=[];renderNotifs();saveState();closePopover()">Clear All</button>` : ''}
-    </div>`);
-}
-
-function openAgentAlertPopover(agentId) {
-  const alerts = state.agentAlerts[agentId] || [];
-  const s = getActiveSlot(agentId);
-  const statusTxt = !s ? 'কোনো API Key বসানো নেই।' : `মডেল: ${s.model || s.provider} | Power: ${s.tier} | অবস্থা: ${s.status}`;
-  const html = alerts.length
-    ? alerts.map(a => `<div class="wf-item warn" style="margin-bottom:6px;"><div class="wf-meta"><b>Alert</b><span>${a.time}</span></div><div>${esc(a.msg)}</div></div>`).join('')
-    : '<div class="output-empty" style="margin:8px 0;">এই ক্যাটাগরিতে কোনো নতুন সতর্কতা নেই।</div>';
-  openPopover(`${agentId.toUpperCase()} Status`, `
-    <div class="key-card" style="font-size:11px;">${esc(statusTxt)}</div>
-    ${html}
-    <div class="row-gap">
-      <button class="btn-chip active" onclick="openApiPopover('${agentId}')">API Settings</button>
-      <button class="btn-chip recover" onclick="runSelfRecovery('${agentId}')">⚡ Self-Recovery</button>
-      ${alerts.length ? `<button class="btn-chip" onclick="state.agentAlerts['${agentId}']=[];renderCatMatrix();saveState();closePopover()">Clear</button>` : ''}
-    </div>`);
-}
-
-function openLockPopover() {
-  openPopover('Character & Story Lock 🔒', `
-    <label class="field-label">Character Bible / Continuity Sheet (Part 2+ একই চরিত্র রাখতে):</label>
-    <textarea class="field-textarea" id="lockArea" placeholder="চরিত্রের চেহারা, পোশাক, স্টাইল ও গল্পের ধারাবাহিকতা এখানে লিখো বা Auto-Extract চাপো...">${esc(state.characterLock)}</textarea>
-    <div class="row-gap">
-      <button class="btn-chip active" onclick="state.characterLock=document.getElementById('lockArea').value.trim();updateTopDots();saveState();closePopover()">Save Lock</button>
-      <button class="btn-chip" onclick="autoExtractLock()">✨ Auto-Extract</button>
-      <button class="btn-chip danger" onclick="state.characterLock='';updateTopDots();saveState();closePopover()">Unlock</button>
-    </div>`, true);
-}
-
-async function autoExtractLock() {
-  const conf = buildBackendConfig('director');
-  const ctx = (state.output?.text || '') + '\n' + state.chat.slice(-4).map(m => m.text).join('\n');
-  if (!conf || !ctx.trim()) { alert('Director Key এবং অন্তত কিছু চ্যাট/আউটপুট থাকতে হবে।'); return; }
-  addWorkflow('Continuity Lock', 'Character Bible তৈরি হচ্ছে...', 'work');
-  try {
-    const res = await fetch('/api/extract-continuity', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ config: conf, existing_memory: state.characterLock, latest_context: ctx })
-    }).then(r => r.json());
-    if (res.ok && res.memory) {
-      state.characterLock = res.memory;
-      saveState(); updateTopDots(); openLockPopover();
-      addWorkflow('Continuity Lock', 'Character Bible লক করা হয়েছে।', 'ok');
-    } else {
-      alert(res.error || 'Continuity তৈরি করা যায়নি।');
-    }
-  } catch (e) { alert('সার্ভার সংযোগ ব্যর্থ।'); }
-}
-
-function saveCurrentProject() {
-  if (!state.output && !state.chat.length) { alert('সেভ করার মতো কোনো প্রজেক্ট নেই।'); return; }
-  const name = prompt('প্রজেক্টের নাম দাও:', state.output?.title || 'My Video Project');
-  if (!name) return;
-  state.savedProjects.unshift({
-    id: 'p_' + Date.now(), name, time: nowTime(),
-    output: state.output, characterLock: state.characterLock, ratio: state.ratio, chat: state.chat.slice(-20)
-  });
-  if (state.savedProjects.length > 15) state.savedProjects.pop();
-  saveState();
-  addWorkflow('Saved', `প্রজেক্ট "${name}" ব্রাউজারে সেভ হয়েছে।`, 'ok');
-}
-
-function openFilesPopover() {
-  const list = state.savedProjects.length
-    ? state.savedProjects.map((p, i) => `
-      <div class="key-card" style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-        <div style="min-width:0;flex:1;">
-          <div style="font-weight:600;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.name)}</div>
-          <div style="font-size:10px;color:var(--muted);">${esc(p.ratio || '16:9')} · ${esc(p.time || '')}</div>
-        </div>
-        <button class="btn-chip active" onclick="loadSavedProject(${i})">Load</button>
-        <button class="btn-chip danger" onclick="state.savedProjects.splice(${i},1);saveState();openFilesPopover()">✕</button>
-      </div>`).join('')
-    : '<div class="output-empty">কোনো সেভ করা প্রজেক্ট নেই।</div>';
-  openPopover('Saved Projects', list);
-}
-
-function loadSavedProject(idx) {
-  const p = state.savedProjects[idx];
-  if (!p) return;
-  state.output = p.output || null;
-  state.characterLock = p.characterLock || '';
-  state.ratio = p.ratio || '16:9';
-  if (Array.isArray(p.chat) && p.chat.length) state.chat = p.chat;
-  renderChat(); renderOutput(); updateTopDots(); saveState(); closePopover();
-}
-
-function openToolboxPopover() {
-  openPopover('Studio Tools', `
-    <div class="key-card">
-      <div class="api-row-top">
-        <span>Team Co-Work Mode</span>
-        <button class="btn-chip ${state.cowork ? 'active' : ''}" onclick="state.cowork=!state.cowork;updateTopDots();saveState();openToolboxPopover()">${state.cowork ? 'ON' : 'OFF'}</button>
-      </div>
-      <div style="font-size:10.5px;color:var(--muted);margin-top:4px;">চালু থাকলে একাধিক AI মডেল একসাথে সমন্বয় করে কাজ করবে।</div>
-    </div>
-    <div class="key-card">
-      <div style="font-weight:600;font-size:11.5px;margin-bottom:5px;">ElevenLabs Quick SFX</div>
-      <div style="display:flex;gap:5px;">
-        <input class="field-input" id="sfxPrompt" placeholder="যেমন: বৃষ্টি ও বজ্রপাতের শব্দ..." />
-        <button class="send-btn" onclick="genQuickSFX()">Go</button>
       </div>
     </div>
-    <div class="row-gap">
-      <button class="btn-chip" onclick="exportStudioBackup()">💾 Backup Setup</button>
-      <button class="btn-chip" onclick="importStudioBackup()">📂 Restore Setup</button>
-    </div>`);
-}
+  </div>
 
-async function genQuickSFX() {
-  const s = getActiveSlot('audio');
-  const txt = (document.getElementById('sfxPrompt')?.value || '').trim();
-  if (!s || s.provider !== 'elevenlabs' || !s.key) { alert('Audio-তে ElevenLabs API Key বসাও।'); return; }
-  if (!txt) return;
-  setAgentWorking('audio', true, ['AUD']);
-  try {
-    const res = await fetch('/api/elevenlabs/sfx', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey: s.key, text: txt })
-    }).then(r => r.json());
-    if (res.ok && res.audio_base64) {
-      if (!state.output) state.output = { title: txt, stage: 'SFX', text: txt, time: nowTime() };
-      state.output.audioUrl = res.audio_base64;
-      renderOutput(); saveState(); closePopover();
-      addWorkflow('Audio AI', 'SFX তৈরি হয়ে Output-এ যুক্ত হয়েছে।', 'ok');
-    } else alert(res.error || 'SFX ব্যর্থ হয়েছে।');
-  } catch (e) { alert('SFX সংযোগ ব্যর্থ।'); }
-  setAgentWorking('audio', false);
-}
+  <!-- ৩. এজেন্ট থট ও লাইভ লগ ভিউয়ার মডাল -->
+  <div id="modalThought" class="modal-backdrop" onclick="if(event.target===this) closeModal('modalThought')">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="panel-title" id="thoughtTitle">🤖 Agent Status</div>
+        <button class="icon-btn" onclick="closeModal('modalThought')">✕</button>
+      </div>
+      <div class="modal-body" id="thoughtBody"></div>
+    </div>
+  </div>
 
-function exportStudioBackup() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'ai-video-studio-backup.json';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-}
+  <!-- ৪. Character Model & Background Sample অ্যাপ্রুভাল মডাল -->
+  <div id="modalSamples" class="modal-backdrop" onclick="if(event.target===this) closeModal('modalSamples')">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="panel-title">🎨 Character & Background Samples</div>
+        <button class="icon-btn" onclick="closeModal('modalSamples')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="samplesContainer" class="sample-grid"></div>
+        <div class="field">
+          <label>কোনো পরিবর্তন চাইলে নিচে লেখো (ঐচ্ছিক)</label>
+          <input type="text" id="sampleImproveInput" placeholder="যেমন: চরিত্রের জ্যাকেট লাল করো বা ব্যাকগ্রাউন্ড আরও অন্ধকার করো..." />
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+          <button class="icon-btn warn" onclick="regenerateSamples()">✨ Improve Samples</button>
+          <button class="icon-btn success" onclick="approveSamplesAndProduce()">✅ Approve & Produce</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-function importStudioBackup() {
-  const inp = document.createElement('input');
-  inp.type = 'file'; inp.accept = 'application/json';
-  inp.onchange = e => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(reader.result);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-        loadState();
-        initUI();
-        closePopover();
-        addWorkflow('Restore', 'স্টুডিও ব্যাকআপ সফলভাবে রিস্টোর হয়েছে।', 'ok');
-      } catch (err) { alert('সঠিক ব্যাকআপ ফাইল নয়।'); }
+  <!-- ৫. অন-ডিমান্ড বাংলা/হিন্দি ভিডিও ডাবিং মডাল -->
+  <div id="modalDub" class="modal-backdrop" onclick="if(event.target===this) closeModal('modalDub')">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="panel-title">🎙️ বাংলা / হিন্দি ডাবিং স্টুডিও</div>
+        <button class="icon-btn" onclick="closeModal('modalDub')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>মূল সংলাপ বা স্ক্রিপ্ট</label>
+          <textarea id="dubSourceText" rows="4" placeholder="যে সংলাপটি বাংলা বা হিন্দিতে ডাবিং করতে চাও তা এখানে পেস্ট করো..."></textarea>
+        </div>
+        <div class="field">
+          <label>ডাবিং ভাষা</label>
+          <select id="dubLangSelect">
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="hi">হিন্দি (Hindi)</option>
+            <option value="en">ইংরেজি (English)</option>
+          </select>
+        </div>
+        <button class="icon-btn primary" id="btnRunDub" onclick="runDubbing()">🎙️ ডাবিং তৈরি করো</button>
+        <div id="dubResultBox" style="display:none;background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:10px;font-size:13px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ৬. নোটিফিকেশন ও ট্রাবলশুটিং মডাল -->
+  <div id="modalNotif" class="modal-backdrop" onclick="if(event.target===this) closeModal('modalNotif')">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="panel-title">🔔 Studio Notifications & Diagnostics</div>
+        <div style="display:flex;gap:6px;">
+          <button class="icon-btn" onclick="clearNotifications()">🗑️ Clear</button>
+          <button class="icon-btn" onclick="closeModal('modalNotif')">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" id="notifModalBody"></div>
+    </div>
+  </div>
+
+  <!-- ৭. আউটপুট Vault (আগের ভার্সন সংরক্ষণ) মডাল -->
+  <div id="modalVault" class="modal-backdrop" onclick="if(event.target===this) closeModal('modalVault')">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="panel-title">🗂️ Output Vault (আগের ভার্সন)</div>
+        <button class="icon-btn" onclick="closeModal('modalVault')">✕</button>
+      </div>
+      <div class="modal-body" id="vaultModalBody"></div>
+    </div>
+  </div>
+
+  <!-- ৮. আউটপুট Improve মডাল -->
+  <div id="modalImprove" class="modal-backdrop" onclick="if(event.target===this) closeModal('modalImprove')">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="panel-title">✨ আউটপুট আরও উন্নত করো</div>
+        <button class="icon-btn" onclick="closeModal('modalImprove')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--muted);">আগের ভার্সনটি নিরাপদে Vault-এ সংরক্ষিত থাকবে এবং নতুন নির্দেশনা অনুযায়ী উন্নত ভার্সন তৈরি হবে।</div>
+        <div class="field">
+          <label>কী পরিবর্তন বা উন্নতি চাও?</label>
+          <textarea id="improveNoteInput" rows="3" placeholder="যেমন: আরও সাসপেন্স বাড়াও, সংলাপ ছোট করো, বা আলো আরও নাটকীয় করো..."></textarea>
+        </div>
+        <button class="icon-btn primary" onclick="confirmImproveOutput()">🚀 উন্নত ভার্সন তৈরি করো</button>
+      </div>
+    </div>
+  </div>
+    <script>
+    const STORAGE_KEY = "ai_studio_v3_state";
+    const AGENTS_META = [
+      { id: "director", name: "Director AI", icon: "🎯" },
+      { id: "image", name: "Image AI", icon: "🎨" },
+      { id: "video", name: "Video AI", icon: "🎥" },
+      { id: "audio", name: "Audio AI", icon: "🎵" },
+      { id: "editing", name: "Edit AI", icon: "✂️" }
+    ];
+
+    const DEFAULT_STATE = {
+      agents: {
+        director: { keys: [], status: "idle", activeWorkers: 0, thought: "অপেক্ষায় আছে..." },
+        image: { keys: [], status: "idle", activeWorkers: 0, thought: "অপেক্ষায় আছে..." },
+        video: { keys: [], status: "idle", activeWorkers: 0, thought: "অপেক্ষায় আছে..." },
+        audio: { keys: [], status: "idle", activeWorkers: 0, thought: "অপেক্ষায় আছে..." },
+        editing: { keys: [], status: "idle", activeWorkers: 0, thought: "অপেক্ষায় আছে..." }
+      },
+      coDirector: false,
+      coWork: false,
+      directMode: false,
+      readySound: true,
+      smartMoveIndex: 0,
+      chatHistory: [],
+      vault: [],
+      notifications: [],
+      lastStory: "",
+      characterLock: "",
+      lastOutput: null,
+      failCount: 0
     };
-    reader.readAsText(f);
-  };
-  inp.click();
-}
 
-/* True MP4 Video Export (Canvas + MediaRecorder — NEVER downloads .txt) */
-async function exportMP4Video() {
-  if (!state.output) {
-    alert('এক্সপোর্ট করার মতো কোনো স্যাম্পল বা ফাইনাল আউটপুট এখনো তৈরি হয়নি।');
-    return;
-  }
-  if (state.output.videoUrl) {
-    const a = document.createElement('a');
-    a.href = state.output.videoUrl;
-    a.download = 'studio-video.mp4';
-    a.click();
-    return;
-  }
-  if (typeof MediaRecorder === 'undefined') {
-    alert('এই ব্রাউজার লাইভ ভিডিও রেন্ডারিং সাপোর্ট করে না। Chrome বা আধুনিক ব্রাউজার ব্যবহার করো।');
-    return;
-  }
+    let STATE = loadState();
+    let CURRENT_MODAL_AGENT = null;
+    let BRAND_PICK_TARGET = null;
+    let CURRENT_JOB_ID = null;
 
-  addWorkflow('MP4 Render', `সরাসরি .mp4 ভিডিও (${state.ratio}) রেন্ডার হচ্ছে...`, 'work');
-  const w = state.ratio === '9:16' ? 720 : 1280;
-  const h = state.ratio === '9:16' ? 1280 : 720;
-  const canvas = document.createElement('canvas');
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext('2d');
-
-  const lines = (state.output.text || state.output.title || 'AI Video Studio')
-    .replace(/\s+/g, ' ').trim().match(/.{1,42}(\s|$)/g) || ['AI Video Studio'];
-
-  const stream = canvas.captureStream(30);
-  const mime = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')
-    ? 'video/mp4;codecs=avc1'
-    : MediaRecorder.isTypeSupported('video/mp4')
-      ? 'video/mp4'
-      : 'video/webm;codecs=vp8';
-
-  const chunks = [];
-  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000 });
-  rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-  rec.onstop = () => {
-    const blob = new Blob(chunks, { type: 'video/mp4' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ai-studio-${Date.now()}.mp4`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-    addWorkflow('MP4 Ready', 'ভিডিও (.mp4) সফলভাবে ডাউনলোড হয়েছে।', 'ok');
-  };
-
-  rec.start();
-  const durationMs = 4500;
-  const startTs = performance.now();
-
-  function drawFrame(now) {
-    const elapsed = now - startTs;
-    const p = Math.min(1, elapsed / durationMs);
-
-    const grad = ctx.createLinearGradient(0, 0, w, h);
-    grad.addColorStop(0, '#09111f');
-    grad.addColorStop(0.5, '#13243f');
-    grad.addColorStop(1, '#070b14');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
-
-    // Subtle animated glow circle
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
-    ctx.beginPath();
-    ctx.arc(w * (0.25 + 0.5 * p), h * 0.38, Math.min(w, h) * 0.28, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Title
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = `bold ${Math.round(w * 0.032)}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText(`AI VIDEO STUDIO · ${state.output.stage || 'SAMPLE'}`, w / 2, h * 0.18);
-
-    ctx.fillStyle = '#f8fafc';
-    ctx.font = `bold ${Math.round(w * 0.044)}px sans-serif`;
-    ctx.fillText((state.output.title || 'Studio Render').slice(0, 36), w / 2, h * 0.45);
-
-    // Optional Subtitles (CC)
-    if (state.cc) {
-      const idx = Math.min(lines.length - 1, Math.floor(p * Math.min(lines.length, 4)));
-      const sub = (lines[idx] || '').trim();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-      ctx.fillRect(w * 0.08, h * 0.78, w * 0.84, h * 0.12);
-      ctx.fillStyle = '#fef08a';
-      ctx.font = `600 ${Math.round(w * 0.028)}px sans-serif`;
-      ctx.fillText(sub, w / 2, h * 0.855);
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(DEFAULT_STATE);
+        const parsed = JSON.parse(raw);
+        const merged = Object.assign(structuredClone(DEFAULT_STATE), parsed);
+        for (const m of AGENTS_META) {
+          if (!merged.agents[m.id]) merged.agents[m.id] = { keys: [], status: "idle", activeWorkers: 0, thought: "অপেক্ষায় আছে..." };
+          if (!Array.isArray(merged.agents[m.id].keys)) merged.agents[m.id].keys = [];
+        }
+        return merged;
+      } catch {
+        return structuredClone(DEFAULT_STATE);
+      }
     }
 
-    if (elapsed < durationMs) requestAnimationFrame(drawFrame);
-    else rec.stop();
-  }
-  requestAnimationFrame(drawFrame);
-}
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+      } catch (e) {
+        console.warn("Checkpoint save warning:", e);
+      }
+    }
 
-function initUI() {
-  applyToolsDrawer();
-  renderApiList();
-  renderCatMatrix();
-  renderChat();
-  renderWorkflow();
-  renderNotifs();
-  renderOutput();
-  renderVault();
-  updateTopDots();
-}
+    function openModal(id) { document.getElementById(id)?.classList.add("open"); }
+    function closeModal(id) { document.getElementById(id)?.classList.remove("open"); }
 
-loadState();
-initUI();
-</script>
+    function toggleToolbox() {
+      const box = document.getElementById("smartToolbox");
+      const btn = document.getElementById("btnToolbox");
+      const show = box.style.display === "none" || !box.style.display;
+      box.style.display = show ? "flex" : "none";
+      btn.classList.toggle("active", show);
+    }
+
+    function toggleCoDirector() {
+      STATE.coDirector = !STATE.coDirector;
+      document.getElementById("btnCoDirector").classList.toggle("active", STATE.coDirector);
+      pushNotif(STATE.coDirector ? "info" : "ok", STATE.coDirector ? "🎭 Co-Director চালু (Option A vs B)" : "Co-Director বন্ধ করা হয়েছে।");
+      saveState();
+    }
+
+    function toggleCoWork() {
+      STATE.coWork = !STATE.coWork;
+      document.getElementById("btnCoWork").classList.toggle("active", STATE.coWork);
+      pushNotif(STATE.coWork ? "info" : "ok", STATE.coWork ? "⚡ Co-Work চালু (একাধিক AI একসাথে কাজ করবে)" : "Co-Work বন্ধ করা হয়েছে।");
+      saveState();
+    }
+
+    function toggleDirectMode() {
+      STATE.directMode = !STATE.directMode;
+      document.getElementById("btnDirectMode").classList.toggle("active", STATE.directMode);
+      pushNotif("ok", STATE.directMode ? "⏩ Direct Mode চালু (স্যাম্পল ছাড়াই সরাসরি প্রোডাকশন)" : "🎨 Sample Approval মোড চালু।");
+      saveState();
+    }
+
+    function toggleReadySound() {
+      STATE.readySound = !STATE.readySound;
+      document.getElementById("btnSoundToggle").textContent = STATE.readySound ? "🔊" : "🔇";
+      saveState();
+    }
+
+    function setEnergyFlow(active) {
+      document.getElementById("energyBeam")?.classList.toggle("active", active);
+      ["panelApi", "panelChat", "panelOutput"].forEach(id => {
+        document.getElementById(id)?.classList.toggle("energy-active", active);
+      });
+    }
+
+    /* সাদা LED ব্লিঙ্ক: এক বক্স থেকে অন্য বক্সে ট্রান্সফার/শেয়ার */
+    function flashWhiteTransfer(agentIds) {
+      agentIds.forEach(aid => {
+        const card = document.getElementById(`agent-card-${aid}`);
+        const mat = document.getElementById(`matrix-${aid}`);
+        if (card) {
+          card.classList.remove("white-transfer-flash");
+          void card.offsetWidth;
+          card.classList.add("white-transfer-flash");
+          setTimeout(() => card.classList.remove("white-transfer-flash"), 2500);
+        }
+        if (mat) {
+          mat.classList.remove("white-transfer-flash");
+          void mat.offsetWidth;
+          mat.classList.add("white-transfer-flash");
+          setTimeout(() => mat.classList.remove("white-transfer-flash"), 2500);
+        }
+      });
+    }
+
+    /* নিজের ঘরের ওপরে (Primary) ও নিচে (Secondary) সাদা LED ব্লিঙ্ক */
+    function flashSelfDualWhite(agentId) {
+      const card = document.getElementById(`agent-card-${agentId}`);
+      if (!card) return;
+      card.classList.remove("self-dual-flash", "white-transfer-flash");
+      void card.offsetWidth;
+      card.classList.add("self-dual-flash", "white-transfer-flash");
+      setTimeout(() => card.classList.remove("self-dual-flash", "white-transfer-flash"), 2600);
+    }
+
+    /* LED ডট তৈরি (Co-Work হলে যতগুলো AI কাজ করবে ততগুলো নীল আলো) */
+    function buildLedHtml(status, activeWorkers = 0, hasKey = false) {
+      if (status === "working") {
+        const count = Math.max(1, Math.min(3, activeWorkers || 1));
+        return Array.from({ length: count }).map(() => `<span class="led blue"></span>`).join("");
+      }
+      if (status === "error") return `<span class="led red"></span>`;
+      if (status === "warn") return `<span class="led yellow"></span>`;
+      if (status === "ready" || hasKey) return `<span class="led green"></span>`;
+      return `<span class="led"></span>`;
+    }
+
+    function renderAgentCards() {
+      const wrap = document.getElementById("agentCardsContainer");
+      wrap.innerHTML = "";
+      AGENTS_META.forEach(meta => {
+        const ag = STATE.agents[meta.id];
+        const primary = ag.keys[0];
+        const hasKey = !!(primary && primary.apiKey);
+        const leds = buildLedHtml(ag.status, ag.activeWorkers, hasKey);
+
+        const card = document.createElement("div");
+        card.className = "agent-card";
+        card.id = `agent-card-${meta.id}`;
+        card.onclick = () => openApiModal(meta.id);
+        card.innerHTML = `
+          <div class="self-dual-leds">
+            <span class="led white"></span>
+            <span class="led white"></span>
+          </div>
+          <div class="agent-card-top">
+            <div class="agent-title">${meta.icon} ${meta.name}</div>
+            <div class="led-row">${leds}</div>
+          </div>
+          <div class="agent-meta">
+            <span>${hasKey ? `${primary.provider.toUpperCase()} · ${(primary.model || "Auto").slice(0, 20)}` : "Key যোগ করতে ট্যাপ করো"}</span>
+            <div style="display:flex;gap:4px;">
+              ${primary?.shared ? `<span class="badge shared">🔗</span>` : ""}
+              ${ag.keys.length > 1 ? `<span class="badge">+${ag.keys.length - 1}</span>` : ""}
+            </div>
+          </div>
+        `;
+        wrap.appendChild(card);
+
+        // ওপরের ক্যাটাগরি ম্যাট্রিক্স ও ওয়ার্কফ্লো মিনি-বক্সে সিঙ্ক করা
+        const matLeds = document.getElementById(`matrix-leds-${meta.id}`);
+        if (matLeds) matLeds.innerHTML = leds;
+        const wfLeds = document.getElementById(`wf-leds-${meta.id}`);
+        if (wfLeds) wfLeds.innerHTML = leds;
+      });
+    }
+
+    /* নোটিফিকেশন ও ট্রাবলশুটিং বার */
+    function pushNotif(level, text, agentId = null) {
+      STATE.notifications.unshift({
+        id: Date.now() + Math.random(),
+        level,
+        text,
+        agentId,
+        time: new Date().toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" })
+      });
+      if (STATE.notifications.length > 25) STATE.notifications.pop();
+      renderNotifBar();
+      saveState();
+    }
+
+    function renderNotifBar() {
+      const bar = document.getElementById("notifBar");
+      const txt = document.getElementById("notifText");
+      const cnt = document.getElementById("notifCount");
+      const errs = STATE.notifications.filter(n => n.level === "error");
+      const warns = STATE.notifications.filter(n => n.level === "warn");
+
+      bar.classList.remove("warn", "error");
+      if (errs.length > 0) {
+        bar.classList.add("error");
+        txt.textContent = `🔴 ${errs[0].text.slice(0, 56)}`;
+        cnt.textContent = errs.length;
+      } else if (warns.length > 0) {
+        bar.classList.add("warn");
+        txt.textContent = `🟡 ${warns[0].text.slice(0, 56)}`;
+        cnt.textContent = warns.length;
+      } else {
+        const latest = STATE.notifications[0];
+        txt.textContent = latest ? `🟢 ${latest.text.slice(0, 56)}` : "🟢 স্টুডিও সচল ও প্রস্তুত";
+        cnt.textContent = STATE.notifications.length;
+      }
+    }
+
+    function openNotifModal() {
+      const body = document.getElementById("notifModalBody");
+      if (!STATE.notifications.length) {
+        body.innerHTML = `<div style="color:var(--muted);text-align:center;padding:18px;">কোনো নোটিফিকেশন নেই—সবকিছু ঠিক আছে।</div>`;
+      } else {
+        body.innerHTML = STATE.notifications.map(n => `
+          <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:9px 10px;font-size:12.5px;">
+            <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-bottom:4px;">
+              <span>${n.level === "error" ? "🔴 Error" : n.level === "warn" ? "🟡 Warning" : "🟢 Info"}</span>
+              <span>${n.time}</span>
+            </div>
+            <div>${escapeHtml(n.text)}</div>
+            ${n.level === "error" ? `
+              <div style="margin-top:7px;display:flex;gap:6px;">
+                <button class="icon-btn warn" style="padding:4px 8px;font-size:11.5px;" onclick="closeModal('modalNotif');runFullRecovery()">⚡ Self-Recovery</button>
+                <button class="icon-btn" style="padding:4px 8px;font-size:11.5px;" onclick="closeModal('modalNotif');askDirectorDiagnostic('${escapeAttr(n.text)}')">🎯 Ask Director</button>
+              </div>` : ""}
+          </div>
+        `).join("");
+      }
+      openModal("modalNotif");
+    }
+
+    function clearNotifications() {
+      STATE.notifications = [];
+      renderNotifBar();
+      openNotifModal();
+      saveState();
+    }
+
+    /* API Settings মডাল */
+    function openApiModal(agentId) {
+      CURRENT_MODAL_AGENT = agentId;
+      const meta = AGENTS_META.find(a => a.id === agentId);
+      document.getElementById("apiModalTitle").textContent = `${meta.icon} ${meta.name} · API Settings`;
+      const ag = STATE.agents[agentId];
+      if (!ag.keys.length) {
+        ag.keys.push({ provider: "auto", apiKey: "", model: "", mode: "free", cycleIndex: 0, models: [], topFree: [], topPaid: [], shared: false });
+      }
+      renderApiSlots();
+      openModal("modalApi");
+    }
+
+    function renderApiSlots() {
+      const ag = STATE.agents[CURRENT_MODAL_AGENT];
+      const box = document.getElementById("apiSlotsContainer");
+      const seenBrands = new Set();
+
+      box.innerHTML = ag.keys.map((slot, idx) => {
+        const brandKey = (slot.provider || "auto").toLowerCase();
+        const showBrandInfo = brandKey !== "auto" && !seenBrands.has(brandKey);
+        if (brandKey !== "auto") seenBrands.add(brandKey);
+
+        const modelOptions = (slot.models || []).slice(0, 60).map(m =>
+          `<option value="${escapeAttr(m)}" ${m === slot.model ? "selected" : ""}>${escapeHtml(m)}</option>`
+        ).join("");
+
+        return `
+          <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+              <span class="badge ${idx === 0 ? "free" : ""}">${idx === 0 ? "Primary (Key #1)" : `Secondary (Key #${idx + 1})`}</span>
+              <div style="display:flex;gap:5px;align-items:center;">
+                ${showBrandInfo ? `<button class="icon-btn" style="padding:3px 7px;font-size:12px;" onclick="openBrandInfo(${idx})" title="Top 3 Free vs Paid">ℹ️</button>` : ""}
+                <button class="icon-btn" style="padding:3px 7px;font-size:11.5px;" onclick="autoDetectSlot(${idx})" title="Paid ⇄ Free Auto-Detect">🔍 ${slot.mode === "paid" ? "Paid" : "Free"}</button>
+                ${ag.keys.length > 1 ? `<button class="icon-btn danger" style="padding:3px 7px;font-size:11.5px;" onclick="removeSlot(${idx})">🗑️</button>` : ""}
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:115px 1fr;gap:6px;">
+              <select onchange="updateSlotField(${idx},'provider',this.value)" style="background:#091020;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px;font-size:12px;">
+                ${["auto","google","openrouter","groq","openai","anthropic","deepseek","mistral","runway","elevenlabs"].map(p =>
+                  `<option value="${p}" ${slot.provider === p ? "selected" : ""}>${p.toUpperCase()}</option>`
+                ).join("")}
+              </select>
+              <input type="password" value="${escapeAttr(slot.apiKey || "")}" placeholder="API Key পেস্ট করো..."
+                oninput="updateSlotField(${idx},'apiKey',this.value)"
+                style="background:#091020;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12.5px;" />
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;">
+              ${slot.models && slot.models.length
+                ? `<select onchange="updateSlotField(${idx},'model',this.value)" style="background:#091020;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px;font-size:12px;">
+                     <option value="${escapeAttr(slot.model || "")}">${escapeHtml(slot.model || "Auto Model")}</option>
+                     ${modelOptions}
+                   </select>`
+                : `<input type="text" value="${escapeAttr(slot.model || "")}" placeholder="মডেল (অথবা 🔍 চাপো)"
+                     oninput="updateSlotField(${idx},'model',this.value)"
+                     style="background:#091020;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12px;" />`
+              }
+            </div>
+
+            <!-- ক্যাটাগরি অনুযায়ী স্মার্ট অ্যাকশন: Move, Share, Self-Secondary -->
+            <div style="display:flex;flex-wrap:wrap;gap:5px;padding-top:2px;">
+              ${ag.keys.length > 1 ? `<button class="icon-btn" style="padding:4px 7px;font-size:11px;" onclick="transferSlotPrompt(${idx}, false)" title="অন্য এজেন্টে স্থানান্তর">⇄ Move</button>` : ""}
+              <button class="icon-btn" style="padding:4px 7px;font-size:11px;" onclick="transferSlotPrompt(${idx}, true)" title="নিজের কাছে রেখেই অন্যকে শেয়ার">🔗 Share</button>
+              ${idx === 0 && ag.keys.length === 1 ? `<button class="icon-btn" style="padding:4px 7px;font-size:11px;" onclick="cloneToSelfSecondary()" title="নিজের Secondary-তে আরেকটি মডেল">⧉ Self-2nd</button>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function updateSlotField(idx, field, val) {
+      const slot = STATE.agents[CURRENT_MODAL_AGENT].keys[idx];
+      if (!slot) return;
+      slot[field] = val.trim();
+      saveState();
+    }
+
+    function addBackupSlot() {
+      STATE.agents[CURRENT_MODAL_AGENT].keys.push({ provider: "auto", apiKey: "", model: "", mode: "free", cycleIndex: 0, models: [], topFree: [], topPaid: [], shared: false });
+      renderApiSlots();
+      saveState();
+    }
+
+    function removeSlot(idx) {
+      STATE.agents[CURRENT_MODAL_AGENT].keys.splice(idx, 1);
+      renderApiSlots();
+      renderAgentCards();
+      saveState();
+    }
+
+    /* Paid ⇄ Free রোটেশনাল Auto-Detect */
+    async function autoDetectSlot(idx) {
+      const ag = STATE.agents[CURRENT_MODAL_AGENT];
+      const slot = ag.keys[idx];
+      if (!slot || !slot.apiKey) {
+        pushNotif("warn", "আগে একটি API Key পেস্ট করো।");
+        return;
+      }
+      slot.mode = slot.mode === "free" ? "paid" : "free";
+      slot.cycleIndex = (slot.cycleIndex || 0) + 1;
+
+      try {
+        const res = await fetch("/api/detect-models", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            apiKey: slot.apiKey,
+            provider: slot.provider || "auto",
+            agentId: CURRENT_MODAL_AGENT,
+            mode: slot.mode,
+            cycleIndex: slot.cycleIndex
+          })
+        });
+        const data = await res.json();
+        slot.provider = data.provider || slot.provider;
+        slot.models = data.models || [];
+        slot.topFree = data.top_free || [];
+        slot.topPaid = data.top_paid || [];
+        if (data.best_model) slot.model = data.best_model;
+
+        if (data.ok) {
+          ag.status = "ready";
+          pushNotif("ok", `${slot.provider.toUpperCase()} (${slot.mode.toUpperCase()}): ${slot.model} সেট হয়েছে।`);
+        } else {
+          ag.status = "error";
+          pushNotif("error", data.error || "API Key যাচাই ব্যর্থ।", CURRENT_MODAL_AGENT);
+        }
+        renderApiSlots();
+        renderAgentCards();
+        saveState();
+      } catch (e) {
+        pushNotif("error", "সার্ভারের সাথে সংযোগ ব্যর্থ: " + e.message);
+      }
+    }
+
+    /* ব্র্যান্ড Top-3 Free vs Top-3 Paid ছক */
+    function openBrandInfo(slotIdx) {
+      const slot = STATE.agents[CURRENT_MODAL_AGENT].keys[slotIdx];
+      if (!slot) return;
+      BRAND_PICK_TARGET = { agentId: CURRENT_MODAL_AGENT, slotIdx };
+      document.getElementById("brandInfoTitle").textContent = `ℹ️ ${(slot.provider || "Brand").toUpperCase()} · Top 3 Models`;
+      const freeList = slot.topFree?.length ? slot.topFree : ["🔍 Auto-Detect চাপলে লোড হবে"];
+      const paidList = slot.topPaid?.length ? slot.topPaid : ["🔍 Auto-Detect চাপলে লোড হবে"];
+
+      document.getElementById("brandFreeList").innerHTML = freeList.map(m =>
+        `<button class="model-pick" onclick="pickBrandModel('${escapeAttr(m)}')"><span>${escapeHtml(m)}</span><span>✓</span></button>`
+      ).join("");
+      document.getElementById("brandPaidList").innerHTML = paidList.map(m =>
+        `<button class="model-pick" onclick="pickBrandModel('${escapeAttr(m)}')"><span>${escapeHtml(m)}</span><span>✓</span></button>`
+      ).join("");
+      openModal("modalBrandInfo");
+    }
+
+    function pickBrandModel(modelName) {
+      if (!BRAND_PICK_TARGET || modelName.includes("Auto-Detect")) return;
+      const slot = STATE.agents[BRAND_PICK_TARGET.agentId].keys[BRAND_PICK_TARGET.slotIdx];
+      if (slot) {
+        slot.model = modelName;
+        renderApiSlots();
+        renderAgentCards();
+        saveState();
+        pushNotif("ok", `মডেল সেট হয়েছে: ${modelName}`);
+      }
+      closeModal("modalBrandInfo");
+    }
+
+    /* অন্য এজেন্টে Move অথবা Share (দুই কার্ডেই সাদা LED ব্লিঙ্ক) */
+    function transferSlotPrompt(slotIdx, isShare) {
+      const others = AGENTS_META.filter(a => a.id !== CURRENT_MODAL_AGENT);
+      const choice = prompt(`${isShare ? "🔗 Share" : "⇄ Move"} কোন এজেন্টে করবে?\nনাম লেখো: ${others.map(o => o.id).join(", ")}`, others[0].id);
+      if (!choice) return;
+      const targetId = choice.trim().toLowerCase();
+      if (!STATE.agents[targetId] || targetId === CURRENT_MODAL_AGENT) return;
+
+      const srcSlots = STATE.agents[CURRENT_MODAL_AGENT].keys;
+      const picked = structuredClone(srcSlots[slotIdx]);
+      if (!picked || !picked.apiKey) return;
+
+      if (isShare) {
+        picked.shared = true;
+      } else {
+                srcSlots.splice(slotIdx, 1);
+      }
+      STATE.agents[targetId].keys.unshift(picked);
+      STATE.agents[targetId].status = "ready";
+      saveState();
+      renderApiSlots();
+      renderAgentCards();
+      flashWhiteTransfer([CURRENT_MODAL_AGENT, targetId]);
+      pushNotif("ok", `${isShare ? "🔗 Share" : "⇄ Move"} সম্পন্ন: ${CURRENT_MODAL_AGENT} → ${targetId}`);
+    }
+
+    /* নিজের Primary Key দিয়েই নিজের Secondary-তে আরেকটি মডেল (ওপরে-নিচে ২টি সাদা LED) */
+    function cloneToSelfSecondary() {
+      const ag = STATE.agents[CURRENT_MODAL_AGENT];
+      const p = ag.keys[0];
+      if (!p || !p.apiKey) {
+        pushNotif("warn", "আগে Primary Key বসাও।");
+        return;
+      }
+      const copy = structuredClone(p);
+      copy.mode = p.mode === "free" ? "paid" : "free";
+      copy.shared = true;
+      copy.model = (p.topFree && p.topFree[0] && p.topFree[0] !== p.model) ? p.topFree[0] : (p.topPaid?.[0] || p.model);
+      ag.keys.push(copy);
+      saveState();
+      renderApiSlots();
+      renderAgentCards();
+      flashSelfDualWhite(CURRENT_MODAL_AGENT);
+      pushNotif("ok", `${CURRENT_MODAL_AGENT.toUpperCase()}-এ নিজের Secondary মডেল যুক্ত হয়েছে।`);
+    }
+
+    function saveCurrentAgentModal() {
+      const ag = STATE.agents[CURRENT_MODAL_AGENT];
+      ag.keys = ag.keys.filter(k => k.apiKey && k.apiKey.trim());
+      ag.status = ag.keys.length ? "ready" : "idle";
+      saveState();
+      renderAgentCards();
+      closeModal("modalApi");
+      pushNotif("ok", `${CURRENT_MODAL_AGENT.toUpperCase()} API সেভ হয়েছে।`);
+    }
+
+    /* রোটেশনাল 🚀 Smart Move: ১ম/২য়/৩য় বারে সেরা ব্র্যান্ডকে ৫ এজেন্টের Primary করে, স্পেশালিস্টকে Secondary রাখে */
+    function runSmartMoveCycle() {
+      const multiBrands = ["google", "openrouter", "openai", "groq", "anthropic", "deepseek", "mistral"];
+      const pool = [];
+      const seen = new Set();
+
+      AGENTS_META.forEach(m => {
+        STATE.agents[m.id].keys.forEach(k => {
+          if (k.apiKey && multiBrands.includes((k.provider || "").toLowerCase())) {
+            const sig = `${k.provider}:${k.apiKey}`;
+            if (!seen.has(sig)) {
+              seen.add(sig);
+              pool.push(structuredClone(k));
+            }
+          }
+        });
+      });
+
+      if (!pool.length) {
+        pushNotif("warn", "Smart Move-এর জন্য অন্তত ১টি Google/OpenRouter/Groq/OpenAI Key যোগ করো।");
+        return;
+      }
+
+      const chosen = pool[STATE.smartMoveIndex % pool.length];
+      STATE.smartMoveIndex = (STATE.smartMoveIndex + 1) % pool.length;
+
+      AGENTS_META.forEach(m => {
+        const ag = STATE.agents[m.id];
+        const backups = ag.keys.filter(k => k.apiKey !== chosen.apiKey);
+        const primaryClone = structuredClone(chosen);
+        primaryClone.shared = true;
+        ag.keys = [primaryClone, ...backups.slice(0, 2)];
+        ag.status = "ready";
+      });
+
+      saveState();
+      renderAgentCards();
+      if (CURRENT_MODAL_AGENT && document.getElementById("modalApi").classList.contains("open")) {
+        renderApiSlots();
+      }
+      flashWhiteTransfer(AGENTS_META.map(a => a.id));
+      pushNotif("ok", `🚀 Smart Move #${STATE.smartMoveIndex || pool.length}: ${chosen.provider.toUpperCase()} এখন ৫ এজেন্টের Primary!`);
+    }
+
+    function escapeHtml(s) {
+      return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    function escapeAttr(s) {
+      return escapeHtml(s).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+  </script>
+    <script>
+    let LAST_SAMPLES = [];
+
+    function addChatMsg(role, text, extraHtml = "") {
+      const box = document.getElementById("chatMessages");
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      div.innerHTML = `<div>${escapeHtml(text)}</div>${extraHtml}`;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearChat() {
+      STATE.chatHistory = [];
+      document.getElementById("chatMessages").innerHTML =
+        `<div class="msg ai">চ্যাট পরিষ্কার করা হয়েছে। নতুন গল্প বা নির্দেশনা লেখো!</div>`;
+      saveState();
+    }
+
+    async function sendChat(customText = null, isDiagnostic = false) {
+      const input = document.getElementById("chatInput");
+      const text = (customText !== null ? customText : input.value).trim();
+      if (!text) return;
+      if (customText === null) input.value = "";
+
+      if (!isDiagnostic) {
+        STATE.lastStory = text;
+        addChatMsg("user", text);
+        STATE.chatHistory.push({ role: "user", content: text });
+      } else {
+        addChatMsg("user", "🎯 ডিরেক্টর, এই সমস্যাটির সমাধান বলো:\n" + text);
+      }
+
+      STATE.agents.director.status = "working";
+      STATE.agents.director.activeWorkers = STATE.coDirector ? 2 : (STATE.coWork ? 2 : 1);
+      renderAgentCards();
+      setEnergyFlow(true);
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text,
+            agentId: "director",
+            agents: STATE.agents,
+            history: STATE.chatHistory.slice(-8),
+            coDirector: STATE.coDirector,
+            coWork: STATE.coWork,
+            directMode: STATE.directMode,
+            isDiagnostic
+          })
+        });
+        const data = await res.json();
+        STATE.agents.director.activeWorkers = 0;
+
+        if (!data.ok) {
+          STATE.failCount = (STATE.failCount || 0) + 1;
+          STATE.agents.director.status = "error";
+          renderAgentCards();
+          setEnergyFlow(false);
+          pushNotif("error", data.error || "Director AI উত্তর দিতে পারেনি।", "director");
+
+          const recoveryBtns = `
+            <div class="msg-actions">
+              <button class="icon-btn" onclick="sendChat('${escapeAttr(text)}')">🔄 Try Again</button>
+              ${STATE.failCount >= 2 ? `<button class="icon-btn warn" onclick="runFullRecovery()">🛠️ Full Studio Self-Recovery</button>` : ""}
+              <button class="icon-btn" onclick="askDirectorDiagnostic('${escapeAttr(data.error || "")}')">🎯 Ask Director</button>
+            </div>`;
+          addChatMsg("error", "⚠️ " + (data.error || "সংযোগে সমস্যা হয়েছে।"), recoveryBtns);
+          return;
+        }
+
+        STATE.failCount = 0;
+        STATE.agents.director.status = "ready";
+        STATE.agents.director.thought = data.reply.slice(0, 220);
+        if (data.promoted_primary) {
+          pushNotif("ok", "ডাইনামিক Primary: ব্যাকআপ Key সফলভাবে কাজ করেছে।");
+        }
+        renderAgentCards();
+        setEnergyFlow(false);
+
+        let extraHtml = "";
+        if (data.youtube && data.youtube.title) {
+          extraHtml += `<div style="margin-top:6px;font-size:11.5px;color:var(--blue);">📺 YouTube স্ক্যান: ${escapeHtml(data.youtube.title)}</div>`;
+        }
+
+        // Co-Director Option A vs Option B চয়েস কার্ড
+        if (data.co_director_options) {
+          const optA = data.co_director_options.optionA;
+          const optB = data.co_director_options.optionB;
+          extraHtml += `
+            <div class="co-grid">
+              <div class="co-card">
+                <strong style="color:var(--blue);font-size:12px;">${escapeHtml(optA.title)}</strong>
+                <div style="font-size:12px;">${escapeHtml(optA.text)}</div>
+                <button class="icon-btn primary" style="margin-top:4px;font-size:11.5px;" onclick="chooseCoOption('A')">✅ Option A বেছে নাও</button>
+              </div>
+              <div class="co-card">
+                <strong style="color:var(--gold);font-size:12px;">${escapeHtml(optB.title)}</strong>
+                <div style="font-size:12px;">${escapeHtml(optB.text)}</div>
+                <button class="icon-btn warn" style="margin-top:4px;font-size:11.5px;" onclick="chooseCoOption('B')">✅ Option B বেছে নাও</button>
+              </div>
+            </div>`;
+        } else if (data.ask_sample_approval) {
+          extraHtml += `
+            <div class="msg-actions">
+              <button class="icon-btn success" onclick="requestSamplesFromInput()">🎨 চরিত্র ও ব্যাকগ্রাউন্ড স্যাম্পল দেখো</button>
+              <button class="icon-btn primary" onclick="startProduction()">🎬 সরাসরি ভিডিও বানাও</button>
+            </div>`;
+        }
+
+        addChatMsg("ai", data.reply, extraHtml);
+        STATE.chatHistory.push({ role: "assistant", content: data.reply });
+        if (STATE.chatHistory.length > 20) STATE.chatHistory = STATE.chatHistory.slice(-20);
+        saveState();
+      } catch (e) {
+        STATE.agents.director.status = "error";
+        STATE.agents.director.activeWorkers = 0;
+        renderAgentCards();
+        setEnergyFlow(false);
+        addChatMsg("error", "⚠️ নেটওয়ার্ক ত্রুটি: " + e.message, `<div class="msg-actions"><button class="icon-btn warn" onclick="runFullRecovery()">🛠️ Self-Recovery</button></div>`);
+      }
+    }
+
+    function chooseCoOption(opt) {
+      STATE.characterLock = `Selected Co-Director Plan: Option ${opt}`;
+      pushNotif("ok", `Co-Director Option ${opt} লক করা হয়েছে!`);
+      startProduction(STATE.lastStory);
+    }
+
+    function askDirectorDiagnostic(errText) {
+      sendChat(errText || "স্টুডিওর API কাজ করছে না, কী করব?", true);
+    }
+
+    /* Character Model & Background Sample অ্যাপ্রুভাল */
+    function requestSamplesFromInput() {
+      const story = document.getElementById("chatInput").value.trim() || STATE.lastStory;
+      if (!story) {
+        pushNotif("warn", "আগে চ্যাট বক্সে একটি গল্প লেখো।");
+        return;
+      }
+      STATE.lastStory = story;
+      generateSamples(story, "");
+    }
+
+    async function generateSamples(story, improveNote) {
+      document.getElementById("samplesContainer").innerHTML = `<div style="padding:20px;text-align:center;color:var(--blue);">🎨 চরিত্র ও ব্যাকগ্রাউন্ড স্যাম্পল তৈরি হচ্ছে...</div>`;
+      openModal("modalSamples");
+      setEnergyFlow(true);
+      try {
+        const res = await fetch("/api/generate-samples", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            story,
+            aspect: document.getElementById("aspectSelect").value,
+            improveNote,
+            agents: STATE.agents
+          })
+        });
+        const data = await res.json();
+        setEnergyFlow(false);
+        if (!data.ok) {
+          document.getElementById("samplesContainer").innerHTML = `<div style="color:#fca5a5;">${escapeHtml(data.error || "স্যাম্পল তৈরি ব্যর্থ")}</div>`;
+          return;
+        }
+        LAST_SAMPLES = data.samples || [];
+        document.getElementById("samplesContainer").innerHTML = LAST_SAMPLES.map(s => `
+          <div class="sample-card">
+            <img src="${s.image_data}" alt="${escapeAttr(s.name)}" />
+            <div class="sample-card-info">
+              <strong>${escapeHtml(s.name)}</strong>
+              <div style="color:var(--muted);margin-top:3px;">${escapeHtml(s.desc || "")}</div>
+            </div>
+          </div>
+        `).join("");
+      } catch (e) {
+        setEnergyFlow(false);
+        document.getElementById("samplesContainer").innerHTML = `<div style="color:#fca5a5;">ত্রুটি: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    function regenerateSamples() {
+      const note = document.getElementById("sampleImproveInput").value.trim();
+      generateSamples(STATE.lastStory, note);
+    }
+
+    function approveSamplesAndProduce() {
+      STATE.characterLock = LAST_SAMPLES.map(s => `${s.name}: ${s.desc}`).join(" | ");
+      saveState();
+      closeModal("modalSamples");
+      pushNotif("ok", "✅ চরিত্র ও ব্যাকগ্রাউন্ড লক হয়েছে! প্রোডাকশন শুরু হচ্ছে...");
+      startProduction(STATE.lastStory);
+    }
+
+    /* বাংলা/হিন্দি ডাবিং টুল */
+    function openDubModal() {
+      if (STATE.lastOutput?.narration_script && !document.getElementById("dubSourceText").value.trim()) {
+        document.getElementById("dubSourceText").value = STATE.lastOutput.narration_script;
+      }
+      openModal("modalDub");
+    }
+
+    async function runDubbing() {
+      const text = document.getElementById("dubSourceText").value.trim();
+      const targetLang = document.getElementById("dubLangSelect").value;
+      const box = document.getElementById("dubResultBox");
+      if (!text) return pushNotif("warn", "ডাবিং করার জন্য সংলাপ লেখো।");
+
+      box.style.display = "block";
+      box.innerHTML = "🎙️ অনুবাদ ও ডাবিং অডিও তৈরি হচ্ছে...";
+      setEnergyFlow(true);
+      try {
+        const res = await fetch("/api/dub", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, targetLang, agents: STATE.agents })
+        });
+        const data = await res.json();
+        setEnergyFlow(false);
+        if (!data.ok) {
+          box.innerHTML = `<span style="color:#fca5a5;">${escapeHtml(data.error)}</span>`;
+          return;
+        }
+        box.innerHTML = `
+          <div style="margin-bottom:8px;"><strong>ডাবিং স্ক্রিপ্ট:</strong><br/>${escapeHtml(data.dubbed_script)}</div>
+          <div style="font-size:12px;color:var(--blue);margin-bottom:8px;">${escapeHtml(data.note)}</div>
+          ${data.audio_data ? `<audio controls src="${data.audio_data}" style="width:100%;margin-bottom:8px;"></audio>
+            <a class="icon-btn success" href="${data.audio_data}" download="dubbed_${targetLang}.mp3" style="text-decoration:none;">⬇️ Download MP3</a>` : ""}
+        `;
+      } catch (e) {
+        setEnergyFlow(false);
+        box.innerHTML = `<span style="color:#fca5a5;">ত্রুটি: ${escapeHtml(e.message)}</span>`;
+      }
+    }
+
+    /* টিম হেলথ চেক ও Full Studio Self-Recovery */
+    async function checkTeamHealth() {
+      pushNotif("ok", "🩺 ৫ জন এজেন্টের API পরীক্ষা চলছে...");
+      try {
+        const res = await fetch("/api/team-health", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ agents: STATE.agents })
+        });
+        const data = await res.json();
+        if (data.ok && data.report) {
+          Object.entries(data.report).forEach(([aid, rep]) => {
+            if (STATE.agents[aid]) {
+              STATE.agents[aid].status = rep.ok ? "ready" : (rep.status === "empty" ? "idle" : "error");
+              STATE.agents[aid].thought = rep.detail || "";
+            }
+          });
+          renderAgentCards();
+          saveState();
+          pushNotif(data.ready_count > 0 ? "ok" : "warn", `🩺 হেলথ চেক: ${data.ready_count}/5 এজেন্ট সচল।`);
+        }
+      } catch (e) {
+        pushNotif("error", "হেলথ চেক ব্যর্থ: " + e.message);
+      }
+    }
+
+    async function runFullRecovery() {
+      pushNotif("warn", "🛠️ Full Studio Self-Recovery চলছে...");
+      // ব্যর্থ OpenRouter Key-কে ফ্রি মডেলে সুইচ ও Smart Move সিঙ্ক
+      AGENTS_META.forEach(m => {
+        STATE.agents[m.id].keys.forEach(k => {
+          if (k.provider === "openrouter") {
+            k.model = "openrouter/free";
+            k.mode = "free";
+          }
+        });
+      });
+      runSmartMoveCycle();
+      await checkTeamHealth();
+      STATE.failCount = 0;
+      saveState();
+      pushNotif("ok", "✅ Full Studio Self-Recovery সম্পন্ন! এখন আবার চেষ্টা করো।");
+    }
+    </script>
+      <script>
+    let LAST_TEAM_LOGS = [];
+    let REEL_TIMER = null;
+    let ACTIVE_SCENE_IDX = 0;
+
+    /* "Ready!" স্পিকার সাউন্ড (কোনো এক্সটার্নাল ফাইল ছাড়াই ব্রাউজারে কাজ করবে) */
+    function playReadySound() {
+      if (!STATE.readySound) return;
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        [523.25, 659.25, 783.99].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.11);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.11 + 0.25);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + i * 0.11);
+          osc.stop(ctx.currentTime + i * 0.11 + 0.26);
+        });
+      } catch {}
+    }
+
+    function updateWorkflowUI(pct, stage) {
+      document.getElementById("wfProgressBar").style.width = `${pct}%`;
+      document.getElementById("wfPct").textContent = `${pct}%`;
+      document.getElementById("wfStage").textContent = stage;
+    }
+
+    /* আসল সিন-বাই-সিন প্রোডাকশন চালু ও লাইভ প্রোগ্রেস পোলিং */
+    async function startProduction(overrideStory = null, improveNote = "") {
+      const input = document.getElementById("chatInput");
+      const story = (overrideStory || input.value || STATE.lastStory || "").trim();
+      if (!story) {
+        pushNotif("warn", "প্রোডাকশন শুরু করতে আগে চ্যাট বক্সে একটি গল্প লেখো।");
+        return;
+      }
+      if (!overrideStory && input.value.trim()) {
+        addChatMsg("user", "🎬 প্রোডাকশন শুরু:\n" + story);
+        input.value = "";
+      }
+
+      STATE.lastStory = story;
+      saveState();
+
+      document.getElementById("readyBar").classList.remove("show");
+      setEnergyFlow(true);
+      updateWorkflowUI(6, "প্রোডাকশন শুরু হচ্ছে...");
+
+      try {
+        const res = await fetch("/api/produce", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            story,
+            aspect: document.getElementById("aspectSelect").value,
+            sceneCount: Number(document.getElementById("sceneCountSelect")?.value || 4),
+            agents: STATE.agents,
+            coWork: STATE.coWork,
+            allowPaidVideo: !!document.getElementById("allowPaidVideoChk")?.checked,
+            characterLock: STATE.characterLock || "",
+            improveNote
+          })
+        });
+        const data = await res.json();
+        if (!data.ok || !data.job_id) {
+          setEnergyFlow(false);
+          pushNotif("error", data.error || "প্রোডাকশন শুরু করা যায়নি।");
+          return;
+        }
+        CURRENT_JOB_ID = data.job_id;
+        pollProductionJob(data.job_id);
+      } catch (e) {
+        setEnergyFlow(false);
+        pushNotif("error", "সার্ভার ত্রুটি: " + e.message);
+      }
+    }
+
+    async function pollProductionJob(jobId) {
+      try {
+        const res = await fetch(`/api/job/${jobId}`);
+        const data = await res.json();
+        if (!data.ok || !data.job) {
+          setEnergyFlow(false);
+          return;
+        }
+        const job = data.job;
+        updateWorkflowUI(job.progress || 0, job.stage || "কাজ চলছে...");
+        LAST_TEAM_LOGS = job.team_logs || [];
+
+        // ৫ জন এজেন্টের লাইভ স্টেট ও মাল্টি-ব্লু LED আপডেট
+        if (job.agent_states) {
+          Object.entries(job.agent_states).forEach(([aid, st]) => {
+            if (STATE.agents[aid]) {
+              STATE.agents[aid].status = st.status || "idle";
+              STATE.agents[aid].thought = st.thought || "";
+              STATE.agents[aid].activeWorkers = st.active_workers || 0;
+            }
+          });
+          renderAgentCards();
+        }
+
+        if (job.status === "completed" && job.result) {
+          setEnergyFlow(false);
+          STATE.lastOutput = job.result;
+          saveState();
+          renderOutput(job.result);
+          document.getElementById("readyBar").classList.add("show");
+          playReadySound();
+          pushNotif("ok", "✅ প্রোডাকশন ১০০% সম্পন্ন! Output বক্সে ফাইল রেডি।");
+          addChatMsg("ai", `✅ "${job.result.title}" প্রস্তুত! Output বক্স থেকে প্রিভিউ দেখো, ডাউনলোড করো অথবা ✨ Improve করো।`);
+          return;
+        }
+
+        if (job.status === "failed") {
+          setEnergyFlow(false);
+          pushNotif("error", job.error || "প্রোডাকশন ব্যর্থ হয়েছে।");
+          addChatMsg("error", "⚠️ প্রোডাকশন ব্যর্থ: " + (job.error || "Unknown error"),
+            `<div class="msg-actions"><button class="icon-btn warn" onclick="runFullRecovery()">🛠️ Full Studio Self-Recovery</button></div>`);
+          return;
+        }
+
+        setTimeout(() => pollProductionJob(jobId), 1500);
+      } catch (e) {
+        setTimeout(() => pollProductionJob(jobId), 2500);
+      }
+    }
+
+    /* Output বক্স রেন্ডার (সিন রিল, Runway ভিডিও, অডিও, Open / Download / Improve ও YouTube প্যাক) */
+    function renderOutput(res) {
+      if (REEL_TIMER) { clearInterval(REEL_TIMER); REEL_TIMER = null; }
+      const body = document.getElementById("outputBody");
+      const scenes = res.scenes || [];
+      ACTIVE_SCENE_IDX = 0;
+
+      const firstImg = scenes[0]?.image_data || "";
+      const yt = res.youtube_pack || {};
+
+      body.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+          <strong style="font-size:13.5px;">${escapeHtml(res.title || "AI Studio Output")}</strong>
+          <span class="badge free">${escapeHtml(res.aspect || "9:16")}</span>
+        </div>
+
+        <div class="scene-stage" id="sceneStage">
+          ${res.video_clip_url
+            ? `<video controls playsinline src="${res.video_clip_url}"></video>`
+            : (firstImg ? `<img id="activeSceneImg" src="${firstImg}" alt="Scene 1" />` : `<span>কোনো ভিজ্যুয়াল নেই</span>`)}
+        </div>
+
+        <div id="activeSceneCaption" style="font-size:12px;color:var(--muted);background:var(--panel-2);padding:7px 9px;border-radius:9px;border:1px solid var(--border);">
+          ${scenes[0] ? `<strong>Scene 1:</strong> ${escapeHtml(scenes[0].subtitle || scenes[0].narration || "")}` : ""}
+        </div>
+
+        ${scenes.length > 1 ? `
+          <div class="scene-thumbs" id="sceneThumbs">
+            ${scenes.map((sc, i) => `
+              <div class="scene-thumb ${i === 0 ? "active" : ""}" onclick="selectScene(${i})">
+                <img src="${sc.image_data}" alt="Scene ${i + 1}" />
+              </div>
+            `).join("")}
+          </div>` : ""}
+
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${scenes.length > 1 ? `<button class="icon-btn" id="btnReelPlay" onclick="toggleSceneReel()">▶️ Play Reel</button>` : ""}
+          <button class="icon-btn" onclick="openCurrentOutputAsset()">🔍 Open</button>
+          <button class="icon-btn success" onclick="downloadCurrentOutput()">⬇️ Download</button>
+          <button class="icon-btn warn" onclick="openImproveModal()">✨ Improve</button>
+        </div>
+
+        ${res.audio_data ? `
+          <div style="background:var(--panel-2);padding:8px;border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:11.5px;color:#86efac;margin-bottom:5px;">🎵 Voiceover (.mp3)</div>
+            <audio controls src="${res.audio_data}" style="width:100%;height:34px;"></audio>
+          </div>` : `<div style="font-size:11.5px;color:var(--muted);">🎵 ${escapeHtml(res.audio_note || "")}</div>`}
+
+        ${res.sfx_data ? `
+          <div style="background:var(--panel-2);padding:8px;border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:11.5px;color:var(--blue);margin-bottom:5px;">🔊 Sound Effect (SFX)</div>
+            <audio controls src="${res.sfx_data}" style="width:100%;height:34px;"></audio>
+          </div>` : ""}
+
+        <div style="background:var(--panel-2);padding:9px;border-radius:10px;border:1px solid var(--border);font-size:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <strong style="color:var(--gold);">📺 YouTube Ready Pack</strong>
+            <button class="icon-btn" style="padding:3px 7px;font-size:11px;" onclick="copyYouTubePack()">📋 Copy</button>
+          </div>
+          <div><strong>Title:</strong> ${escapeHtml(yt.title || "")}</div>
+          <div style="color:var(--muted);margin-top:3px;">${escapeHtml(yt.description || "")}</div>
+          <div style="color:var(--blue);margin-top:4px;">${escapeHtml((yt.tags || []).join(" "))}</div>
+        </div>
+      `;
+    }
+
+    function selectScene(idx) {
+      const scenes = STATE.lastOutput?.scenes || [];
+      if (!scenes[idx]) return;
+      ACTIVE_SCENE_IDX = idx;
+      const stage = document.getElementById("sceneStage");
+      stage.innerHTML = `<img id="activeSceneImg" src="${scenes[idx].image_data}" alt="Scene ${idx + 1}" />`;
+      document.getElementById("activeSceneCaption").innerHTML =
+        `<strong>Scene ${idx + 1}:</strong> ${escapeHtml(scenes[idx].subtitle || scenes[idx].narration || "")}`;
+      document.querySelectorAll(".scene-thumb").forEach((el, i) => el.classList.toggle("active", i === idx));
+    }
+
+    function toggleSceneReel() {
+      const btn = document.getElementById("btnReelPlay");
+      if (REEL_TIMER) {
+        clearInterval(REEL_TIMER);
+        REEL_TIMER = null;
+        if (btn) btn.textContent = "▶️ Play Reel";
+        return;
+      }
+      const scenes = STATE.lastOutput?.scenes || [];
+      if (scenes.length < 2) return;
+      if (btn) btn.textContent = "⏸️ Pause";
+      REEL_TIMER = setInterval(() => {
+        selectScene((ACTIVE_SCENE_IDX + 1) % scenes.length);
+      }, 2800);
+    }
+
+    function openCurrentOutputAsset() {
+      const res = STATE.lastOutput;
+      if (!res) return;
+      const target = res.video_clip_url || res.scenes?.[ACTIVE_SCENE_IDX]?.image_data;
+      if (!target) return;
+      const w = window.open();
+      if (w) {
+        w.document.write(res.video_clip_url
+          ? `<video controls autoplay src="${target}" style="max-width:100%;height:100vh;background:#000;"></video>`
+          : `<img src="${target}" style="max-width:100%;background:#000;display:block;margin:auto;" />`);
+      }
+    }
+
+    function downloadCurrentOutput() {
+      const res = STATE.lastOutput;
+      if (!res) return;
+      const url = res.video_clip_url || res.scenes?.[ACTIVE_SCENE_IDX]?.image_data;
+      if (!url) return;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.video_clip_url ? "ai_studio_video.mp4" : `scene_${ACTIVE_SCENE_IDX + 1}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      if (res.audio_data) {
+        const a2 = document.createElement("a");
+        a2.href = res.audio_data;
+        a2.download = "ai_studio_voiceover.mp3";
+        document.body.appendChild(a2);
+        a2.click();
+        a2.remove();
+      }
+    }
+
+    function copyYouTubePack() {
+      const yt = STATE.lastOutput?.youtube_pack;
+      if (!yt) return;
+      const txt = `${yt.title || ""}\n\n${yt.description || ""}\n\n${(yt.tags || []).join(" ")}`;
+      navigator.clipboard?.writeText(txt);
+      pushNotif("ok", "📋 YouTube Title, Description ও Tags কপি হয়েছে!");
+    }
+
+    /* ✨ Improve ও Vault (আগের ভার্সন সংরক্ষণ) */
+    function openImproveModal() {
+      if (!STATE.lastOutput) return;
+      document.getElementById("improveNoteInput").value = "";
+      openModal("modalImprove");
+    }
+
+    function confirmImproveOutput() {
+      const note = document.getElementById("improveNoteInput").value.trim();
+      if (!note) return pushNotif("warn", "কী উন্নতি চাও তা লেখো।");
+      if (STATE.lastOutput) {
+        STATE.vault.unshift(structuredClone(STATE.lastOutput));
+        if (STATE.vault.length > 10) STATE.vault.pop();
+        saveState();
+      }
+      closeModal("modalImprove");
+      pushNotif("ok", "🗂️ আগের ভার্সন Vault-এ সেভ হয়েছে। উন্নত ভার্সন তৈরি হচ্ছে...");
+      startProduction(STATE.lastStory, note);
+    }
+
+    function openVaultModal() {
+      const body = document.getElementById("vaultModalBody");
+      if (!STATE.vault.length) {
+        body.innerHTML = `<div style="color:var(--muted);text-align:center;padding:18px;">Vault এখনো খালি। ✨ Improve ব্যবহার করলে আগের ভার্সনগুলো এখানে জমা থাকবে।</div>`;
+      } else {
+        body.innerHTML = STATE.vault.map((v, i) => `
+          <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:9px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <div>
+              <strong style="font-size:12.5px;">${escapeHtml(v.title || `Version #${i + 1}`)}</strong>
+              <div style="font-size:11px;color:var(--muted);">${escapeHtml(v.created_at || "")}</div>
+            </div>
+            <button class="icon-btn" style="font-size:11.5px;" onclick="loadFromVault(${i})">📂 Open</button>
+          </div>
+        `).join("");
+      }
+      openModal("modalVault");
+    }
+
+    function loadFromVault(idx) {
+      if (!STATE.vault[idx]) return;
+      STATE.lastOutput = STATE.vault[idx];
+      renderOutput(STATE.lastOutput);
+      closeModal("modalVault");
+      pushNotif("ok", "🗂️ Vault থেকে পুরোনো ভার্সন লোড হয়েছে।");
+    }
+
+    /* এজেন্ট থট ও লাইভ লগ ভিউয়ার */
+    function openAgentThought(agentId) {
+      const meta = AGENTS_META.find(a => a.id === agentId);
+      const ag = STATE.agents[agentId];
+      document.getElementById("thoughtTitle").textContent = `${meta.icon} ${meta.name} · লাইভ স্টেটাস`;
+      const logsHtml = LAST_TEAM_LOGS.slice(-6).map(l =>
+        `<div style="font-size:11.5px;color:var(--muted);padding:4px 0;border-bottom:1px solid var(--border);"><strong>${escapeHtml(l.agent)}</strong> (${escapeHtml(l.time || "")}): ${escapeHtml(l.msg)}</div>`
+      ).join("");
+
+      document.getElementById("thoughtBody").innerHTML = `
+        <div style="background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:10px;">
+          <div style="font-size:12px;color:var(--blue);margin-bottom:4px;">বর্তমান চিন্তা ও কাজ:</div>
+          <div style="font-size:13px;">${escapeHtml(ag.thought || "অপেক্ষায় আছে...")}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:5px;">সাম্প্রতিক টিম লগ:</div>
+          ${logsHtml || `<div style="font-size:12px;color:var(--muted);">এখনো কোনো প্রোডাকশন লগ নেই।</div>`}
+        </div>
+      `;
+      openModal("modalThought");
+    }
+
+    /* স্টুডিও অটো-ইনিশিয়ালাইজেশন */
+    (function initStudio() {
+      document.getElementById("btnCoDirector").classList.toggle("active", STATE.coDirector);
+      document.getElementById("btnCoWork").classList.toggle("active", STATE.coWork);
+      document.getElementById("btnDirectMode").classList.toggle("active", STATE.directMode);
+      document.getElementById("btnSoundToggle").textContent = STATE.readySound ? "🔊" : "🔇";
+
+      renderAgentCards();
+      renderNotifBar();
+      if (STATE.lastOutput) renderOutput(STATE.lastOutput);
+
+      document.getElementById("chatInput").addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendChat();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
