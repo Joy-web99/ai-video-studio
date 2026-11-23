@@ -172,7 +172,7 @@ def update_job_progress(
     if log_entry:
         log_entry.setdefault("time", time.strftime("%H:%M:%S"))
         job.setdefault("team_logs", []).append(log_entry)
-    def _esc_xml(text: str) -> str:
+def _esc_xml(text: str) -> str:
     """SVG-এর ভেতর কোনো চিহ্ন যেন কোড না ভাঙে তার জন্য নিরাপদ এসকেপ"""
     return (
         (text or "")
