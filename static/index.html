@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AI Video Production Studio</title>
+  <style>
+    :root {
+      --bg-main: #070b14; --bg-panel: #0f172a; --bg-card: #1e293b; --border: #334155;
+      --text-main: #f1f5f9; --text-muted: #94a3b8; --accent: #3b82f6;
+      --success: #22c55e; --error: #ef4444; --warning: #eab308; --blue: #06b6d4;
+      --font-bn: "Noto Sans Bengali", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-bn); }
+    body { background: var(--bg-main); color: var(--text-main); height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: 12px; }
+    
+    /* Top Bar */
+    .topbar { height: 40px; background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; }
+    .logo { font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 5px; }
+    .logo-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); }
+    .top-actions button { background: var(--bg-card); color: white; border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-left: 5px; }
+    
+    /* Main Grid */
+    .grid-container { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5px; padding: 5px; min-height: 0; }
+    @media (max-width: 768px) { .grid-container { grid-template-columns: 1fr; grid-template-rows: auto; overflow-y: auto; } }
+    
+    .box { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+    .box-header { background: var(--bg-card); padding: 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; }
+    
+    /* Box 1: Chat */
+    .chat-history { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .msg { max-width: 85%; padding: 8px; border-radius: 6px; line-height: 1.4; }
+    .msg.user { align-self: flex-end; background: var(--accent); color: white; }
+    .msg.director { align-self: flex-start; background: var(--bg-card); border: 1px solid var(--border); }
+    .msg.error { align-self: flex-start; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error); color: #fca5a5; }
+    
+    .chat-input-area { padding: 8px; border-top: 1px solid var(--border); display: flex; gap: 5px; align-items: center; }
+    .chat-input-area input { flex: 1; background: var(--bg-main); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 4px; outline: none; }
+    .btn-mic { background: transparent; border: 1px solid var(--border); color: white; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    .btn-mic.listening { color: var(--error); border-color: var(--error); animation: pulse 1.5s infinite; }
+    .btn-send { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .btn-stop { background: var(--error); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; display: none; }
+    
+    /* Box 4 & 5 */
+    .output-container { display: flex; flex-direction: column; height: 100%; }
+    .main-output { flex: 2; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 1px solid var(--border); background: #000; position: relative; }
+    .vault { flex: 1; padding: 10px; overflow-y: auto; }
+    .video-preview { width: 100%; max-height: 100%; object-fit: contain; }
+    .no-output { color: var(--text-muted); text-align: center; }
+    
+    /* Box 2: API Keys */
+    .api-keys-list { flex: 1; overflow-y: auto; padding: 5px; }
+    .agent-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer; border-radius: 4px; margin-bottom: 2px; background: #162032; }
+    .agent-row:hover { background: var(--bg-card); }
+    
+    .agent-info { display: flex; flex-direction: column; gap: 4px; }
+    .agent-name { font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+    .agent-model { font-size: 10px; color: var(--text-muted); }
+    
+    .agent-badges { display: flex; gap: 3px; }
+    .badge { font-size: 8px; padding: 2px 4px; border-radius: 3px; background: #334155; color: #cbd5e1; font-weight: bold; }
+    .badge.txt { background: #3b82f6; } .badge.img { background: #8b5cf6; }
+    .badge.vid { background: #f59e0b; } .badge.aud { background: #10b981; } .badge.edt { background: #ef4444; }
+    
+    .power-tier { font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 10px; background: #1e293b; border: 1px solid #475569; }
+    .power-tier.Max { color: #fbbf24; border-color: #fbbf24; }
+    .power-tier.High { color: #a78bfa; border-color: #a78bfa; }
+    .power-tier.Medium { color: #60a5fa; border-color: #60a5fa; }
+    
+    .led-group { display: flex; gap: 4px; margin-top: 5px; }
+    .led { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #334155; transition: all 0.3s; }
+    .led.green { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .led.red { background: var(--error); box-shadow: 0 0 6px var(--error); }
+    .led.blue { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
+    .led.yellow { background: var(--warning); box-shadow: 0 0 6px var(--warning); }
+    
+    /* Box 3: Workflow */
+    .workflow-logs { flex: 1; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 11px; display: flex; flex-direction: column; gap: 5px; background: #000; color: #a3be8c; }
+    .progress-bar-container { height: 4px; background: var(--bg-card); width: 100%; }
+    .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+    
+    /* Doctor Bar */
+    .doctor-bar { height: 35px; background: var(--bg-panel); border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 10px; gap: 10px; justify-content: space-between; }
+    
+    /* Modal General */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(3px); }
+    .modal-content { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .modal-header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; font-weight: bold; font-size: 16px; color: var(--accent); }
+    .modal-close { cursor: pointer; color: var(--error); font-size: 20px; line-height: 1; }
+    
+    /* Key Modal Specific */
+    .key-slot { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+    .slot-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; color: var(--blue); }
+    .input-group { margin-bottom: 8px; display: flex; gap: 5px; }
+    .input-group input, .input-group select { flex: 1; background: var(--bg-main); border: 1px solid var(--border); color: white; padding: 6px; border-radius: 4px; font-size: 11px; }
+    .btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .btn-sec { background: #475569; }
+    .btn-toggle { background: var(--bg-main); border: 1px solid var(--warning); color: var(--warning); padding: 4px 10px; border-radius: 15px; cursor: pointer; font-size: 10px; }
+    .btn-toggle.paid { border-color: var(--success); color: var(--success); }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo"><div class="logo-dot"></div> AI Video Studio</div>
+    <div class="top-actions">
+      <button onclick="init()">Reload</button>
+      <button onclick="checkDoctor()">Doctor</button>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid-container">
+    <!-- Box 1: Chat -->
+    <div class="box">
+      <div class="box-header">Director AI <span id="status-badge" style="color:var(--text-muted)">IDLE</span></div>
+      <div class="chat-history" id="chat-history">
+        <div class="msg director">স্বাগতম! আমি আপনার Director AI।</div>
+      </div>
+      <div class="chat-input-area">
+        <button class="btn-mic" id="mic-btn" onclick="toggleMic()">🎤</button>
+        <input type="text" id="prompt-input" placeholder="প্রম্পট লিখুন বা মাইকে বলুন..." onkeypress="handleKeyPress(event)">
+        <button class="btn-send" id="send-btn" onclick="sendPrompt()">Send</button>
+        <button class="btn-stop" id="stop-btn" onclick="stopRender()">■ Stop</button>
+      </div>
+    </div>
+
+    <!-- Box 4 & 5 -->
+    <div class="box">
+      <div class="box-header">Main Output (Verified)</div>
+      <div class="output-container">
+        <div class="main-output" id="main-output">
+          <div class="no-output">কোনো ভিডিও নেই।</div>
+        </div>
+        <div class="box-header" style="font-size:11px;">Vault</div>
+        <div class="vault" id="vault"><div class="no-output" style="font-size:10px;">খালি</div></div>
+      </div>
+    </div>
+
+    <!-- Box 2: API Keys -->
+    <div class="box">
+      <div class="box-header">API Keys & Agents</div>
+      <div class="api-keys-list" id="api-keys-list"></div>
+    </div>
+
+    <!-- Box 3: Workflow -->
+    <div class="box">
+      <div class="box-header">Workflow Logs</div>
+      <div class="workflow-logs" id="workflow-logs">
+        <div>System ready...</div>
+      </div>
+      <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
+    </div>
+  </div>
+
+  <div class="doctor-bar">
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span style="color:var(--success)">●</span> Status: <span id="doctor-status">Not Checked</span>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <!-- Spec Approval -->
+  <div class="modal-overlay" id="spec-modal">
+    <div class="modal-content">
+      <div class="modal-header">Approve Blueprint <span class="modal-close" onclick="closeSpecModal()">×</span></div>
+      <div id="spec-details" style="margin-bottom: 15px; line-height: 1.6;"></div>
+      <button class="btn" style="width:100%" onclick="approveSpec()">Approve & Produce</button>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal-overlay" id="key-modal">
+    <div class="modal-content">
+      <div class="modal-header"><span id="key-modal-title">Agent Settings</span> <span class="modal-close" onclick="closeKeyModal()">×</span></div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:var(--bg-main); padding:10px; border-radius:6px;">
+        <span>Auto-Detect Mode:</span>
+        <button class="btn-toggle" id="paid-toggle" onclick="togglePaidMode()">FREE / PAID</button>
+      </div>
+
+      <!-- Primary Slot -->
+      <div class="key-slot">
+        <div class="slot-header"><span>PRIMARY SLOT</span> <span class="led blue" id="led-p"></span></div>
+        <div class="input-group">
+          <select id="modal-provider-p"><option value="">Auto-Detect Provider</option><option value="google">Google</option><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option><option value="runway">Runway</option></select>
+          <select id="modal-model-p" style="width:50%"><option value="">Auto Model</option></select>
+        </div>
+        <div class="input-group">
+          <input type="password" id="modal-key-p" placeholder="API Key">
+          <button class="btn btn-sec" onclick="autoDetect()">Detect</button>
+        </div>
+        <div class="input-group">
+          <input type="text" id="modal-url-p" placeholder="Custom Base URL (Optional)">
+        </div>
+      </div>
+
+      <!-- Secondary Slot (Simplified for space) -->
+      <div class="key-slot">
+        <div class="slot-header"><span>SECONDARY SLOT</span> <span class="led yellow" id="led-s"></span></div>
+        <div class="input-group">
+          <input type="password" id="modal-key-s" placeholder="API Key">
+        </div>
+      </div>
+
+      <!-- Backup Slot (Simplified) -->
+      <div class="key-slot">
+        <div class="slot-header"><span>BACKUP SLOT</span> <span class="led off" id="led-b"></span></div>
+        <div class="input-group">
+          <input type="password" id="modal-key-b" placeholder="API Key">
+        </div>
+      </div>
+
+      <button class="btn" style="width:100%; margin-top:10px;" onclick="saveKeys()">Save All Slots</button>
+    </div>
+  </div>
+
+<script>
+  <body>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo"><div class="logo-dot"></div> AI Video Studio</div>
+    <div class="top-actions">
+      <button onclick="init()">Reload</button>
+      <button onclick="checkDoctor()">Doctor</button>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid-container">
+    <!-- Box 1: Chat -->
+    <div class="box">
+      <div class="box-header">Director AI <span id="status-badge" style="color:var(--text-muted)">IDLE</span></div>
+      <div class="chat-history" id="chat-history">
+        <div class="msg director">স্বাগতম! আমি আপনার Director AI।</div>
+      </div>
+      <div class="chat-input-area">
+        <button class="btn-mic" id="mic-btn" onclick="toggleMic()">🎤</button>
+        <input type="text" id="prompt-input" placeholder="প্রম্পট লিখুন বা মাইকে বলুন..." onkeypress="handleKeyPress(event)">
+        <button class="btn-send" id="send-btn" onclick="sendPrompt()">Send</button>
+        <button class="btn-stop" id="stop-btn" onclick="stopRender()">■ Stop</button>
+      </div>
+    </div>
+
+    <!-- Box 4 & 5 -->
+    <div class="box">
+      <div class="box-header">Main Output (Verified)</div>
+      <div class="output-container">
+        <div class="main-output" id="main-output">
+          <div class="no-output">কোনো ভিডিও নেই।</div>
+        </div>
+        <div class="box-header" style="font-size:11px;">Vault</div>
+        <div class="vault" id="vault"><div class="no-output" style="font-size:10px;">খালি</div></div>
+      </div>
+    </div>
+
+    <!-- Box 2: API Keys -->
+    <div class="box">
+      <div class="box-header">API Keys & Agents</div>
+      <div class="api-keys-list" id="api-keys-list"></div>
+    </div>
+
+    <!-- Box 3: Workflow -->
+    <div class="box">
+      <div class="box-header">Workflow Logs</div>
+      <div class="workflow-logs" id="workflow-logs">
+        <div>System ready...</div>
+      </div>
+      <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
+    </div>
+  </div>
+
+  <div class="doctor-bar">
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span style="color:var(--success)">●</span> Status: <span id="doctor-status">Not Checked</span>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <!-- Spec Approval -->
+  <div class="modal-overlay" id="spec-modal">
+    <div class="modal-content">
+      <div class="modal-header">Approve Blueprint <span class="modal-close" onclick="closeSpecModal()">×</span></div>
+      <div id="spec-details" style="margin-bottom: 15px; line-height: 1.6;"></div>
+      <button class="btn" style="width:100%" onclick="approveSpec()">Approve & Produce</button>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal-overlay" id="key-modal">
+    <div class="modal-content">
+      <div class="modal-header"><span id="key-modal-title">Agent Settings</span> <span class="modal-close" onclick="closeKeyModal()">×</span></div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:var(--bg-main); padding:10px; border-radius:6px;">
+        <span>Auto-Detect Mode:</span>
+        <button class="btn-toggle" id="paid-toggle" onclick="togglePaidMode()">FREE / PAID</button>
+      </div>
+
+      <!-- Primary Slot -->
+      <div class="key-slot">
+        <div class="slot-header"><span>PRIMARY SLOT</span> <span class="led blue" id="led-p"></span></div>
+        <div class="input-group">
+          <select id="modal-provider-p"><option value="">Auto-Detect Provider</option><option value="google">Google</option><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option><option value="runway">Runway</option></select>
+          <select id="modal-model-p" style="width:50%"><option value="">Auto Model</option></select>
+        </div>
+        <div class="input-group">
+          <input type="password" id="modal-key-p" placeholder="API Key">
+          <button class="btn btn-sec" onclick="autoDetect()">Detect</button>
+        </div>
+        <div class="input-group">
+          <input type="text" id="modal-url-p" placeholder="Custom Base URL (Optional)">
+        </div>
+      </div>
+
+      <!-- Secondary Slot (Simplified for space) -->
+      <div class="key-slot">
+        <div class="slot-header"><span>SECONDARY SLOT</span> <span class="led yellow" id="led-s"></span></div>
+        <div class="input-group">
+          <input type="password" id="modal-key-s" placeholder="API Key">
+        </div>
+      </div>
+
+      <!-- Backup Slot (Simplified) -->
+      <div class="key-slot">
+        <div class="slot-header"><span>BACKUP SLOT</span> <span class="led off" id="led-b"></span></div>
+        <div class="input-group">
+          <input type="password" id="modal-key-b" placeholder="API Key">
+        </div>
+      </div>
+
+      <button class="btn" style="width:100%; margin-top:10px;" onclick="saveKeys()">Save All Slots</button>
+    </div>
+  </div>
+
+<script>
+        const API_BASE = window.location.origin;
+    let currentSpec = null;
+    let currentProjectId = "default";
+    let currentAgentForKey = null;
+    let isPaidMode = false;
+    let recognition = null;
+    let isRendering = false;
+
+    async function init() {
+      try {
+        const res = await fetch(`${API_BASE}/api/bootstrap?project_id=${currentProjectId}`);
+        const data = await res.json();
+        renderAgents(data.agents, data.orchestrator);
+        renderOutputs(data.project);
+        connectSSE();
+      } catch (e) {
+        addLog("SYSTEM", "Backend unreachable.", "error");
+      }
+    }
+
+    // 1. Render Agents with 3 LEDs
+    function renderAgents(agentsMeta, orchestratorState) {
+      const container = document.getElementById("api-keys-list");
+      container.innerHTML = "";
+      
+      for (const [id, meta] of Object.entries(agentsMeta)) {
+        const state = orchestratorState[id] || { slots: [] };
+        const p = state.slots.find(s => s.slot_id === "primary") || {};
+        
+        let ledClass = p.api_key ? (p.led === "green" ? "green" : "blue") : "off";
+        let power = p.power_tier || "High";
+        
+        const row = document.createElement("div");
+        row.className = "agent-row";
+        row.onclick = () => openKeyModal(id, meta.name);
+        row.innerHTML = `
+          <div class="agent-info">
+            <div class="agent-name">${meta.name} <span class="power-tier ${power}">${power}</span></div>
+            <div class="agent-model">${p.provider_id || 'No Key'} - ${p.model_id || 'None'}</div>
+            <div class="agent-badges">
+              ${meta.capabilities.map(c => `<span class="badge ${c.toLowerCase()}">${c}</span>`).join('')}
+            </div>
+          </div>
+          <div class="led-group">
+             <div class="led ${ledClass}" title="Primary"></div>
+             <div class="led off" title="Secondary"></div>
+             <div class="led off" title="Backup"></div>
+          </div>
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    // 2. Chat & Voice Logic
+    function toggleMic() {
+      if (!('webkitSpeechRecognition' in window)) return alert("আপনার ব্রাউজারে ভয়েস সাপোর্ট নেই।");
+      
+      if (recognition) { recognition.stop(); recognition = null; document.getElementById('mic-btn').classList.remove('listening'); return; }
+      
+      recognition = new webkitSpeechRecognition();
+      recognition.lang = 'bn-IN';
+      recognition.interimResults = false;
+      
+      recognition.onstart = () => document.getElementById('mic-btn').classList.add('listening');
+      recognition.onresult = (e) => document.getElementById('prompt-input').value = e.results[0][0].transcript;
+      recognition.onend = () => document.getElementById('mic-btn').classList.remove('listening');
+      recognition.start();
+    }
+
+    async function sendPrompt() {
+      const input = document.getElementById("prompt-input");
+      const text = input.value.trim();
+      if (!text) return;
+      
+      input.value = "";
+      addChat("user", text);
+      document.getElementById("status-badge").innerText = "THINKING...";
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/director/plan`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: text, project_id: currentProjectId })
+        });
+        const data = await res.json();
+        
+        if (data.mode === "chat") {
+          addChat("director", data.reply);
+          document.getElementById("status-badge").innerText = "IDLE";
+        } else if (data.mode === "plan") {
+          currentSpec = data.project.spec;
+          showSpecModal(currentSpec, data.project.scenes);
+          document.getElementById("status-badge").innerText = "AWAITING APPROVAL";
+        }
+      } catch (e) {
+        addChat("error", "Error: " + e.message);
+        document.getElementById("status-badge").innerText = "ERROR";
+      }
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === "Enter" && !isRendering) sendPrompt();
+    }
+
+    function stopRender() {
+      if (!isRendering) return;
+      fetch(`${API_BASE}/api/projects/${currentProjectId}/stop`, { method: "POST" });
+      toggleRenderButtons(false);
+      addLog("SYSTEM", "Render stopped. You can edit prompt now.", "error");
+    }
+
+    function toggleRenderButtons(rendering) {
+      isRendering = rendering;
+      document.getElementById("send-btn").style.display = rendering ? "none" : "block";
+      document.getElementById("stop-btn").style.display = rendering ? "block" : "none";
+      document.getElementById("prompt-input").disabled = rendering;
+    }
+
+    // 3. Key Modal & Detect
+    function openKeyModal(id, name) {
+      currentAgentForKey = id;
+      document.getElementById("key-modal-title").innerText = `${name} Settings`;
+      document.getElementById("key-modal").style.display = "flex";
+    }
+    
+    function togglePaidMode() {
+      isPaidMode = !isPaidMode;
+      const btn = document.getElementById("paid-toggle");
+      btn.innerText = isPaidMode ? "PAID MODE 💰" : "FREE MODE 🆓";
+      btn.className = `btn-toggle ${isPaidMode ? 'paid' : ''}`;
+    }
+
+    async function autoDetect() {
+      const key = document.getElementById("modal-key-p").value.trim();
+      if (!key) return alert("API Key দিন।");
+      
+      const btn = event.target;
+      btn.innerText = "...";
+      try {
+        const res = await fetch(`${API_BASE}/api/keys/detect`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ api_key: key, mode: isPaidMode ? "paid" : "free" })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          document.getElementById("modal-provider-p").value = data.provider;
+          const modelSel = document.getElementById("modal-model-p");
+          modelSel.innerHTML = data.models.map(m => `<option value="${m}">${m}</option>`).join('');
+          btn.innerText = "OK";
+        } else {
+          alert("Detection failed: " + data.error);
+          btn.innerText = "Detect";
+        }
+      } catch(e) { btn.innerText = "Detect"; }
+    }
+
+    function closeKeyModal() { document.getElementById("key-modal").style.display = "none"; }
+
+    async function saveKeys() {
+      const pKey = document.getElementById("modal-key-p").value.trim();
+      const pProv = document.getElementById("modal-provider-p").value;
+      const pModel = document.getElementById("modal-model-p").value;
+      const pUrl = document.getElementById("modal-url-p").value.trim();
+      
+      if (!pKey) return alert("Primary Key required.");
+      
+      await fetch(`${API_BASE}/api/keys/apply`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: pProv || "auto", api_key: pKey, target_agents: [currentAgentForKey],
+          selected_models: { [currentAgentForKey]: pModel || "auto" }, base_url: pUrl
+        })
+      });
+      
+      const testRes = await fetch(`${API_BASE}/api/agents/test`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agent_id: currentAgentForKey, slot_id: "primary" })
+      });
+      const testData = await testRes.json();
+      
+      if (testData.ok) {
+        addLog("SYSTEM", `Key for ${currentAgentForKey} is Active.`, "success");
+        closeKeyModal(); init();
+      } else {
+        alert("Key failed: " + testData.result.error);
+      }
+    }
+
+    // Spec Modal
+    function showSpecModal(spec, scenes) {
+      document.getElementById("spec-details").innerHTML = `
+        <b>Title:</b> ${spec.title}<br><b>Style:</b> ${spec.visual_style}<br>
+        <b>Scenes:</b> ${scenes.length}<br><b>Duration:</b> ${spec.target_duration_sec}s
+      `;
+      document.getElementById("spec-modal").style.display = "flex";
+    }
+    function closeSpecModal() { document.getElementById("spec-modal").style.display = "none"; }
+
+    async function approveSpec() {
+      closeSpecModal();
+      toggleRenderButtons(true);
+      document.getElementById("status-badge").innerText = "RENDERING...";
+      await fetch(`${API_BASE}/api/director/approve`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: currentProjectId, spec: currentSpec })
+      });
+    }
+
+    // SSE & Logs
+    function connectSSE() {
+      const evtSource = new EventSource(`${API_BASE}/api/stream?project_id=${currentProjectId}`);
+      evtSource.addEventListener("log", (e) => addLog("SYSTEM", JSON.parse(e.data).msg, "info"));
+      evtSource.addEventListener("progress", (e) => {
+        document.getElementById("progress-bar").style.width = JSON.parse(e.data).progress + "%";
+      });
+      evtSource.addEventListener("complete", (e) => {
+        toggleRenderButtons(false);
+        document.getElementById("progress-bar").style.width = "100%";
+        document.getElementById("status-badge").innerText = "SUCCEEDED";
+        renderOutputs(JSON.parse(e.data).project);
+      });
+      evtSource.addEventListener("error", (e) => {
+        toggleRenderButtons(false);
+        try { addLog("SYSTEM", "Error: " + JSON.parse(e.data).msg, "error"); } catch(err){}
+      });
+    }
+
+    // Render Outputs & Logs
+    function renderOutputs(project) {
+      const mainOut = document.getElementById("main-output");
+      const vids = project.assets.filter(a => a.kind === 'video' && a.verified);
+      
+      if (vids.length > 0) {
+        mainOut.innerHTML = `<video class="video-preview" controls src="${vids[0].public_url}"></video>`;
+      } else {
+        mainOut.innerHTML = `<div class="no-output">কোনো ভিডিও নেই।</div>`;
+      }
+    }
+
+    function addChat(role, text) {
+      const history = document.getElementById("chat-history");
+      const msg = document.createElement("div");
+      msg.className = `msg ${role}`; msg.innerText = text;
+      history.appendChild(msg); history.scrollTop = history.scrollHeight;
+    }
+
+    function addLog(source, text, type) {
+      const logs = document.getElementById("workflow-logs");
+      const line = document.createElement("div");
+      let color = type === "error" ? "var(--error)" : "var(--accent)";
+      line.innerHTML = `<span style="color:#666">[${new Date().toLocaleTimeString()}]</span> <span style="color:${color}">${text}</span>`;
+      logs.appendChild(line); logs.scrollTop = logs.scrollHeight;
+    }
+
+    async function checkDoctor() {
+      document.getElementById("doctor-status").innerText = "Scanning...";
+      const res = await fetch(`${API_BASE}/api/doctor/check`, { method: "POST" });
+      const data = await res.json();
+      document.getElementById("doctor-status").innerText = data.ok ? "All Healthy" : "Issues Found";
+      document.getElementById("doctor-status").style.color = data.ok ? "var(--success)" : "var(--error)";
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
