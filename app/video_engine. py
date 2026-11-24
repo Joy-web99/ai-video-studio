@@ -1,0 +1,153 @@
+"""
+Video Generation Engine: Handles real T2V/I2V API calls (Runway, Luma, etc.)
+STRICT RULE: Will NEVER return an image disguised as a video.
+If video generation fails, it returns ok=False so the system can try a different path.
+"""
+from __future__ import annotations
+
+import asyncio
+import time
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import httpx
+
+from app.models import KeySlot
+from app.config import TEMP_DIR
+
+
+async def generate_video_clip(
+    prompt: str,
+    video_slot: Optional[KeySlot],
+    duration_sec: int = 5,
+    aspect_ratio: str = "16:9",
+) -> Dict[str, Any]:
+    """
+    Generate a real video clip using available video providers.
+    Returns:
+      {"ok": True, "video_path": Path, "provider": str}
+      or
+      {"ok": False, "error": str} (No video generated)
+    """
+    if not video_slot or not video_slot.api_key:
+        return {"ok": False, "error": "No Video API Key found. Cannot generate direct motion video."}
+
+    provider = video_slot.provider_id.lower()
+    api_key = video_slot.api_key
+    out_path = TEMP_DIR / f"raw_vid_{int(time.time())}.mp4"
+
+    try:
+        # --- RUNWAY ML ---
+        if provider == "runway":
+            # Runway uses a queue-based system. For simplicity, we do a blocking poll here.
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                headers = {
+                    "Authorization": f"Bearer {api_key}",
+                    "X-Runway-Version": "2024-11-06",
+                    "Content-Type": "application/json"
+                }
+                # 1. Create generation task
+                create_url = "https://api.dev.runwayml.com/v1/image_to_video" # or text_to_video
+                payload = {
+                    "promptText": prompt,
+                    "model": video_slot.model_id or "gen3a_turbo",
+                    "duration": duration_sec,
+                    "ratio": aspect_ratio.replace(":", "x") # e.g. 16x9
+                }
+                resp = await client.post(create_url, headers=headers, json=payload)
+                if resp.status_code != 200:
+                    raise RuntimeError(f"Runway API Error: {resp.text}")
+                
+                task_id = resp.json().get("id")
+                if not task_id:
+                    raise RuntimeError("Runway did not return a task ID.")
+                
+                # 2. Poll for completion (Max 2 minutes)
+                poll_url = f"https://api.dev.runwayml.com/v1/tasks/{task_id}"
+                for _ in range(24):
+                    await asyncio.sleep(5)
+                    poll_resp = await client.get(poll_url, headers=headers)
+                    data = poll_resp.json()
+                    status = data.get("status")
+                    
+                    if status == "SUCCEEDED":
+                        video_url = data.get("output", [None])[0]
+                        if not video_url:
+                            raise RuntimeError("Runway succeeded but no video URL found.")
+                        # Download the video
+                        vid_resp = await client.get(video_url)
+                        out_path.write_bytes(vid_resp.content)
+                        break
+                    elif status in ("FAILED", "CANCELLED"):
+                        raise RuntimeError(f"Runway task failed: {data.get('failure', 'Unknown')}")
+                else:
+                    raise RuntimeError("Runway task timed out.")
+
+        # --- LUMA DREAM MACHINE ---
+        elif provider == "luma":
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                payload = {
+                    "prompt": prompt,
+                    "aspect_ratio": aspect_ratio,
+                    "loop": False
+                }
+                resp = await client.post("https://api.lumalabs.ai/dream-machine/v1/generations", headers=headers, json=payload)
+                if resp.status_code not in (200, 201):
+                    raise RuntimeError(f"Luma API Error: {resp.text}")
+                
+                gen_id = resp.json().get("id")
+                
+                # Poll for completion
+                for _ in range(24):
+                    await asyncio.sleep(5)
+                    poll = await client.get(f"https://api.lumalabs.ai/dream-machine/v1/generations/{gen_id}", headers=headers)
+                    data = poll.json()
+                    state = data.get("state")
+                    if state == "completed":
+                        video_url = data.get("assets", {}).get("video")
+                        vid_resp = await client.get(video_url)
+                        out_path.write_bytes(vid_resp.content)
+                        break
+                    elif state == "failed":
+                        raise RuntimeError(f"Luma task failed: {data.get('failure_reason', 'Unknown')}")
+                else:
+                    raise RuntimeError("Luma task timed out.")
+
+        # --- FAL.AI (Kling / LTX) ---
+        elif provider == "fal":
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                headers = {"Authorization": f"Key {api_key}", "Content-Type": "application/json"}
+                # Example using Kling v1.6
+                url = "https://fal.run/fal-ai/kling-video/v1.6/standard/text-to-video"
+                payload = {
+                    "prompt": prompt,
+                    "duration": "5" if duration_sec <= 5 else "10",
+                    "aspect_ratio": aspect_ratio
+                }
+                resp = await client.post(url, headers=headers, json=payload)
+                if resp.status_code != 200:
+                    raise RuntimeError(f"Fal.ai Error: {resp.text}")
+                
+                data = resp.json()
+                video_url = data.get("video", {}).get("url")
+                if not video_url:
+                    raise RuntimeError("Fal.ai returned no video URL.")
+                
+                vid_resp = await client.get(video_url)
+                out_path.write_bytes(vid_resp.content)
+
+        else:
+            return {"ok": False, "error": f"Provider {provider} does not support video generation yet."}
+
+        # --- FINAL VALIDATION ---
+        if out_path.exists() and out_path.stat().st_size > 10000:
+            return {"ok": True, "video_path": out_path, "provider": provider}
+        else:
+            return {"ok": False, "error": "Generated video file is too small or invalid."}
+
+    except Exception as e:
+        # Clean up partial file if exists
+        if out_path.exists():
+            out_path.unlink(missing_ok=True)
+        return {"ok": False, "error": str(e)}
