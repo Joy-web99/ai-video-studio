@@ -8,9 +8,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
     STUDIO_WORKSPACE=/app/workspace
 
-# Install system dependencies: FFmpeg for video, Fonts for Bengali/Hindi text
+# Install system dependencies: FFmpeg, Compilers for Scipy, and Bengali Fonts
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    build-essential \
+    gfortran \
+    libopenblas-dev \
+    liblapack-dev \
     libgl1 \
     libglib2.0-0 \
     libsndfile1 \
