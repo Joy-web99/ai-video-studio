@@ -586,10 +586,10 @@
 
     .agent-api-row {
       display: grid;
-      grid-template-columns: 74px minmax(0, 1fr) auto;
+      grid-template-columns: 68px minmax(0, 1fr) auto;
       align-items: center;
-      gap: 4px;
-      padding: 4px 5px;
+      gap: 3px;
+      padding: 4px 4px;
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
@@ -1562,10 +1562,24 @@
 
     /* DIRECTOR Q&A, BLUEPRINT & 6-GATE PIPELINE */
     function isQuestionOnlyPrompt(text) {
-      const lower = String(text || "").toLowerCase();
-      const prod = ["ভিডিও বানা", "ভিডিও তৈরি", "রেন্ডার", "ডাবিং", "বিট-সিঙ্ক", "beat sync", "generate video", "make video", "স্যাম্পল", "ফাইনাল", "approve", "improve", "উন্নত"];
+      const clean = String(text || "").trim();
+      const lower = clean.toLowerCase();
+      const prod = [
+        "ভিডিও বানা", "ভিডিও তৈরি", "ভিডিও চাই", "রেন্ডার", "ডাবিং", "বিট-সিঙ্ক", "beat sync",
+        "generate video", "make video", "create video", "স্যাম্পল", "ফাইনাল", "approve", "improve", "উন্নত"
+      ];
       if (prod.some((w) => lower.includes(w))) return false;
-      return text.includes("?") || ["কীভাবে", "কিভাবে", "কেন", "বলো", "ব্যাখ্যা", "বুঝিয়ে", "কী কাজ", "কি কাজ", "help", "how"].some((w) => lower.includes(w));
+
+      const greetingsOrSmalltalk = [
+        "hi", "hii", "hiii", "hello", "hey", "helo", "yo", "sup", "ok", "okay", "hmm", "hm",
+        "হাই", "হ্যালো", "হেলো", "কেমন আছো", "কেমন আছেন", "কি অবস্থা", "কী অবস্থা", "কি খবর", "কী খবর",
+        "ধন্যবাদ", "থ্যাংকস", "thanks", "thank you", "গুড মর্নিং", "good morning", "গুড নাইট", "good night"
+      ];
+      const tokens = lower.replace(/[^\p{L}\p{N}\s?]/gu, " ").trim().split(/\s+/).filter(Boolean);
+      const isGreeting = greetingsOrSmalltalk.includes(lower) || (tokens.length > 0 && tokens.length <= 2 && tokens.every((tk) => greetingsOrSmalltalk.includes(tk)));
+      if (isGreeting) return true;
+
+      return clean.includes("?") || ["কীভাবে", "কিভাবে", "কেন", "বলো", "ব্যাখ্যা", "বুঝিয়ে", "কী কাজ", "কি কাজ", "help", "how", "what", "why", "ki"].some((w) => lower.includes(w));
     }
 
     function isRefinementPrompt(text) {
@@ -1579,9 +1593,15 @@
     }
 
     function buildDirectorAnswer(promptText) {
+      const clean = String(promptText || "").trim();
+      const lower = clean.toLowerCase();
       const activeCount = Object.values(studioState.agentSlots).filter((s) => !s.hasDisturbance).length;
       const resNote = studioState.resources.length ? ` বর্তমানে ${studioState.resources.length}টি রিসোর্স যুক্ত আছে।` : "";
-      return `তোমার প্রশ্ন ("${promptText}")-এর উত্তর:\n• সক্রিয় এজেন্ট: ${activeCount}/5 (Director, Image, Video, Audio, Editing)।\n• নিয়ম: প্রশ্ন করলে আগে উত্তর দেওয়া হয়; আর ভিডিও চাইলে ৬-ধাপের Validation Gate পাস করে Main Output-এ ভিডিও প্রকাশ করা হয়।${resNote}`;
+      const isHi = ["hi", "hii", "hello", "hey", "হাই", "হ্যালো", "হেলো", "কেমন আছো", "কি অবস্থা", "কী অবস্থা"].includes(lower);
+      if (isHi) {
+        return `হ্যালো! আমি Director AI (${activeCount}/5 এজেন্ট প্রস্তুত)। এখন চাইলে সাধারণ কথা বা প্রশ্ন করতে পারো; আর ভিডিও, ডাবিং বা বিট-সিঙ্ক বানাতে বললে আগে Plan/Spec সাজিয়ে কাজ শুরু করব।${resNote}`;
+      }
+      return `তোমার প্রশ্ন ("${clean}")-এর উত্তর:\n• সক্রিয় এজেন্ট: ${activeCount}/5 (Director, Image, Video, Audio, Editing)।\n• নিয়ম: প্রশ্ন করলে আগে উত্তর দেওয়া হয়; আর ভিডিও চাইলে ৬-ধাপের Validation Gate পাস করে Main Output-এ ভিডিও প্রকাশ করা হয়।${resNote}`;
     }
 
     function prepareBlueprintFromPrompt(promptText, isRefine) {
@@ -1620,6 +1640,7 @@
       const inputEl = document.getElementById("promptInputField");
       const rawText = (inputEl ? inputEl.value : "").trim();
       if (!rawText && !studioState.resources.length) return;
+      if (rawText && /^[^\p{L}\p{N}]+$/u.test(rawText) && !studioState.resources.length) return;
 
       const promptText = rawText || `সংযুক্ত রিসোর্স (${studioState.resources.length}টি) দিয়ে কাজ শুরু করো`;
       studioState.job.lastPrompt = promptText;
@@ -1827,7 +1848,8 @@
       }, 3400);
     }
 
-    function triggerAgentDisturbance(agentId, enError, bnSummary) {
+    function triggerAgentDisturbance(agentId, enError, bnSummary, ev) {
+      if (ev) ev.stopPropagation();
       const slot = studioState.agentSlots[agentId];
       if (!slot) return;
       const activeKey = slot.keys[slot.activePrimarySlot];
@@ -1931,7 +1953,7 @@
           rightBtns += `<button class="row-switch-btn alert-throb" onclick="openDisturbanceDetailModal(event)">🔔</button>`;
           if ((slot.healAttempts || 0) < 3) rightBtns += `<button class="row-switch-btn heal-throb" onclick="runAgentSelfHealing('${slot.agentId}',event)">🩹 Heal</button>`;
         }
-        if (!rightBtns) rightBtns = `<span style="font-size:8.5px;color:var(--text-muted);">${escapeHtml(activeKey.model.slice(0, 12))}</span>`;
+        if (!rightBtns) rightBtns = `<button type="button" class="row-switch-btn" onclick="triggerAgentDisturbance('${slot.agentId}','Simulated key/quota alert.','${slot.label} Key-তে সতর্কতা/এরর দেখা যাচ্ছে।',event)" title="Simulate Alert/Error">! Err</button>`;
 
         return `
           <div class="agent-api-row ${slot.whiteLightActive ? "white-light-active" : ""}" onclick="openApiSlotModal('${slot.agentId}')">
@@ -2427,8 +2449,11 @@
            <button class="tiny-btn primary-tint" onclick="cyclePaidFreeAutoDetect('${slot.agentId}');openApiSlotModal('${slot.agentId}');">⚡ Auto · ${slot.autoMode.toUpperCase()}</button>
          </div>
          ${cards}
-         <div style="display:flex;justify-content:space-between;gap:5px;">
-           <button class="tiny-btn" onclick="triggerSelfSwitchPrimary('${slot.agentId}');openApiSlotModal('${slot.agentId}');">⇄ Self-Switch</button>
+         <div style="display:flex;justify-content:space-between;gap:5px;flex-wrap:wrap;">
+           <div style="display:flex;gap:4px;">
+             <button class="tiny-btn" onclick="triggerSelfSwitchPrimary('${slot.agentId}');openApiSlotModal('${slot.agentId}');">⇄ Self-Switch</button>
+             ${slot.hasDisturbance || slot.nameState === "error" ? `<button class="tiny-btn" onclick="runAgentSelfHealing('${slot.agentId}');openApiSlotModal('${slot.agentId}');">🩹 Heal</button>` : ""}
+           </div>
            <div style="display:flex;gap:4px;">
              <button class="tiny-btn" onclick="runAgentReadyTest('${slot.agentId}');closeStudioModal();">▶ Test</button>
              <button class="tiny-btn primary-tint" onclick="saveApiSlotModalChanges('${slot.agentId}')">💾 Save</button>
