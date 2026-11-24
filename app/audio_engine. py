@@ -1,0 +1,184 @@
+"""
+Audio Engine: Handles Voiceover generation (TTS) and advanced Beat-Sync DSP analysis.
+Extracts BPM, Bass drops, and treble peaks from background music to sync video cuts.
+"""
+from __future__ import annotations
+
+import asyncio
+import subprocess
+import uuid
+import wave
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+from scipy.signal import butter, find_peaks, lfilter
+
+from app.config import TEMP_DIR
+from app.models import KeySlot
+from app.providers import generate_narration_audio
+
+
+# ------------------------------------------------------------------------------
+# 1. AUDIO DURATION PROBE
+# ------------------------------------------------------------------------------
+def get_audio_duration(audio_path: Path) -> float:
+    """Return exact duration of an audio file in seconds."""
+    cmd = [
+        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)
+    ]
+    try:
+        out = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, timeout=10).decode().strip()
+        return round(float(out), 3)
+    except Exception:
+        return 0.0
+
+
+# ------------------------------------------------------------------------------
+# 2. BEAT-SYNC DSP (BASS DROP & BPM DETECTOR)
+# ------------------------------------------------------------------------------
+def _decode_to_mono_pcm(audio_path: Path, sample_rate: int = 22050) -> np.ndarray:
+    """Convert any audio/video file into a normalized float32 mono waveform array."""
+    wav_tmp = TEMP_DIR / f"pcm_{uuid.uuid4().hex[:8]}.wav"
+    cmd = [
+        "ffmpeg", "-y", "-i", str(audio_path), "-ac", "1", "-ar", str(sample_rate),
+        "-f", "wav", str(wav_tmp)
+    ]
+    try:
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True, timeout=45)
+        with wave.open(str(wav_tmp), "rb") as wf:
+            frames = wf.readframes(wf.getnframes())
+            samples = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+        return samples
+    except Exception:
+        return np.array([], dtype=np.float32)
+    finally:
+        if wav_tmp.exists():
+            wav_tmp.unlink(missing_ok=True)
+
+
+def _butter_bandpass(samples: np.ndarray, lowcut: float, highcut: float, fs: int) -> np.ndarray:
+    """Isolate specific frequency bands (e.g., bass vs treble)."""
+    nyq = 0.5 * fs
+    low = max(0.001, lowcut / nyq)
+    high = min(0.99, highcut / nyq)
+    b, a = butter(3, [low, high], btype="band")
+    return lfilter(b, a, samples)
+
+
+def analyze_audio_beats_sync(audio_path: Path) -> Dict[str, Any]:
+    """
+    Analyzes the music to find BPM, bass drops, and energy peaks.
+    """
+    fs = 22050
+    samples = _decode_to_mono_pcm(audio_path, sample_rate=fs)
+    if samples.size < fs:
+        return {"ok": False, "error": "Audio too short or unreadable.", "bpm": 120.0}
+
+    duration_sec = round(samples.size / fs, 2)
+    hop = 512
+    frame_rate = fs / hop
+
+    # Isolate Bass (20-160Hz) and Treble (2500-8000Hz)
+    bass_sig = _butter_bandpass(samples, 20.0, 160.0, fs)
+    treble_sig = _butter_bandpass(samples, 2500.0, 8000.0, fs)
+
+    n_frames = len(samples) // hop
+    trimmed = samples[: n_frames * hop].reshape(n_frames, hop)
+    bass_trimmed = bass_sig[: n_frames * hop].reshape(n_frames, hop)
+    treble_trimmed = treble_sig[: n_frames * hop].reshape(n_frames, hop)
+
+    # Root Mean Square (Energy)
+    rms_total = np.sqrt(np.mean(trimmed ** 2, axis=1) + 1e-9)
+    rms_bass = np.sqrt(np.mean(bass_trimmed ** 2, axis=1) + 1e-9)
+    rms_treble = np.sqrt(np.mean(treble_trimmed ** 2, axis=1) + 1e-9)
+
+    # Find Peaks (Onsets)
+    min_dist = int(frame_rate * 0.32)
+    beat_peaks, _ = find_peaks(rms_total, distance=min_dist, prominence=np.percentile(rms_total, 75))
+    bass_peaks, _ = find_peaks(rms_bass, distance=int(frame_rate * 0.8), prominence=np.percentile(rms_bass, 85))
+    treble_peaks, _ = find_peaks(rms_treble, distance=int(frame_rate * 0.6), prominence=np.percentile(rms_treble, 85))
+
+    beat_times = [round(float(p / frame_rate), 3) for p in beat_peaks]
+    bass_times = [round(float(p / frame_rate), 3) for p in bass_peaks]
+    treble_times = [round(float(p / frame_rate), 3) for p in treble_peaks]
+
+    # Estimate BPM from median inter-beat interval
+    bpm = 120.0
+    if len(beat_times) >= 4:
+        intervals = np.diff(beat_times)
+        valid = intervals[(intervals >= 0.28) & (intervals <= 1.2)]
+        if valid.size > 0:
+            bpm = round(float(60.0 / np.median(valid)), 1)
+            while bpm < 70: bpm *= 2
+            while bpm > 175: bpm /= 2
+
+    return {
+        "ok": True,
+        "bpm": bpm,
+        "duration_sec": duration_sec,
+        "beat_timestamps": beat_times[:120],
+        "bass_drop_timestamps": bass_times[:40],
+        "treble_peak_timestamps": treble_times[:40],
+        "mood": "high_energy" if len(bass_times) >= 4 and bpm >= 115 else "cinematic_melodic"
+    }
+
+
+async def async_analyze_beats(audio_path: Path) -> Dict[str, Any]:
+    """Async wrapper for the blocking DSP analysis."""
+    return await asyncio.to_thread(analyze_audio_beats_sync, audio_path)
+
+
+# ------------------------------------------------------------------------------
+# 3. MIX VOICE + BACKGROUND MUSIC
+# ------------------------------------------------------------------------------
+async def mix_audio_tracks(
+    voice_path: Optional[Path],
+    music_path: Optional[Path],
+    out_filename: str,
+    ducking: bool = True
+) -> Dict[str, Any]:
+    """
+    Mixes voiceover and background music. 
+    If ducking=True, the music volume automatically lowers when the voice is speaking.
+    """
+    if not voice_path and not music_path:
+        return {"ok": False, "error": "No audio tracks provided."}
+
+    out_path = TEMP_DIR / out_filename
+
+    # If only one track exists, just use it
+    if voice_path and not music_path:
+        return {"ok": True, "path": voice_path}
+    if music_path and not voice_path:
+        return {"ok": True, "path": music_path}
+
+    cmd = ["ffmpeg", "-y", "-i", str(voice_path), "-i", str(music_path)]
+
+    if ducking:
+        # Sidechain compression (lowers music volume automatically when voice is present)
+        filter_complex = (
+            "[0:a]volume=1.0[voice];"
+            "[1:a]volume=0.3[music];"
+            "[music][voice]sidechaincompress=threshold=0.05:ratio=8:attack=200:release=1000[bg_mixed];"
+            "[voice][bg_mixed]amix=inputs=2:duration=first:dropout_transition=2[out]"
+        )
+        cmd.extend(["-filter_complex", filter_complex, "-map", "[out]"])
+    else:
+        cmd.extend(["-filter_complex", "amix=inputs=2:duration=first:dropout_transition=2"])
+
+    cmd.extend(["-c:a", "aac", "-b:a", "192k", str(out_path)])
+
+    try:
+        process = await asyncio.create_subprocess_exec(
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await process.communicate()
+
+        if process.returncode != 0:
+            return {"ok": False, "error": f"Audio mix failed: {stderr.decode()[-200:]}"}
+
+        return {"ok": True, "path": out_path}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
