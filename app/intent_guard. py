@@ -1,0 +1,64 @@
+"""
+Intent Guard: Strictly separates casual chat/greetings from actual production commands.
+Prevents the system from burning API credits when the user just says "Hi" or "হাই".
+"""
+from __future__ import annotations
+
+import re
+
+# Common casual greetings and short replies (English & Bengali)
+CASUAL_PATTERNS = {
+    "hi", "hello", "hey", "hii", "yo", "sup", "good morning", "good evening", "good afternoon",
+    "how are you", "who are you", "what is this", "help", "test", "ok", "okay", "thanks", "thank you",
+    "হাই", "হ্যালো", "হেলো", "কেমন আছো", "কেমন আছেন", "তুমি কে", "এটা কি", "সাহায্য", "ধন্যবাদ", 
+    "ঠিক আছে", "হুম", "আচ্ছা", "কি ব্যাপার"
+}
+
+# Words that actually indicate the user wants to create/produce media
+PRODUCTION_KEYWORDS = (
+    "video", "image", "photo", "dub", "dubbing", "anime", "story", "reel", "short",
+    "music", "beat", "sync", "edit", "thumbnail", "2d", "3d", "cartoon", "render",
+    "ভিডিও", "ছবি", "ডাবিং", "গল্প", "কার্টুন", "গান", "এডিট", "শর্ট", "থাম্বনেইল", "বানাও", "তৈরি করো"
+)
+
+# Words that indicate a question (even if they mention a production keyword)
+QUESTION_KEYWORDS = (
+    "how", "what", "why", "where", "who", "explain", "tell me about",
+    "কিভাবে", "কীভাবে", "কি", "কী", "কেন", "কোথায়", "কে", "বলো", "বুঝিয়ে বলো"
+)
+
+def classify_intent(prompt: str, has_youtube_url: bool = False) -> str:
+    """
+    Returns:
+    - 'chat' -> Casual greeting, pure question, or gibberish. Do NOT start production.
+    - 'production' -> Clear intent to build a video/image/audio.
+    """
+    if has_youtube_url:
+        return "production"
+
+    clean = re.sub(r"[?!.,।]+$", "", (prompt or "").strip().lower()).strip()
+    
+    # 1. Empty or exact greeting match
+    if not clean or clean in CASUAL_PATTERNS:
+        return "chat"
+
+    words = clean.split()
+
+    # 2. Very short prompts (e.g., "hi there", "কেমন আছো তুমি") without production keywords
+    if len(words) <= 3:
+        if not any(k in clean for k in PRODUCTION_KEYWORDS):
+            return "chat"
+
+    # 3. Check if it's purely a question without production intent
+    is_question = any(q in clean for q in QUESTION_KEYWORDS) or clean.endswith("?") or clean.endswith("؟")
+    has_production = any(k in clean for k in PRODUCTION_KEYWORDS)
+    
+    if is_question and not has_production:
+        return "chat"
+
+    # 4. If it explicitly asks to create something
+    if has_production:
+        return "production"
+
+    # 5. Default to chat for safety (to avoid burning API keys on random text)
+    return "chat"
