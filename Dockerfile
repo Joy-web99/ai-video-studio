@@ -8,13 +8,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
     STUDIO_WORKSPACE=/app/workspace
 
-# Install system dependencies: FFmpeg, Compilers for Scipy, and Bengali Fonts
+# Install system dependencies: FFmpeg and Bengali Fonts
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
-    build-essential \
-    gfortran \
-    libopenblas-dev \
-    liblapack-dev \
     libgl1 \
     libglib2.0-0 \
     libsndfile1 \
@@ -29,17 +25,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Install Python dependencies
+# Install Python dependencies (STRICTLY using pre-built binaries to avoid RAM crashes)
 COPY requirements.txt /app/requirements.txt
-RUN pip install --upgrade pip && pip install --no-cache-dir -r /app/requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir --only-binary=:all: -r /app/requirements.txt
 
-# Copy all project files
 COPY . /app
 
-# Create workspace directories for outputs and uploads
+# Create workspace directories
 RUN mkdir -p \
     /app/workspace/projects \
     /app/workspace/uploads \
@@ -49,12 +44,11 @@ RUN mkdir -p \
     /app/static \
     && chmod -R 777 /app/workspace
 
-# Expose port
 EXPOSE 8000
 
-# Healthcheck to keep the server alive
+# Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=25s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8000}/api/health || exit 1
 
-# Start the FastAPI application
+# Start the application
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 120"]
