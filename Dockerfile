@@ -1,12 +1,14 @@
 FROM python:3.11-slim
 
-# Environment Variables
+# Environment Variables (Forcing only binary wheels to save RAM)
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     PORT=8000 \
-    STUDIO_WORKSPACE=/app/workspace
+    STUDIO_WORKSPACE=/app/workspace \
+    PIP_ONLY_BINARY=:all: \
+    PIP_PREFER_BINARY=1
 
 # Install system dependencies: FFmpeg and Bengali Fonts
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -27,10 +29,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Install Python dependencies (STRICTLY using pre-built binaries to avoid RAM crashes)
+# 1. Upgrade build tools first (Crucial for scipy to understand it should use wheels)
+RUN pip install --upgrade pip setuptools wheel
+
+# 2. Force install scipy and numpy as pre-built wheels (No compilation at all)
+RUN pip install --no-cache-dir --only-binary=scipy,numpy scipy==1.15.1 numpy==2.2.0
+
+# 3. Install the rest of the requirements
 COPY requirements.txt /app/requirements.txt
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir --only-binary=:all: -r /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app
 
